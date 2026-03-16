@@ -31,7 +31,7 @@
         #npc-section {
             flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center;
             border-right: 4px solid #111; box-shadow: inset -20px 0 50px rgba(0,0,0,0.5);
-            background: url('images/dialogue_backgrounds/shop_bg_placeholder.png') center/cover;
+            background: url('./images/dialogue_backgrounds/shop_bg_placeholder.png') center/cover;
         }
         #npc-sprite {
             max-width: 90%; max-height: 85%; object-fit: contain;
@@ -142,7 +142,7 @@
     <div id="shop-container">
         
         <div id="npc-section">
-            <img id="npc-sprite" src="images/dialogue_portraits/Shopkeeper_Placeholder.png" alt="Shopkeeper" onerror="this.src=''; this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.width='400px'; this.style.height='600px';">
+            <img id="npc-sprite" src="./images/dialogue_portraits/Shopkeeper_Placeholder.png" alt="Shopkeeper" onerror="this.src=''; this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.width='400px'; this.style.height='600px';">
             
             <div id="npc-dialogue-box">
                 <div class="npc-name">Rin</div>
@@ -154,12 +154,12 @@
             
             <div class="shelf heavy-shelf">
                 <div class="item-slot sitting-item" onmouseenter="updateDialogue('Everyone&apos;s favorite little Ghost! Isn&apos;t the Attack Ring cute!? Not a bad pick for Defense or Stamina.')" onclick="buyItem('Crested Carapace', 1200)">
-                    <img src="images/store_items/boxed_kits/FullBoxKit_POLTA.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#553333';">
+                    <img src="./images/store_items/boxed_kits/FullBoxKit_POLTA.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#553333';">
                     <div class="item-label">Crested Carapace Kit <span class="price-tag">1200 BP</span></div>
                 </div>
 
                 <div class="item-slot sitting-item" onmouseenter="updateDialogue('Isn&apos;t this one based on a beetle? Gross... At least it&apos;s got good Defense, right?')" onclick="buyItem('Crimson Impact', 1200)">
-                    <img src="images/store_items/boxed_kits/FullBoxKit_CRESTEDCARAPACE.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#335533';">
+                    <img src="./images/store_items/boxed_kits/FullBoxKit_CRESTEDCARAPACE.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#335533';">
                     <div class="item-label">Crimson Impact Kit <span class="price-tag">1200 BP</span></div>
                 </div>
             </div>
@@ -167,19 +167,19 @@
             <div class="shelf peg-shelf" style="margin-top: 20px;">
                 <div class="item-slot" onmouseenter="updateDialogue('Need a replacement Attack Ring? This one&apos;s got great Stamina and Mobility!')" onclick="buyItem('Tiger Claw AR', 300)">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="images/store_items/single_parts/SinglePartBox_CrossTalon_AR.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <img class="hanging-item" src="./images/store_items/single_parts/SinglePartBox_CrossTalon_AR.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Tiger Claw AR <span class="price-tag">300 BP</span></div>
                 </div>
 
                 <div class="item-slot" onmouseenter="updateDialogue('A solid Heavy Weight Disk. Crucial for stamina builds.')" onclick="buyItem('Heavy WD', 250)">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="images/shop/blister_wd.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <img class="hanging-item" src="./images/shop/blister_wd.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Heavy WD <span class="price-tag">250 BP</span></div>
                 </div>
 
                 <div class="item-slot" onmouseenter="updateDialogue('Just a standard Blade Base. Always good to have spares.')" onclick="buyItem('Flat Base', 200)">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="images/shop/blister_bb.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <img class="hanging-item" src="./images/shop/blister_bb.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Flat Base <span class="price-tag">200 BP</span></div>
                 </div>
             </div>
@@ -187,13 +187,13 @@
             <div class="shelf peg-shelf" style="margin-top: 20px;">
                 <div class="item-slot" onmouseenter="updateDialogue('Looking for more RPMs? The EZ Launcher is a classic.')" onclick="buyItem('EZ Launcher', 500)">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="images/shop/blister_launcher1.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <img class="hanging-item" src="./images/shop/blister_launcher1.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">EZ Launcher (Magenta) <span class="price-tag">500 BP</span></div>
                 </div>
 
                 <div class="item-slot" onmouseenter="updateDialogue('A longer Ripcord for a stronger pull. Don&apos;t snap it!')" onclick="buyItem('Long Ripcord', 150)">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="images/shop/blister_cord.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <img class="hanging-item" src="./images/shop/blister_cord.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Standard Ripcord (Red) <span class="price-tag">150 BP</span></div>
                 </div>
             </div>

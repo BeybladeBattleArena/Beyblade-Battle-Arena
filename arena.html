@@ -170,7 +170,7 @@
 <div id="balloon-tally">0 / 15</div>
 
 <div id="arena-tutorial-vn" onclick="TutorialManager.advanceVN()">
-    <img id="arena-tut-portrait" src="images/dialogue_portraits/Miko_Nanami.png" onerror="this.style.display='none'">
+    <img id="arena-tut-portrait" src="./images/dialogue_portraits/Miko_Nanami.png" onerror="this.style.display='none'">
     <div id="arena-tut-name">Miko</div>
     <div id="arena-tut-text"></div>
     <div id="arena-tut-next">▶</div>
@@ -333,7 +333,7 @@
     // --- NEW: Balloon System Tracking ---
     let activeBalloons = [];
     let balloonImg = new Image();
-    balloonImg.src = 'images/beyblade_parts/arena_props/redballoon.png';
+    balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
     // =========================================================
     // --- THE TUTORIAL MANAGER ENGINE (EXPANDED FOR COMBAT) ---
@@ -359,7 +359,7 @@
             document.getElementById('instruction-text').style.display = 'none'; 
             
             if (this.tutorialType === "basics") {
-                document.getElementById('arena-tut-portrait').src = "images/dialogue_portraits/Miko_Nanami.png";
+                document.getElementById('arena-tut-portrait').src = "./images/dialogue_portraits/Miko_Nanami.png";
                 document.getElementById('arena-tut-name').innerText = "Miko";
                 this.showVN([
                     "Alright! First things first: The Launch!",
@@ -371,7 +371,7 @@
                     document.getElementById('instruction-text').style.display = 'block';
                 });
             } else if (this.tutorialType === "combat") {
-                document.getElementById('arena-tut-portrait').src = "images/dialogue_portraits/Toma_Tsukishiro.png";
+                document.getElementById('arena-tut-portrait').src = "./images/dialogue_portraits/Toma_Tsukishiro.png";
                 document.getElementById('arena-tut-name').innerText = "Toma";
                 this.showVN([
                     "Alright, check it: Launch your Bey into the stadium, and I'll do the same. At least two Bladers launch into the stadium at the exact same time to start a match.",
@@ -832,7 +832,7 @@
 
         if (TutorialManager.isActive && TutorialManager.phase === 0) {
             if (window.AudioManager) {
-                window.AudioManager.playBGM('audio/music/How_To_Go_Pro_ForTutorial.wav', 5.32, 0.4); 
+                window.AudioManager.playBGM('./audio/music/How_To_Go_Pro_ForTutorial.wav', 5.32, 0.4); 
             }
             TutorialManager.start();
         }
@@ -944,7 +944,7 @@
         let count = 3; 
         countText.innerText = "3...";
         
-        let count3 = new Audio('audio/sounds/Countdown3.wav'); 
+        let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
         count3.volume = 0.4; 
         count3.play().catch(e => console.log("SFX blocked by browser:", e));
 
@@ -953,7 +953,7 @@
             if (count > 0) {
                 countText.innerText = `${count}...`;
                 
-                let countSFX = new Audio(`audio/sounds/Countdown${count}.wav`); 
+                let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
                 countSFX.volume = 0.4; 
                 countSFX.play().catch(e => console.log("SFX blocked by browser:", e));
                 
@@ -962,7 +962,7 @@
                 clearInterval(countInterval);
                 countText.innerText = "LET IT RIP!";
                 
-                let letItRipSFX = new Audio('audio/sounds/Countdown_Let_It_Rip.wav'); 
+                let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
                 letItRipSFX.volume = 0.45; 
                 letItRipSFX.play().catch(e => console.log("SFX blocked by browser:", e));
 
@@ -1003,7 +1003,7 @@
         cancelAnimationFrame(ripcordAnimation);
         
         if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
-            window.AudioManager.playBGM('audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
+            window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
         }
 
         if (missed) {
@@ -1239,7 +1239,7 @@
     
     function initSpin(bey) {
         if (!bey || bey.isBursted || bey.isGhost || bey.spinSFX) return;
-        bey.spinSFX = new Audio('audio/sounds/bey_spin.wav');
+        bey.spinSFX = new Audio('./audio/sounds/bey_spin.wav');
         bey.spinSFX.volume = 0.15; 
         bey.spinSFX.play().catch(e => console.log("Spin SFX blocked:", e));
         
@@ -1432,7 +1432,7 @@
                 else if (rawMaterial.includes("ball") || rawMaterial.includes("bearing")) safeMaterial = "ballbearing";
                 else if (rawMaterial.includes("plastic")) safeMaterial = "plastic";
 
-                let snd = new Audio(`audio/sounds/bounce_landing_${safeMaterial}.wav`);
+                let snd = new Audio(`./audio/sounds/bounce_landing_${safeMaterial}.wav`);
                 
                 snd.volume = Math.max(0.02, 0.4 * Math.pow(0.5, bey.bounceCount)); 
                 
@@ -1672,7 +1672,7 @@
                     TutorialManager.balloonsPopped++;
                     document.getElementById('balloon-tally').innerText = `${TutorialManager.balloonsPopped} / 15`;
                     
-                    let popSfx = new Audio('audio/sounds/balloonpop.wav');
+                    let popSfx = new Audio('./audio/sounds/balloonpop.wav');
                     popSfx.volume = 0.5; popSfx.play().catch(e=>{});
                     
                     let colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
@@ -1877,12 +1877,12 @@
 
                 if (isHeavyClash) {
                     let randHeavy = Math.floor(Math.random() * 5) + 1;
-                    let clashSFX = new Audio(`audio/sounds/Beyblade_Clash_Heavy${randHeavy}.wav`);
+                    let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Heavy${randHeavy}.wav`);
                     clashSFX.volume = 0.45;
                     clashSFX.play().catch(e => console.log("SFX blocked by browser:", e));
                 } else {
                     let randNormal = Math.floor(Math.random() * 13) + 1;
-                    let clashSFX = new Audio(`audio/sounds/Beyblade_Clash_Normal${randNormal}.wav`);
+                    let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Normal${randNormal}.wav`);
                     clashSFX.volume = 0.40;
                     clashSFX.play().catch(e => console.log("SFX blocked by browser:", e));
                 }

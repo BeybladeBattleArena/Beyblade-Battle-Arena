@@ -3,7 +3,7 @@
     #map-container {
         position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: 100vw; max-width: 1366px; aspect-ratio: 1366 / 768;
-        background-color: #222; background-image: url('images/story/maps/tokyo/Nikotama.png');
+        background-color: #222; background-image: url('./images/story/maps/tokyo/Nikotama.png');
         background-size: cover; background-repeat: no-repeat; background-position: center;
         box-shadow: 0 0 30px rgba(0,0,0,0.9); overflow: hidden;
     }
@@ -216,7 +216,7 @@
 
 <script type="module">
     console.log("Adventure map script successfully initialized!");
-    window.AudioManager.playBGM('audio/music/A_Map_of_Tokyo_ForAdventure.wav', 10.579355, 0.4);
+    window.AudioManager.playBGM('./audio/music/A_Map_of_Tokyo_ForAdventure.wav', 10.579355, 0.4);
 
     const NATIVE_MAP_WIDTH = 1366;  
     const NATIVE_MAP_HEIGHT = 768;  
@@ -436,7 +436,7 @@
             pinEl.className = 'map-pin';
             pinEl.style.left = `${percentX}%`;
             pinEl.style.top = `${percentY}%`;
-            pinEl.style.backgroundImage = `url('images/story/maps/pin_${pinData.type}.png')`;
+            pinEl.style.backgroundImage = `url('./images/story/maps/pin_${pinData.type}.png')`;
             
             pinEl.onclick = () => {
                 if (pinData.triggerStage !== undefined) loadStage(pinData.triggerStage);
@@ -465,7 +465,7 @@
         if (lineData.present && lineData.present.length > 0) {
             lineData.present.forEach(charFile => {
                 let img = document.createElement('img');
-                img.src = `images/dialogue_portraits/${charFile}`;
+                img.src = `./images/dialogue_portraits/${charFile}`;
                 img.className = 'vn-char';
                 if (charFile.includes(lineData.speaker)) img.classList.add('active');
                 else img.classList.add('dimmed');

@@ -11,7 +11,7 @@ window.TokyoEpisodes = {
             // STAGE 0: The First Login (Internal Monologue)
             0: {
                 type: "vn_scene",
-                bg: "images/maps/tokyo/Nikotama.png", // Show the map blurry in the background
+                bg: "./images/maps/tokyo/Nikotama.png", // Show the map blurry in the background
                 dialogue: {
                     "start": { 
                         speaker: "Me", 
@@ -41,7 +41,7 @@ window.TokyoEpisodes = {
             2: {
 				currentStageObjective: "Complete Miko's Tutorial!",
                 type: "vn_scene",
-                bg: "images/dialogue_backgrounds/yoyogi_park.png", 
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
                     "start": { 
                         speaker: "Toma", 
@@ -80,7 +80,7 @@ window.TokyoEpisodes = {
             3: {
 				currentStageObjective: "Complete Toma's Tutorial!",
                 type: "vn_scene",
-                bg: "images/dialogue_backgrounds/yoyogi_park.png", 
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
                     "start": { 
                         speaker: "Toma", 
@@ -98,7 +98,7 @@ window.TokyoEpisodes = {
             4: {
 				currentStageObjective: "Chat with Toma and Miko, then defeat Miko.",
                 type: "vn_scene",
-                bg: "images/dialogue_backgrounds/yoyogi_park.png", 
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
                     "start": { 
                         speaker: "Miko", 
@@ -146,7 +146,7 @@ window.TokyoEpisodes = {
             5: {
 				currentStageObjective: "Chat with Toma and Miko, then defeat Toma.",
                 type: "vn_scene",
-                bg: "images/dialogue_backgrounds/yoyogi_park.png", 
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
                     "start": { 
                         speaker: "Miko", 
@@ -171,7 +171,7 @@ window.TokyoEpisodes = {
             6: {
 				currentStageObjective: "Finish the conversation and collect your rewards!",
                 type: "vn_scene",
-                bg: "images/dialogue_backgrounds/yoyogi_park.png", 
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
                     "start": { 
                         speaker: "Toma", 

@@ -111,7 +111,7 @@
 
 <script type="module">
     // --- BGM AUDIO SETUP ---
-    window.AudioManager.playBGM('audio/music/Free_To_Challenge_The_Sky_ForFreeBattle.wav', 19.4429575);
+    window.AudioManager.playBGM('./audio/music/Free_To_Challenge_The_Sky_ForFreeBattle.wav', 19.4429575);
 
     import { db } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -143,14 +143,14 @@
         
         const vnOverlay = document.getElementById('vn-overlay');
         let bgFileName = opp.dialogueBG || 'default_arena.png';
-        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('images/dialogue_backgrounds/${bgFileName}')`;
+        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('./images/dialogue_backgrounds/${bgFileName}')`;
         vnOverlay.style.backgroundSize = 'cover';
         vnOverlay.style.backgroundPosition = 'center';
         vnOverlay.style.display = 'block';
 
         const portraitImg = document.getElementById('vn-portrait');
         let portraitFileName = opp.portrait ? opp.portrait : `${opp.name}.png`;
-        portraitImg.src = `images/dialogue_portraits/${portraitFileName}`;
+        portraitImg.src = `./images/dialogue_portraits/${portraitFileName}`;
         portraitImg.onerror = () => { portraitImg.style.opacity = 0; };
         portraitImg.onload = () => { setTimeout(() => { portraitImg.style.opacity = 1; }, 50); };
 
@@ -208,7 +208,7 @@
 
         // Load default arena background for the Referee Receipt
         const vnOverlay = document.getElementById('vn-overlay');
-        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('images/dialogue_backgrounds/default_arena.png')`;
+        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('./images/dialogue_backgrounds/default_arena.png')`;
         
         // Hide the opponent portrait since the Referee is speaking
         document.getElementById('vn-portrait').style.opacity = 0;
@@ -293,7 +293,7 @@
         let bgFileName = selectedOpponent.dialogueBG || 'default_arena.png';
         
         // We add a dark gradient over the image so the character and text are still easy to read
-        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('images/dialogue_backgrounds/${bgFileName}')`;
+        vnOverlay.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.7)), url('./images/dialogue_backgrounds/${bgFileName}')`;
         vnOverlay.style.backgroundSize = 'cover';
         vnOverlay.style.backgroundPosition = 'center';
         
@@ -303,7 +303,7 @@
         
         // THE FIX: Grab the filename, then prepend the folder path!
         let portraitFileName = selectedOpponent.portrait ? selectedOpponent.portrait : `${selectedOpponent.name}.png`;
-        let imagePath = `images/dialogue_portraits/${portraitFileName}`;
+        let imagePath = `./images/dialogue_portraits/${portraitFileName}`;
         
         portraitImg.src = imagePath;
         portraitImg.onerror = () => { portraitImg.style.opacity = 0; };

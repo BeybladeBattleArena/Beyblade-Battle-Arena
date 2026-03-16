@@ -214,7 +214,7 @@
 
 // --- BGM AUDIO SETUP ---
     // Cue the shell's audio manager to play the song and loop it at 12 seconds!
-    window.AudioManager.playBGM('audio/music/Let_It_Rip_ForTitleScreen.wav', 12.007855);
+    window.AudioManager.playBGM('./audio/music/Let_It_Rip_ForTitleScreen.wav', 12.007855);
 
 
 // --- SHOWCASE LOGIC ---
@@ -239,7 +239,7 @@
         
         // EMPTY STATE: No build found!
         if (!currentSave || !currentSave.parts) {
-            stack.innerHTML = `<img src="images/menu_icons/AR_icon.png" class="hub-part" style="opacity: 0.5;">`;
+            stack.innerHTML = `<img src="./images/menu_icons/AR_icon.png" class="hub-part" style="opacity: 0.5;">`;
             nameLabel.innerText = "NO BUILD SAVED";
             nameLabel.style.color = "#666";
             return;

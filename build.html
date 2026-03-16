@@ -193,28 +193,28 @@
         <div class="tab-container" id="category-tabs">
             <div class="tab-row" style="width: 100%;">
                 <button class="tab-btn" onclick="window.switchTab('launchers')">
-                    <img src="images/menu_icons/Launcher_icon.png" class="tab-icon" alt="Launcher"> <span class="tab-text">Launcher</span>
+                    <img src="./images/menu_icons/Launcher_icon.png" class="tab-icon" alt="Launcher"> <span class="tab-text">Launcher</span>
                 </button>
                 <button class="tab-btn" onclick="window.switchTab('ripCords')">
-                    <img src="images/menu_icons/Cord_icon.png" class="tab-icon" alt="Ripcord"> <span class="tab-text">Rip Cord</span>
+                    <img src="./images/menu_icons/Cord_icon.png" class="tab-icon" alt="Ripcord"> <span class="tab-text">Rip Cord</span>
                 </button>
                 <div style="flex: 3;"></div> </div>
             
             <div class="tab-row bottom-row" style="width: 100%;">
                 <button class="tab-btn active" onclick="window.switchTab('bitChips')">
-                    <img src="images/menu_icons/BC_icon.png" class="tab-icon" alt="BC"> <span class="tab-text">Bit Chip</span>
+                    <img src="./images/menu_icons/BC_icon.png" class="tab-icon" alt="BC"> <span class="tab-text">Bit Chip</span>
                 </button>
                 <button class="tab-btn" onclick="window.switchTab('attackRings')">
-                    <img src="images/menu_icons/AR_icon.png" class="tab-icon" alt="AR"> <span class="tab-text">Attack Ring</span>
+                    <img src="./images/menu_icons/AR_icon.png" class="tab-icon" alt="AR"> <span class="tab-text">Attack Ring</span>
                 </button>
                 <button class="tab-btn" onclick="window.switchTab('weightDisks')">
-                    <img src="images/menu_icons/WD_icon.png" class="tab-icon" alt="WD"> <span class="tab-text">Weight Disk</span>
+                    <img src="./images/menu_icons/WD_icon.png" class="tab-icon" alt="WD"> <span class="tab-text">Weight Disk</span>
                 </button>
                 <button class="tab-btn" onclick="window.switchTab('spinGears')">
-                    <img src="images/menu_icons/SG_icon.png" class="tab-icon" alt="SG"> <span class="tab-text">Spin Gear</span>
+                    <img src="./images/menu_icons/SG_icon.png" class="tab-icon" alt="SG"> <span class="tab-text">Spin Gear</span>
                 </button>
                 <button class="tab-btn" onclick="window.switchTab('bladeBases')">
-                    <img src="images/menu_icons/BB_icon.png" class="tab-icon" alt="BB"> <span class="tab-text">Blade Base</span>
+                    <img src="./images/menu_icons/BB_icon.png" class="tab-icon" alt="BB"> <span class="tab-text">Blade Base</span>
                 </button>
             </div>
         </div>
@@ -296,7 +296,7 @@
 
 <script type="module">
 
-    window.AudioManager.playBGM('audio/music/Get_The_Wrench_ForBuildScreen.wav', 10.2934375, 0.4);
+    window.AudioManager.playBGM('./audio/music/Get_The_Wrench_ForBuildScreen.wav', 10.2934375, 0.4);
     
     import { db } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -509,9 +509,9 @@
                 const stack = document.getElementById('anim-stack-container');
                 overlay.style.display = 'flex';
                 
-                const sfxClank = new Audio('audio/sounds/PartsMeet.wav');
-                const sfxSpin = new Audio('audio/sounds/ClickIntoPlace.wav');
-                const sfxSuccess = new Audio('audio/sounds/BuildSuccess.wav');
+                const sfxClank = new Audio('./audio/sounds/PartsMeet.wav');
+                const sfxSpin = new Audio('./audio/sounds/ClickIntoPlace.wav');
+                const sfxSuccess = new Audio('./audio/sounds/BuildSuccess.wav');
                 
                 sfxClank.volume = 0.8; 
                 sfxSpin.volume = 0.6;
@@ -745,16 +745,16 @@
         // 1. Blade Base Logic (Integrated vs Open)
         if (slot === 'bladeBase') {
             if (item.contactTipShape) {
-                featureIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="images/menu_icons/base_image_integratedtip.png"></div>`;
+                featureIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="./images/menu_icons/base_image_integratedtip.png"></div>`;
             } else {
-                featureIconsHtml += `<div class="feature-icon-box" title="Open Tip Base"><img src="images/menu_icons/base_image_opentip.png"></div>`;
+                featureIconsHtml += `<div class="feature-icon-box" title="Open Tip Base"><img src="./images/menu_icons/base_image_opentip.png"></div>`;
             }
         }
 
         // 2. Attack Ring Sub-Ring Logic (Free vs Locked)
         if (item.subRing === true && item.subRingType) {
             let sarImg = item.subRingType.toLowerCase().includes('free') ? 'sar_image_free.png' : 'sar_image_locked.png';
-            featureIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="images/menu_icons/${sarImg}"></div>`;
+            featureIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="./images/menu_icons/${sarImg}"></div>`;
         }
 
         // 3. Tip Shape Logic
@@ -768,7 +768,7 @@
             else if (shape.includes('ball')) tipImg = 'tip_image_ball.png';
 
             if (tipImg) {
-                featureIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="images/menu_icons/${tipImg}"></div>`;
+                featureIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="./images/menu_icons/${tipImg}"></div>`;
             }
         }
         // ==========================================
