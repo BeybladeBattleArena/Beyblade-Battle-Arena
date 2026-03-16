@@ -1,0 +1,658 @@
+<style>
+    /* The Map Container */
+    #map-container {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 100vw; max-width: 1366px; aspect-ratio: 1366 / 768;
+        background-color: #222; background-image: url('images/story/maps/tokyo/Nikotama.png');
+        background-size: cover; background-repeat: no-repeat; background-position: center;
+        box-shadow: 0 0 30px rgba(0,0,0,0.9); overflow: hidden;
+    }
+
+    /* The Pin Styling */
+    .map-pin {
+        position: absolute; width: 25px; height: 44px;
+        background-size: cover; cursor: pointer;
+        margin-left: -12.5px; margin-top: -44px;    
+        animation: floatPin 2s ease-in-out infinite; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.6)); z-index: 10;
+    }
+    .map-pin:hover { filter: drop-shadow(0 5px 8px rgba(255,255,255,0.6)) brightness(1.2); }
+    @keyframes floatPin { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+    .pin-label {
+        position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%);
+        background: rgba(0, 0, 0, 0.8); color: #fff; padding: 4px 8px; border-radius: 4px;
+        font-size: 12px; font-weight: bold; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.2s; border: 1px solid #444;
+    }
+    .map-pin:hover .pin-label { opacity: 1; }
+
+    /* Top Left Buttons */
+    .back-btn { 
+        position: absolute; top: 15px; left: 15px; background: #333; color: #fff; 
+        border: 1px solid #555; padding: 5px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; z-index: 50;
+    }
+    .back-btn:active { background: #555; }
+    
+    #sidebar-toggle-btn {
+        position: absolute; top: 55px; left: 15px; background: #2e8b57; color: #fff; 
+        border: 1px solid #1f603c; padding: 5px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: bold; z-index: 50;
+    }
+    #sidebar-toggle-btn:hover { background: #3cb371; }
+
+    /* ========================================= */
+    /* EPISODE SIDEBAR & SEARCH                  */
+    /* ========================================= */
+    #episode-sidebar {
+        position: absolute; top: 0; left: -350px; width: 320px; height: 100%;
+        background-color: #8fbc8f; border-right: 4px solid #556b2f; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+        z-index: 150; transition: left 0.3s ease; padding: 20px; box-sizing: border-box;
+        overflow-y: auto; display: flex; flex-direction: column;
+    }
+    #episode-sidebar.open { left: 0; }
+    #sidebar-header {
+        font-size: 24px; font-weight: 900; color: #ffd700; text-shadow: 2px 2px 0 #000;
+        margin-bottom: 15px; text-align: center; border-bottom: 2px solid #556b2f; padding-bottom: 10px;
+    }
+    
+    .sidebar-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+    .sidebar-controls input, .sidebar-controls select {
+        padding: 8px; border-radius: 4px; border: 2px solid #556b2f; background: #fff; font-weight: bold; color: #333;
+    }
+    .sidebar-controls input::placeholder { color: #888; font-weight: normal; }
+    
+    .section-header {
+        background: #556b2f; color: #ffd700; padding: 10px; cursor: pointer; font-weight: bold;
+        border-radius: 4px; margin-top: 10px; margin-bottom: 10px; user-select: none;
+        display: flex; justify-content: space-between; border: 1px solid #3b4d21;
+    }
+    .section-header:hover { filter: brightness(1.1); }
+    
+    .collapsible-content { display: flex; flex-direction: column; gap: 10px; }
+    .collapsible-content.collapsed { display: none; }
+
+    .episode-card {
+        background-color: #3b4d21; border: 2px solid #ffd700; border-radius: 8px;
+        padding: 12px; cursor: pointer; transition: transform 0.2s, filter 0.2s;
+    }
+    .episode-card:hover { transform: scale(1.03); filter: brightness(1.15); }
+    
+    /* Specific styles for completed cards */
+    .episode-card.completed-card {
+        cursor: default; filter: grayscale(30%) brightness(0.8); border-color: #aaa;
+    }
+    .episode-card.completed-card:hover { transform: none; filter: grayscale(30%) brightness(0.8); }
+    
+    .ep-card-title { font-size: 16px; font-weight: bold; color: #ffd700; text-shadow: 1px 1px 0 #000; margin-bottom: 5px; }
+    .completed-card .ep-card-title { color: #ddd; }
+    .ep-card-comp { font-size: 13px; font-style: italic; color: #eee; margin-bottom: 5px; font-weight: bold; }
+    .ep-card-obj { font-size: 12px; color: #fff; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px; }
+    
+    #close-sidebar-btn {
+        position: absolute; top: 15px; right: 15px; background: transparent; border: none;
+        color: #fff; font-size: 20px; cursor: pointer; font-weight: bold;
+    }
+
+    /* THE NEW BADGE ANIMATION */
+    .new-badge {
+        display: inline-block; font-size: 10px; font-weight: 900; margin-right: 6px;
+        background: linear-gradient(90deg, #ff0000, #ffaa00, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
+        background-size: 300% 300%; -webkit-background-clip: text; color: transparent;
+        animation: rainbowBg 2s linear infinite, popBounce 0.4s ease-in-out infinite alternate;
+    }
+    @keyframes rainbowBg { 0% {background-position: 0% 50%;} 100% {background-position: 100% 50%;} }
+    @keyframes popBounce { 0% { transform: translateY(0px); } 100% { transform: translateY(-3px); } }
+
+    /* ========================================= */
+    /* CUSTOM CONFIRMATION MODAL                 */
+    /* ========================================= */
+    #confirm-modal-overlay {
+        display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); z-index: 300; justify-content: center; align-items: center;
+    }
+    #confirm-modal {
+        background: #222; border: 3px solid #ffaa00; border-radius: 12px; padding: 30px;
+        width: 80%; max-width: 500px; text-align: center; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+    #confirm-text { font-size: 20px; line-height: 1.5; margin-bottom: 25px; }
+    .modal-btn-container { display: flex; justify-content: center; gap: 20px; }
+    .modal-btn { padding: 10px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 6px; border: none; }
+    #btn-yes { background: #00aaff; color: black; }
+    #btn-no { background: #555; color: white; }
+
+    /* ========================================= */
+    /* VN OVERLAY STYLES                         */
+    /* ========================================= */
+    #vn-overlay { 
+        display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.4); z-index: 100; backdrop-filter: blur(4px);
+    }
+    #vn-portraits {
+        position: absolute; bottom: 0; left: 0; 
+        width: 100%; height: 95%; display: flex; justify-content: center; align-items: flex-end; gap: -20px; 
+        pointer-events: none; z-index: 5; 
+    }
+    .vn-char { max-height: 100%; transition: all 0.3s ease; object-fit: contain; }
+    .vn-char.dimmed { filter: brightness(0.3); transform: scale(0.95); z-index: 1; }
+    .vn-char.active { filter: brightness(1.1); transform: scale(1.05); z-index: 5; drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+    #vn-textbox { position: absolute; bottom: 5%; left: 5%; width: 90%; height: 20%; z-index: 10; background: linear-gradient(to bottom, #222, #000); border: 3px solid #ccc; border-radius: 10px; padding: 20px; box-sizing: border-box; box-shadow: 0 0 20px rgba(0,0,0,0.8); pointer-events: auto;}
+    #vn-name { position: absolute; top: -30px; left: 20px; background: #ccc; color: #000; padding: 5px 15px; font-weight: bold; border-radius: 5px 5px 0 0; font-size: 18px; }
+    #vn-text { font-size: 22px; line-height: 1.4; color: #fff; }
+    #vn-next { position: absolute; bottom: 15px; right: 20px; font-size: 24px; color: #ffaa00; cursor: pointer; display: none; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    #vn-choices { position: absolute; top: -120px; right: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .vn-choice-btn { background: rgba(0, 100, 200, 0.9); color: white; border: 2px solid #00ffff; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; }
+    .vn-choice-btn:hover { background: #00aaff; color: black; transform: scale(1.05); }
+
+    /* ========================================= */
+    /* EPISODE COMPLETE POPUP                    */
+    /* ========================================= */
+    #episode-complete-popup {
+        position: absolute; top: 15%; left: 50%; transform: translateX(-50%) scale(0);
+        background: linear-gradient(135deg, #111, #222); border: 3px solid #00aaff;
+        border-radius: 20px; padding: 30px 50px; color: white; text-align: center;
+        z-index: 200; box-shadow: 0 10px 40px rgba(0, 170, 255, 0.4);
+        opacity: 0; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out;
+    }
+    #episode-complete-popup.show { transform: translateX(-50%) scale(1); opacity: 1; }
+    #popup-title { font-size: 32px; font-weight: 900; color: #ffaa00; margin-bottom: 15px; text-shadow: 2px 2px 0 #000; }
+    #popup-bp { font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #00ffff; }
+    #popup-unlocks { font-size: 18px; color: #ddd; font-style: italic; margin-bottom: 15px;}
+    #popup-hint { font-size: 14px; color: #888; opacity: 0; transition: opacity 0.3s; animation: blink 1.5s infinite; }
+</style>
+
+<button class="back-btn" onclick="window.navigateTo('home-menu.html')">Back to Menu</button>
+<button id="sidebar-toggle-btn" onclick="toggleSidebar()">Episode List >></button>
+
+<div id="episode-sidebar">
+    <button id="close-sidebar-btn" onclick="toggleSidebar()">✖</button>
+    <div id="sidebar-header">Episode List</div>
+    
+    <div class="sidebar-controls">
+        <input type="text" id="ep-search-input" placeholder="Search title or tags..." onkeyup="populateSidebar()">
+        <select id="ep-sort-select" onchange="populateSidebar()">
+            <option value="desc">Sort: % Descending</option>
+            <option value="asc">Sort: % Ascending</option>
+        </select>
+    </div>
+    
+    <div class="section-header" onclick="toggleSection('incomplete-list', 'icon-inc')">
+        <span>Incomplete Episodes</span> <span id="icon-inc">▼</span>
+    </div>
+    <div id="incomplete-list" class="collapsible-content"></div>
+    
+    <div class="section-header" onclick="toggleSection('complete-list', 'icon-comp')">
+        <span>Complete Episodes</span> <span id="icon-comp">▼</span>
+    </div>
+    <div id="complete-list" class="collapsible-content"></div>
+</div>
+
+<div id="confirm-modal-overlay">
+    <div id="confirm-modal">
+        <div id="confirm-text">Are you sure?</div>
+        <div class="modal-btn-container">
+            <button class="modal-btn" id="btn-yes">Yes</button>
+            <button class="modal-btn" id="btn-no" onclick="closeConfirmModal()">No</button>
+        </div>
+    </div>
+</div>
+
+<div id="map-container"></div>
+
+<div id="vn-overlay">
+    <div id="vn-portraits"></div>
+    <div id="vn-textbox" onclick="window.advanceStory()">
+        <div id="vn-choices"></div>
+        <div id="vn-name">Name</div>
+        <div id="vn-text"></div>
+        <div id="vn-next">▶</div>
+    </div>
+</div>
+
+<div id="episode-complete-popup">
+    <div id="popup-title">Episode Complete!</div>
+    <div id="popup-bp">Rewards: 0 BP</div>
+    <div id="popup-unlocks"></div>
+    <div id="popup-hint">Click to continue...</div>
+</div>
+
+<script type="module">
+    console.log("Adventure map script successfully initialized!");
+    window.AudioManager.playBGM('audio/music/A_Map_of_Tokyo_ForAdventure.wav', 10.579355, 0.4);
+
+    const NATIVE_MAP_WIDTH = 1366;  
+    const NATIVE_MAP_HEIGHT = 768;  
+
+    let activePins = [];
+    let currentEpisodeData = null;
+    let currentStageData = null;
+    let currentLineId = "start";
+    let textPageIndex = 0; 
+    let isTyping = false;
+    let typeInterval;
+    let fullTextToType = "";
+    
+    let pendingEpisodeSwap = null; 
+
+    function initAdventure() {
+        window.StoryDB = { ...(window.TokyoEpisodes || {}) };
+        if (!window.PlayerData) window.PlayerData = {};
+        
+        if (!window.PlayerData.episodeProgress) window.PlayerData.episodeProgress = {};
+        if (!window.PlayerData.completedEpisodes) window.PlayerData.completedEpisodes = [];
+
+        if (!window.PlayerData.activeEpisode && !window.PlayerData.completedEpisodes.includes("ep_tokyo_tutorial")) {
+            window.PlayerData.activeEpisode = "ep_tokyo_tutorial";
+            window.PlayerData.activeStage = 0;
+            window.PlayerData.episodeProgress["ep_tokyo_tutorial"] = 0;
+        }
+
+        let epId = window.PlayerData.activeEpisode;
+        
+        if (epId) {
+            if (!window.StoryDB || !window.StoryDB[epId]) {
+                console.error(`StoryDB missing or episode '${epId}' not found!`);
+                return;
+            }
+            currentEpisodeData = window.StoryDB[epId];
+            loadStage(window.PlayerData.activeStage || 0);
+        } else {
+            document.getElementById('vn-overlay').style.display = 'none';
+            renderMapPins();
+        }
+        
+        populateSidebar();
+    }
+
+    function loadStage(stageIndex) {
+        window.PlayerData.activeStage = stageIndex;
+        currentStageData = currentEpisodeData.stages[stageIndex];
+        
+        window.PlayerData.episodeProgress[currentEpisodeData.id] = stageIndex;
+        if (window.savePlayerData) window.savePlayerData();
+        
+        if (!currentStageData) {
+            console.error("Stage data missing!");
+            return;
+        }
+
+        if (currentStageData.type === "pin_injection") {
+            document.getElementById('vn-overlay').style.display = 'none';
+            activePins = [ currentStageData.pin ]; 
+            renderMapPins();
+        } 
+        else if (currentStageData.type === "vn_scene") {
+            document.getElementById('vn-overlay').style.display = 'block';
+            currentLineId = "start";
+            playDialogueLine();
+        }
+        
+        populateSidebar(); 
+    }
+
+    // --- SIDEBAR & EPISODE SWAPPING LOGIC ---
+    window.toggleSidebar = function() {
+        document.getElementById('episode-sidebar').classList.toggle('open');
+    };
+    
+    window.toggleSection = function(containerId, iconId) {
+        let el = document.getElementById(containerId);
+        let icon = document.getElementById(iconId);
+        el.classList.toggle('collapsed');
+        icon.innerText = el.classList.contains('collapsed') ? "◀" : "▼";
+    };
+
+    window.populateSidebar = function() {
+        const incContainer = document.getElementById('incomplete-list');
+        const compContainer = document.getElementById('complete-list');
+        incContainer.innerHTML = '';
+        compContainer.innerHTML = '';
+        
+        let searchQuery = document.getElementById('ep-search-input').value.toLowerCase();
+        let sortOrder = document.getElementById('ep-sort-select').value;
+        
+        let incompleteEps = [];
+        let completeEps = [];
+        
+        // Loop through all episodes and parse their data
+        for (let epId in window.StoryDB) {
+            let epData = window.StoryDB[epId];
+            
+            let totalStages = Object.keys(epData.stages).length;
+            let savedStage = window.PlayerData.episodeProgress[epId] || 0;
+            let isComplete = window.PlayerData.completedEpisodes.includes(epId) || savedStage === "COMPLETED";
+            
+            let compPct = isComplete ? 100 : Math.floor((savedStage / totalStages) * 100);
+            
+            let stageObj = epData.stages[savedStage] ? epData.stages[savedStage].currentStageObjective : "Explore the area.";
+            if (isComplete) stageObj = "Objective Complete!";
+            
+            let epObject = { data: epData, pct: compPct, isComplete: isComplete, objective: stageObj };
+            
+            if (isComplete) {
+                completeEps.push(epObject);
+            } else {
+                // Filter by Search Query (Title or Tags)
+                let epTags = epData.tags ? epData.tags.join(" ").toLowerCase() : "";
+                let epTitle = epData.title.toLowerCase();
+                
+                if (searchQuery === "" || epTitle.includes(searchQuery) || epTags.includes(searchQuery)) {
+                    incompleteEps.push(epObject);
+                }
+            }
+        }
+        
+        // Sort the Incomplete Episodes
+        incompleteEps.sort((a, b) => {
+            if (sortOrder === "desc") return b.pct - a.pct;
+            return a.pct - b.pct;
+        });
+        
+        // Render Incomplete
+        incompleteEps.forEach(ep => {
+            let card = document.createElement('div');
+            card.className = 'episode-card';
+            
+            if (window.PlayerData.activeEpisode === ep.data.id) {
+                card.style.borderColor = "#00ffff";
+                card.style.boxShadow = "0 0 10px #00ffff";
+            }
+            
+            let newBadge = ep.data.isNewEpisode ? `<span class="new-badge">NEW</span>` : "";
+            
+            card.innerHTML = `
+                <div class="ep-card-title">${newBadge}${ep.data.title}</div>
+                <div class="ep-card-comp">Completion: ${ep.pct}%</div>
+                <div class="ep-card-obj">📍 ${ep.objective}</div>
+            `;
+            
+            card.onclick = () => requestEpisodeSwap(ep.data);
+            incContainer.appendChild(card);
+        });
+        
+        // Render Complete
+        completeEps.forEach(ep => {
+            let card = document.createElement('div');
+            card.className = 'episode-card completed-card';
+            card.innerHTML = `
+                <div class="ep-card-title">${ep.data.title}</div>
+                <div class="ep-card-comp">Completion: 100%</div>
+                <div class="ep-card-obj">📍 ${ep.objective}</div>
+            `;
+            compContainer.appendChild(card);
+        });
+    }
+
+    function requestEpisodeSwap(epData) {
+        if (window.PlayerData.activeEpisode === epData.id) {
+            window.toggleSidebar(); 
+            return;
+        }
+        
+        pendingEpisodeSwap = epData.id;
+        
+        let confirmText = `Do you want to pick up ${epData.title}?`;
+        if (window.PlayerData.activeEpisode) {
+            let currentEpTitle = window.StoryDB[window.PlayerData.activeEpisode].title;
+            confirmText += `<br><br><span style="font-size:16px; color:#aaa;">Any progress you've made in <b>${currentEpTitle}</b> will revert to the last checkpoint you reached.</span>`;
+        }
+        
+        document.getElementById('confirm-text').innerHTML = confirmText;
+        document.getElementById('confirm-modal-overlay').style.display = 'flex';
+        
+        document.getElementById('btn-yes').onclick = executeEpisodeSwap;
+    }
+
+    window.closeConfirmModal = function() {
+        document.getElementById('confirm-modal-overlay').style.display = 'none';
+        pendingEpisodeSwap = null;
+    };
+
+    function executeEpisodeSwap() {
+        window.closeConfirmModal();
+        window.toggleSidebar();
+        
+        if (pendingEpisodeSwap) {
+            window.PlayerData.activeEpisode = pendingEpisodeSwap;
+            window.PlayerData.activeStage = window.PlayerData.episodeProgress[pendingEpisodeSwap] || 0;
+            if (window.PlayerData.activeStage === "COMPLETED") window.PlayerData.activeStage = 0; // Failsafe
+            
+            if (window.savePlayerData) window.savePlayerData();
+            
+            activePins = [];
+            currentEpisodeData = window.StoryDB[pendingEpisodeSwap];
+            loadStage(window.PlayerData.activeStage);
+        }
+    }
+
+    // 3. MAP PIN RENDERER
+    function renderMapPins() {
+        const container = document.getElementById('map-container');
+        container.innerHTML = ''; 
+
+        activePins.forEach(pinData => {
+            let percentX = (pinData.x / NATIVE_MAP_WIDTH) * 100;
+            let percentY = (pinData.y / NATIVE_MAP_HEIGHT) * 100;
+
+            let pinEl = document.createElement('div');
+            pinEl.className = 'map-pin';
+            pinEl.style.left = `${percentX}%`;
+            pinEl.style.top = `${percentY}%`;
+            pinEl.style.backgroundImage = `url('images/story/maps/pin_${pinData.type}.png')`;
+            
+            pinEl.onclick = () => {
+                if (pinData.triggerStage !== undefined) loadStage(pinData.triggerStage);
+            };
+
+            let labelEl = document.createElement('div');
+            labelEl.className = 'pin-label';
+            labelEl.innerText = pinData.name;
+            pinEl.appendChild(labelEl);
+            container.appendChild(pinEl);
+        });
+    }
+
+    // 4. DIALOGUE ENGINE
+    function playDialogueLine() {
+        let lineData = currentStageData.dialogue[currentLineId];
+        if (!lineData) return;
+
+        let speakerName = lineData.speaker;
+        if (speakerName === "Me") speakerName = window.PlayerData.accountName || "Player";
+        document.getElementById('vn-name').innerText = speakerName;
+
+        const portraitsDiv = document.getElementById('vn-portraits');
+        portraitsDiv.innerHTML = '';
+        
+        if (lineData.present && lineData.present.length > 0) {
+            lineData.present.forEach(charFile => {
+                let img = document.createElement('img');
+                img.src = `images/dialogue_portraits/${charFile}`;
+                img.className = 'vn-char';
+                if (charFile.includes(lineData.speaker)) img.classList.add('active');
+                else img.classList.add('dimmed');
+                portraitsDiv.appendChild(img);
+            });
+        }
+
+        const choicesDiv = document.getElementById('vn-choices');
+        choicesDiv.innerHTML = '';
+        if (lineData.choices) {
+            lineData.choices.forEach(choice => {
+                let btn = document.createElement('button');
+                btn.className = 'vn-choice-btn';
+                btn.innerText = choice.text;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    currentLineId = choice.next;
+                    playDialogueLine();
+                };
+                choicesDiv.appendChild(btn);
+            });
+        }
+
+        let currentString = Array.isArray(lineData.text) ? lineData.text[textPageIndex] : lineData.text;
+        let playerPronoun = window.PlayerData.pronoun || "they";
+        
+        let rawText = currentString
+            .replaceAll("<player>", `<span style="color:#00aaff">${window.PlayerData.accountName || "Player"}</span>`)
+            .replaceAll("<gender>", playerPronoun);
+            
+        fullTextToType = rawText;
+        isTyping = true;
+        document.getElementById('vn-next').style.display = 'none';
+        const textElement = document.getElementById('vn-text');
+        textElement.innerHTML = "";
+        
+        let charIndex = 0;
+        clearInterval(typeInterval);
+        typeInterval = setInterval(() => {
+            if (fullTextToType.charAt(charIndex) === '<') {
+                while (charIndex < fullTextToType.length && fullTextToType.charAt(charIndex) !== '>') { charIndex++; }
+            }
+            charIndex++;
+            textElement.innerHTML = fullTextToType.slice(0, charIndex); 
+            if (charIndex >= fullTextToType.length) finishTyping();
+        }, 30);
+    }
+
+    function finishTyping() {
+        isTyping = false;
+        clearInterval(typeInterval);
+        if (!currentStageData.dialogue[currentLineId].choices) {
+            document.getElementById('vn-next').style.display = 'block';
+        }
+    }
+
+    window.advanceStory = function() {
+        let lineData = currentStageData.dialogue[currentLineId];
+        if (!lineData) return;
+        if (lineData.choices && !isTyping) return;
+
+        if (isTyping) {
+            document.getElementById('vn-text').innerHTML = fullTextToType;
+            finishTyping();
+            return;
+        }
+        
+        if (Array.isArray(lineData.text) && textPageIndex < lineData.text.length - 1) {
+            textPageIndex++;
+            playDialogueLine();
+            return;
+        }
+        
+        textPageIndex = 0;
+
+        if (lineData.action === "advance_stage") {
+            loadStage(lineData.nextStage);
+            return;
+        }
+
+        if (lineData.action === "start_tutorial") {
+            window.ActiveTutorial = "basics"; 
+            window.ActiveOpponent = { id: "opp_tutorial", name: "Tutorial", arenaStyle: 3 }; 
+            window.PlayerData.activeStage = 3; 
+            window.navigateTo('arena.html');
+            return;
+        }
+        
+        if (lineData.action === "start_tutorial2") {
+            window.ActiveTutorial = "combat"; 
+            let tomaOpponent = window.opponentsDB ? window.opponentsDB.find(o => o.id === "opp_toma_tutorial") : null;
+            if (!tomaOpponent) tomaOpponent = { id: "opp_toma_fallback", name: "Toma", hp: 1200, rpm: 3500, attack: 15, defense: 10, stamina: 15, arenaStyle: 1 };
+            window.ActiveOpponent = tomaOpponent;
+            window.PlayerData.activeStage = 4;
+            window.navigateTo('arena.html');
+            return;
+        }
+
+        if (lineData.action === "start_battle") {
+            window.ActiveTutorial = null; 
+            let oppData = window.opponentsDB ? window.opponentsDB.find(o => o.id === lineData.battleId) : null;
+            window.ActiveOpponent = oppData || { id: "opp_daichi", name: "Daichi" };
+            window.PlayerData.activeStage = lineData.nextStage || window.PlayerData.activeStage;
+            localStorage.setItem('isStoryBattle', 'true');
+            window.navigateTo('arena.html');
+            return;
+        }
+
+        if (lineData.action === "end_episode") {
+            document.getElementById('vn-overlay').style.display = 'none'; 
+            
+            let bpReward = 0;
+            let unlockMsg = "";
+            
+            if (currentEpisodeData && currentEpisodeData.rewards) {
+                bpReward = currentEpisodeData.rewards.bp || 0;
+                window.PlayerData.bp = (window.PlayerData.bp || 0) + bpReward;
+                
+                if (currentEpisodeData.rewards.unlockOpponents) {
+                    if (!window.PlayerData.unlockedOpponents) window.PlayerData.unlockedOpponents = [];
+                    currentEpisodeData.rewards.unlockOpponents.forEach(opp => {
+                        if (!window.PlayerData.unlockedOpponents.includes(opp)) {
+                            window.PlayerData.unlockedOpponents.push(opp);
+                        }
+                    });
+                }
+                unlockMsg = currentEpisodeData.rewards.unlockMessage || "";
+            }
+            
+            document.getElementById('popup-title').innerText = `${currentEpisodeData.title} Complete!`;
+            document.getElementById('popup-bp').innerText = `Rewards: ${bpReward} BP`;
+            document.getElementById('popup-unlocks').innerText = unlockMsg;
+            
+            const popup = document.getElementById('episode-complete-popup');
+            const hint = document.getElementById('popup-hint');
+            
+            popup.classList.add('show');
+            
+            let canClick = false;
+            let closeTimeout;
+            
+            setTimeout(() => {
+                canClick = true;
+                popup.style.pointerEvents = 'auto'; 
+                hint.style.opacity = 1; 
+            }, 3000);
+            
+			const closePopupAndExit = () => {
+                if (!canClick) return;
+                clearTimeout(closeTimeout);
+                
+                popup.classList.remove('show');
+                
+                setTimeout(() => {
+                    if (!window.PlayerData.completedEpisodes.includes(window.PlayerData.activeEpisode)) {
+                        window.PlayerData.completedEpisodes.push(window.PlayerData.activeEpisode);
+                    }
+                    window.PlayerData.episodeProgress[window.PlayerData.activeEpisode] = "COMPLETED";
+                    
+                    window.PlayerData.activeEpisode = null;
+                    window.PlayerData.activeStage = 0;
+                    
+                    if (window.savePlayerData) window.savePlayerData(); 
+                    
+                    // THE FIX: Keep them on the map and refresh the UI!
+                    activePins = []; // Clear the current episode's story pins
+                    renderMapPins(); // Redraw the free-roam map
+                    populateSidebar(); // Refresh the quest log to show the 100% completion!
+                    
+                }, 400); 
+            };
+            
+            popup.onclick = closePopupAndExit;
+            
+            closeTimeout = setTimeout(() => {
+                canClick = true; 
+                closePopupAndExit();
+            }, 15000);
+            
+            return;
+        }
+
+        if (lineData.next) {
+            currentLineId = lineData.next;
+            playDialogueLine();
+        }
+    }
+
+    initAdventure();
+</script>

@@ -1,0 +1,668 @@
+
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden; background-color: #05050a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
+            user-select: none; -webkit-user-select: none; /* Prevent text highlighting */
+        }
+
+        /* --- UI OVERLAYS --- */
+        #top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between;
+            padding: 15px 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 100; pointer-events: none;
+        }
+        .back-btn { 
+            background: #222; color: #fff; border: 1px solid #00aaff; padding: 8px 20px; 
+            cursor: pointer; border-radius: 6px; font-weight: bold; pointer-events: auto;
+        }
+        .currency-display {
+            background: rgba(0,0,0,0.6); border: 2px solid #ffaa00; border-radius: 8px;
+            padding: 5px 15px; font-size: 20px; font-weight: 900; color: #ffaa00; text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- SELECTION SCREEN --- */
+        #selection-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 50;
+        }
+        .pull-options { display: flex; gap: 50px; margin-top: 40px; }
+        
+        .pull-btn-container { position: relative; width: 200px; height: 250px; }
+        .pull-btn {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #111, #222); border: 3px solid #555;
+            border-radius: 12px; cursor: pointer; display: flex; flex-direction: column;
+            justify-content: flex-end; align-items: center; padding-bottom: 20px; box-sizing: border-box;
+            transition: all 0.2s; z-index: 2; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .pull-btn:hover { border-color: #00aaff; box-shadow: 0 10px 30px rgba(0, 170, 255, 0.4); transform: translateY(-5px); }
+        .pull-btn.ten-pull:hover { border-color: #ffaa00; box-shadow: 0 10px 30px rgba(255, 170, 0, 0.4); }
+        
+        .pull-number { 
+            font-size: 100px; font-weight: 900; font-style: italic; 
+            color: #000; /* Solid Black */
+            -webkit-text-stroke: 2px #fff; /* White Outline */
+            text-shadow: 0 0 15px #00aaff, 0 0 5px #00aaff; /* Blue Glow */
+            position: absolute; top: 20px; 
+        }
+        .pull-cost { font-size: 24px; font-weight: bold; color: #ffaa00; text-shadow: 2px 2px 0 #000; }
+        
+        .hover-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; border-radius: 12px; }
+
+        /* --- RIPCORD INTERACTION SCREEN --- */
+        #ripcord-screen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 150; flex-direction: column; align-items: center;
+        }
+        
+        /* The container takes the exact size of the image, pinned to the top */
+        #winder-container {
+            position: absolute; top: 0; left: 50%;
+            width: 120px; /* Adjust width as needed for visuals */
+            cursor: grab;
+            /* transform is applied dynamically in JS using percentages */
+        }
+        #winder-container:active { cursor: grabbing; }
+        
+        /* Disable ghost dragging natively in CSS and HTML */
+        #winder-img { 
+            width: 100%; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8)); 
+            user-select: none; -webkit-user-drag: none; pointer-events: none;
+        }
+        
+        #pull-instruction {
+            position: absolute; top: 60%; font-size: 24px; font-weight: bold; color: #00ffff;
+            animation: pulse 1s infinite alternate; text-shadow: 2px 2px 0 #000; pointer-events: none;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* --- ANIMATION CANVAS --- */
+        #gacha-canvas { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; background: #000; }
+
+        /* --- RESULTS UI OVERLAY --- */
+        #results-screen {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 250;
+            pointer-events: none; 
+        }
+        #skip-hint {
+            position: absolute; top: 20px; right: 20px; font-size: 16px; color: rgba(255,255,255,0.5); font-style: italic; pointer-events: none;
+        }
+        .reveal-item-html {
+            position: absolute; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; pointer-events: auto;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .reveal-item-html.show { opacity: 1; }
+        .rarity-stars { font-size: 20px; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
+        .part-name { font-size: 16px; font-weight: bold; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;}
+        
+        .badge-container { height: 20px; margin-bottom: 2px; }
+        .new-badge {
+            display: inline-block; font-size: 12px; font-weight: 900;
+            background: linear-gradient(90deg, #ff0000, #ffaa00, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
+            background-size: 300% 300%; -webkit-background-clip: text; color: transparent;
+            animation: rainbowBg 2s linear infinite, popBounce 0.4s ease-in-out infinite alternate;
+            text-shadow: 0 0 2px rgba(255,255,255,0.2);
+        }
+        .new-design-badge {
+            display: inline-block; font-size: 12px; font-weight: 900;
+            background: linear-gradient(90deg, #e5e4e2, #00ffff, #ffffff, #0088ff, #e5e4e2);
+            background-size: 300% 300%; -webkit-background-clip: text; color: transparent;
+            animation: rainbowBg 2s linear infinite, popBounce 0.4s ease-in-out infinite alternate;
+            text-shadow: 0 0 4px rgba(0, 255, 255, 0.6);
+        }
+        @keyframes rainbowBg { 0% {background-position: 0% 50%;} 100% {background-position: 100% 50%;} }
+        @keyframes popBounce { 0% { transform: translateY(0px); } 100% { transform: translateY(-4px); } }
+
+        #finish-btn {
+            display: none; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: #ffaa00; color: #000; font-size: 24px; font-weight: 900; padding: 15px 40px;
+            border: 3px solid #fff; border-radius: 12px; cursor: pointer; pointer-events: auto;
+            box-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
+        }
+        #finish-btn:hover { background: #ffcc00; transform: translateX(-50%) scale(1.05); }
+
+    </style>
+
+
+    <div id="top-bar">
+        <button class="back-btn" onclick="window.location.href='store-hub.html'">◀ Back</button>
+        <div class="currency-display"><span id="bp-display">0</span> BP</div>
+    </div>
+
+    <div id="selection-screen">
+        <h1 style="font-size: 48px; font-style: italic; color: #00ffff; text-shadow: 2px 2px 0 #000; margin-bottom: 0;">SPIN EXCHANGE</h1>
+        <h3 style="color: #aaa; margin-top: 5px;">Select your pull</h3>
+        
+        <div class="pull-options">
+            <div class="pull-btn-container" onmouseenter="startHoverPhysics(1)" onmouseleave="stopHoverPhysics(1)" onclick="startPullPhase(1)">
+                <canvas id="canvas-hover-1" class="hover-canvas" width="200" height="250"></canvas>
+                <div class="pull-btn">
+                    <div class="pull-number">1</div>
+                    <div class="pull-cost">150 BP</div>
+                </div>
+            </div>
+
+            <div class="pull-btn-container" onmouseenter="startHoverPhysics(10)" onmouseleave="stopHoverPhysics(10)" onclick="startPullPhase(10)">
+                <canvas id="canvas-hover-10" class="hover-canvas" width="200" height="250"></canvas>
+                <div class="pull-btn ten-pull">
+                    <div class="pull-number">10</div>
+                    <div class="pull-cost">1500 BP</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ripcord-screen">
+        <div id="pull-instruction">CLICK, HOLD, AND PULL DOWN!</div>
+        <div id="winder-container">
+            <img id="winder-img" src="" alt="Winder" draggable="false">
+        </div>
+    </div>
+
+    <canvas id="gacha-canvas"></canvas>
+
+    <div id="results-screen">
+        <div id="skip-hint">Double-click anywhere to reveal all</div>
+        <div id="html-items-container"></div>
+        <button id="finish-btn" onclick="window.location.href='store-hub.html'">DONE</button>
+    </div>
+
+    <script type="module">
+        // --- ASSETS & CONFIG ---
+        const iconPaths = [
+            'images/menu_icons/AR_icon.png', 'images/menu_icons/BB_icon.png', 
+            'images/menu_icons/BC_icon.png', 'images/menu_icons/Cord_icon.png',
+            'images/menu_icons/Launcher_icon.png', 'images/menu_icons/SG_icon.png',
+            'images/menu_icons/SubAR_icon.png', 'images/menu_icons/WD_icon.png'
+        ];
+        
+        const beyPaths = [
+            'images/home_screen/bg_beyblade1.png', 'images/home_screen/bg_beyblade2.png',
+            'images/home_screen/bg_beyblade3.png', 'images/home_screen/bg_beyblade4.png'
+        ];
+
+        const winder1Path = 'images/gacha/gacha_winder.png'; 
+        const winder10Path = 'images/gacha/mega_winder.png'; 
+
+        const rarityColors = {
+            1: '#a0a0a0', // Iron
+            2: '#00ff00', // Emerald
+            3: '#0088ff', // Sapphire
+            4: '#b200ff', // Amethyst
+            5: '#ffcc00'  // Gold
+        };
+
+
+        // --- GLOBAL STATE ---
+        let currentPulls = 1;
+        let playerBP = 2000; 
+        document.getElementById('bp-display').innerText = playerBP;
+
+        // ==========================================
+        // 1. HOVER PHYSICS ENGINE (With Anti-Jitter)
+        // ==========================================
+        let physicsAnimFrame = null;
+        let activeCanvasId = null;
+        let particles = [];
+        const loadedIcons = [];
+
+        iconPaths.forEach(path => {
+            let img = new Image();
+            img.src = path;
+            loadedIcons.push(img);
+        });
+
+        // THE FIX: Expose functions to the global window so HTML can trigger them through module boundaries!
+        window.startHoverPhysics = function(num) {
+            activeCanvasId = num === 1 ? 'canvas-hover-1' : 'canvas-hover-10';
+            const canvas = document.getElementById(activeCanvasId);
+            const ctx = canvas.getContext('2d');
+            particles = [];
+
+            for(let i=0; i<num; i++) {
+                particles.push({
+                    x: Math.random() * 160 + 20,
+                    y: -30 - (Math.random() * 50),
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: Math.random() * 2,
+                    radius: 15,
+                    img: loadedIcons[Math.floor(Math.random() * loadedIcons.length)],
+                    color: `hsl(${Math.random()*360}, 80%, 60%)`
+                });
+            }
+
+            function physicsLoop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                for(let i=0; i<particles.length; i++) {
+                    let p = particles[i];
+                    p.vy += 0.8; 
+                    p.x += p.vx; p.y += p.vy;
+
+                    // --- Stable Walls and Floor ---
+                    if (p.x < p.radius) { p.x = p.radius; p.vx *= -0.5; }
+                    if (p.x > canvas.width - p.radius) { p.x = canvas.width - p.radius; p.vx *= -0.5; }
+                    
+                    if (p.y > canvas.height - p.radius - 20) { 
+                        p.y = canvas.height - p.radius - 20; 
+                        if (p.vy > 2.0) { p.vy *= -0.4; } // Modest bounce
+                        else { p.vy = 0; } // Sleep
+                        p.vx *= 0.8; // Friction on the floor
+                    }
+
+                    // --- Jitter-Free Icon Collision ---
+                    for(let j=i+1; j<particles.length; j++) {
+                        let p2 = particles[j];
+                        let dx = p2.x - p.x; let dy = p2.y - p.y;
+                        let dist = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (dist < p.radius + p2.radius) {
+                            if (dist === 0) { dx = 0.1; dy = 0.1; dist = Math.sqrt(dx*dx + dy*dy); }
+
+                            let overlap = (p.radius + p2.radius) - dist;
+                            let nx = dx/dist; let ny = dy/dist;
+                            
+                            // 1. Resolve Position (push them exactly out of each other)
+                            p.x -= nx * overlap * 0.5; p.y -= ny * overlap * 0.5;
+                            p2.x += nx * overlap * 0.5; p2.y += ny * overlap * 0.5;
+                            
+                            // 2. Calculate impact speed
+                            let rvx = p.vx - p2.vx;
+                            let rvy = p.vy - p2.vy;
+                            let velAlongNormal = rvx * nx + rvy * ny;
+                            
+                            // 3. Only apply bounce if they are actively smashing INTO each other
+                            if (velAlongNormal > 0) {
+                                let bounciness = velAlongNormal > 3.0 ? 0.5 : 0.0;
+                                let impulse = velAlongNormal * (1 + bounciness) * 0.5;
+                                
+                                p.vx -= nx * impulse; p.vy -= ny * impulse;
+                                p2.vx += nx * impulse; p2.vy += ny * impulse;
+                            }
+                            
+                            // 4. Constant friction while touching to kill the infinite jitter
+                            p.vx *= 0.85; p.vy *= 0.85;
+                            p2.vx *= 0.85; p2.vy *= 0.85;
+                        }
+                    }
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    if (p.img && p.img.complete) {
+                        ctx.drawImage(p.img, -p.radius, -p.radius, p.radius*2, p.radius*2);
+                        ctx.globalCompositeOperation = "source-atop";
+                        ctx.fillStyle = p.color;
+                        ctx.globalAlpha = 0.5;
+                        ctx.fillRect(-p.radius, -p.radius, p.radius*2, p.radius*2);
+                    } else {
+                        ctx.beginPath(); ctx.arc(0,0,p.radius,0,Math.PI*2); ctx.fillStyle = p.color; ctx.fill();
+                    }
+                    ctx.restore();
+                }
+                physicsAnimFrame = requestAnimationFrame(physicsLoop);
+            }
+            physicsLoop();
+        };
+
+        window.stopHoverPhysics = function(num) {
+            if (physicsAnimFrame) cancelAnimationFrame(physicsAnimFrame);
+            let canvas = document.getElementById(num === 1 ? 'canvas-hover-1' : 'canvas-hover-10');
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles = [];
+        };
+
+        // ==========================================
+        // 2. THE RIPCORD PULL MECHANIC (Scaled & Weighted)
+        // ==========================================
+        let isDragging = false;
+        let dragStartY = 0;
+        let currentY = 0;
+        let lastY = 0;
+        let lastTime = 0;
+        let pullVelocity = 0;
+        let winderHiddenPct = 0;
+        let winderFriction = 1.0;
+
+        const winderUI = document.getElementById('winder-container');
+
+        window.startPullPhase = function(num) {
+            if (physicsAnimFrame) cancelAnimationFrame(physicsAnimFrame); // Failsafe to stop physics loop
+
+            let cost = num === 1 ? 150 : 1500;
+            if (playerBP < cost) { alert("Not enough BP!"); return; }
+            playerBP -= cost;
+            document.getElementById('bp-display').innerText = playerBP;
+
+            currentPulls = num;
+            
+            winderHiddenPct = num === 1 ? 82.4 : 79.55;
+            winderFriction = num === 1 ? 1.0 : 0.45;
+
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('ripcord-screen').style.display = 'flex';
+            
+            let imgEl = document.getElementById('winder-img');
+            imgEl.src = num === 1 ? winder1Path : winder10Path;
+            imgEl.onerror = function() { this.src = ''; this.style.backgroundColor = num === 1 ? '#fff' : '#ffaa00'; }
+
+            winderUI.style.transform = `translateX(-50%) translateY(-${winderHiddenPct}%)`;
+            currentY = 0; pullVelocity = 0;
+        };
+
+        winderUI.addEventListener('mousedown', startDrag);
+        winderUI.addEventListener('touchstart', startDrag, {passive: false});
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('touchmove', onDrag, {passive: false});
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            dragStartY = e.clientY || e.touches[0].clientY;
+            lastY = dragStartY;
+            lastTime = performance.now();
+            winderUI.style.transition = 'none';
+        }
+
+        function onDrag(e) {
+            if (!isDragging) return;
+            let y = e.clientY || (e.touches ? e.touches[0].clientY : lastY);
+            let deltaY = y - dragStartY;
+            
+            if (deltaY < 0) deltaY = 0; 
+            
+            let now = performance.now();
+            let dt = Math.max(1, now - lastTime);
+            pullVelocity = (y - lastY) / dt;
+            lastY = y; lastTime = now;
+
+            currentY = deltaY * winderFriction;
+            winderUI.style.transform = `translateX(-50%) translateY(calc(-${winderHiddenPct}% + ${currentY}px))`;
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            if (currentY > 150 && pullVelocity > 1.2) {
+                let flySpeed = Math.max(pullVelocity * 16, 25);
+                
+                function flyOffLoop() {
+                    currentY += flySpeed;
+                    winderUI.style.transform = `translateX(-50%) translateY(calc(-${winderHiddenPct}% + ${currentY}px))`;
+                    
+                    if (currentY > window.innerHeight + 1000) {
+                        executeGachaSequence();
+                    } else {
+                        requestAnimationFrame(flyOffLoop);
+                    }
+                }
+                flyOffLoop();
+                
+            } else {
+                winderUI.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                winderUI.style.transform = `translateX(-50%) translateY(-${winderHiddenPct}%)`;
+            }
+        }
+
+        // ==========================================
+        // 3. THE GACHA ANIMATION SEQUENCE
+        // ==========================================
+        const animCanvas = document.getElementById('gacha-canvas');
+        const actx = animCanvas.getContext('2d');
+        let animState = 'IDLE'; 
+        let sceneTime = 0;
+        let renderTargets = [];
+        let loadedBeys = [];
+
+        beyPaths.forEach(path => { let img = new Image(); img.src = path; loadedBeys.push(img); });
+
+        function generateDummyResults(num) {
+            let results = [];
+            const names = ["Dragoon AR", "Dranzer SG", "Draciel WD", "Driger BB", "Heavy Metal Core", "Sniper Tip"];
+            for(let i=0; i<num; i++) {
+                let r = Math.random();
+                let rarity = r > 0.95 ? 5 : (r > 0.8 ? 4 : (r > 0.5 ? 3 : (r > 0.2 ? 2 : 1)));
+                results.push({
+                    id: i,
+                    name: names[Math.floor(Math.random()*names.length)],
+                    rarity: rarity,
+                    isNew: Math.random() > 0.7,
+                    isNewStyle: Math.random() > 0.8 && rarity > 2,
+                    revealed: false
+                });
+            }
+            return results;
+        }
+
+        function executeGachaSequence() {
+            document.getElementById('ripcord-screen').style.display = 'none';
+            animCanvas.style.display = 'block';
+            animCanvas.width = window.innerWidth;
+            animCanvas.height = window.innerHeight;
+            
+            let gachaItems = generateDummyResults(currentPulls);
+            renderTargets = [];
+            
+            let spacing = animCanvas.width / (currentPulls + 1);
+            let centerX = animCanvas.width / 2;
+            let centerY = animCanvas.height / 2;
+            
+            for(let i=0; i<currentPulls; i++) {
+                let distSpacing = (animCanvas.width * 0.7) / (currentPulls + 1);
+                let distX = (animCanvas.width * 0.15) + distSpacing * (i + 1);
+                let distY = centerY - 150 + (Math.random() * 40 - 20); 
+
+                let itemIcon = new Image();
+                itemIcon.src = iconPaths[Math.floor(Math.random() * iconPaths.length)];
+
+                renderTargets.push({
+                    item: gachaItems[i],
+                    startX: spacing * (i + 1), 
+                    startY: animCanvas.height + 200 + (Math.random()*150),
+                    distX: distX, distY: distY,
+                    finalX: spacing * (i + 1), finalY: centerY,
+                    x: spacing * (i + 1), y: animCanvas.height + 200, z: 0,
+                    scale: 1, rotation: 0,
+                    img: loadedBeys[Math.floor(Math.random()*loadedBeys.length)],
+                    iconImg: itemIcon,
+                    warpTime: 0, meteorTime: 0, warped: false
+                });
+            }
+
+            animState = 'SCROLL_UP';
+            sceneTime = 0;
+            requestAnimationFrame(drawGachaSequence);
+        }
+
+        function drawGachaSequence(timestamp) {
+            if (animState === 'IDLE') return;
+            
+            actx.fillStyle = 'rgba(0, 0, 0, 0.4)'; 
+            actx.fillRect(0, 0, animCanvas.width, animCanvas.height);
+            sceneTime += 16; 
+
+            if (animState === 'SCROLL_UP') {
+                let allCentered = true;
+                let targetY = animCanvas.height / 2;
+
+                renderTargets.forEach(t => {
+                    t.y += (targetY - t.y) * 0.05; 
+                    t.rotation += 0.5; 
+                    if (Math.abs(t.y - targetY) > 5) allCentered = false;
+                    drawSpinningBey(t);
+                });
+
+                actx.fillStyle = '#fff';
+                for(let i=0; i<5; i++) actx.fillRect(Math.random()*animCanvas.width, Math.random()*animCanvas.height, 2, 15);
+
+                if (allCentered && sceneTime > 2000) {
+                    animState = 'WARP_ARC';
+                    sceneTime = 0;
+                }
+            }
+            
+            else if (animState === 'WARP_ARC') {
+                let allWarped = true;
+
+                renderTargets.forEach((t, index) => {
+                    if (sceneTime > index * 100) {
+                        t.warpTime += 16;
+                        let p = Math.min(1, t.warpTime / 800); 
+                        
+                        t.x = t.startX + (t.distX - t.startX) * p;
+                        
+                        let linearY = t.startY + (t.distY - t.startY) * p;
+                        let arcOffset = Math.sin(p * Math.PI) * 350; 
+                        t.y = linearY - arcOffset;
+                        
+                        t.z = p * 1000;
+                        t.scale = 300 / (300 + t.z);
+                        t.rotation += 0.5;
+                        
+                        if (p < 1) {
+                            allWarped = false;
+                            drawSpinningBey(t);
+                        } else if (!t.warped) {
+                            t.warped = true;
+                            let color = rarityColors[t.item.rarity];
+                            actx.beginPath(); actx.arc(t.distX, t.distY, 150, 0, Math.PI*2);
+                            let grad = actx.createRadialGradient(t.distX, t.distY, 0, t.distX, t.distY, 150);
+                            grad.addColorStop(0, '#fff'); grad.addColorStop(0.2, color); grad.addColorStop(1, 'transparent');
+                            actx.fillStyle = grad; actx.fill();
+                        }
+                    } else {
+                        allWarped = false;
+                        drawSpinningBey(t);
+                    }
+                });
+
+                if (allWarped && sceneTime > (currentPulls * 100) + 1000) {
+                    animState = 'WAITING';
+                    setupRevealUI();
+                }
+            }
+
+            else if (animState === 'WAITING' || animState === 'METEOR') {
+                renderTargets.forEach((t, i) => {
+                    if (t.item.revealed) return; 
+                    let color = rarityColors[t.item.rarity];
+                    
+                    if (t.meteorTime > 0) {
+                        t.meteorTime += 16;
+                        let p = Math.min(1, t.meteorTime / 400);
+                        
+                        t.z = 1000 - (p * 1000);
+                        t.scale = 300 / (300 + t.z);
+                        t.x = t.distX + (t.finalX - t.distX) * p;
+                        t.y = t.distY + (t.finalY - t.distY) * p;
+                        
+                        let size = t.scale * 100;
+                        
+                        actx.beginPath(); actx.arc(t.x, t.y, size * 1.5, 0, Math.PI*2);
+                        let grad = actx.createRadialGradient(t.x, t.y, 0, t.x, t.y, size * 1.5);
+                        grad.addColorStop(0, '#fff'); grad.addColorStop(0.3, color); grad.addColorStop(1, 'transparent');
+                        actx.fillStyle = grad; actx.fill();
+
+                        if (t.iconImg && t.iconImg.complete) {
+                            actx.save();
+                            actx.translate(t.x, t.y);
+                            actx.scale(t.scale, t.scale);
+                            actx.drawImage(t.iconImg, -40, -40, 80, 80);
+                            actx.restore();
+                        }
+
+                        if (p >= 1) {
+                            t.item.revealed = true;
+                            showItemHTML(t, t.finalX, t.finalY);
+                            checkAllRevealed();
+                        }
+                    } else {
+                        let pulse = 2 + Math.sin(sceneTime*0.01 + i) * 1.5;
+                        actx.beginPath(); actx.arc(t.distX, t.distY, pulse, 0, Math.PI*2);
+                        actx.fillStyle = color; actx.fill();
+                        actx.shadowBlur = 15; actx.shadowColor = color; actx.fill(); actx.shadowBlur = 0;
+                    }
+                });
+            }
+
+            requestAnimationFrame(drawGachaSequence);
+        }
+
+        function drawSpinningBey(t) {
+            actx.save();
+            actx.translate(t.x, t.y);
+            actx.scale(t.scale, t.scale);
+            actx.rotate(t.rotation);
+            if (t.img && t.img.complete) {
+                actx.drawImage(t.img, -100, -100, 200, 200);
+            } else {
+                actx.beginPath(); actx.arc(0,0,80,0,Math.PI*2); actx.fillStyle='#555'; actx.fill();
+            }
+            actx.restore();
+        }
+
+        // ==========================================
+        // 4. INTERACTIVE REVEAL PHASE
+        // ==========================================
+        function setupRevealUI() {
+            document.getElementById('results-screen').style.display = 'block';
+            document.getElementById('results-screen').addEventListener('click', handleRevealClick);
+            document.getElementById('results-screen').addEventListener('dblclick', revealAll);
+        }
+
+        function handleRevealClick() {
+            if (animState !== 'WAITING' && animState !== 'METEOR') return;
+            animState = 'METEOR';
+            let nextToReveal = renderTargets.find(t => !t.item.revealed && t.meteorTime === 0);
+            if (nextToReveal) nextToReveal.meteorTime = 16; 
+        }
+
+        function revealAll() {
+            if (animState !== 'WAITING' && animState !== 'METEOR') return;
+            animState = 'METEOR';
+            renderTargets.forEach((t, i) => {
+                if (!t.item.revealed && t.meteorTime === 0) {
+                    setTimeout(() => { t.meteorTime = 16; }, i * 150); 
+                }
+            });
+        }
+
+        function showItemHTML(t, x, y) {
+            const container = document.getElementById('html-items-container');
+            let div = document.createElement('div');
+            div.className = 'reveal-item-html';
+            div.style.left = `${x}px`;
+            div.style.top = `${y}px`;
+
+            let stars = "★".repeat(t.item.rarity);
+            let color = rarityColors[t.item.rarity];
+            
+            let badgeHTML = `<div class="badge-container"></div>`;
+            if (t.item.isNew) badgeHTML = `<div class="badge-container"><span class="new-badge">NEW</span></div>`;
+            else if (t.item.isNewStyle) badgeHTML = `<div class="badge-container"><span class="new-design-badge">NEW DESIGN</span></div>`;
+
+            div.innerHTML = `
+                ${badgeHTML}
+                <div class="rarity-stars" style="color: ${color};">${stars}</div>
+                <div style="width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, ${color} 0%, transparent 70%); margin-bottom: 10px; display: flex; justify-content:center; align-items:center;">
+                    <img src="${t.iconImg.src}" style="width: 60px; filter: drop-shadow(0 0 5px #000);">
+                </div>
+                <div class="part-name" style="color: ${color};">${t.item.name}</div>
+            `;
+
+            container.appendChild(div);
+            setTimeout(() => div.classList.add('show'), 50);
+        }
+
+        function checkAllRevealed() {
+            if (renderTargets.every(t => t.item.revealed)) {
+                document.getElementById('skip-hint').style.display = 'none';
+                document.getElementById('finish-btn').style.display = 'block';
+                setTimeout(() => { animState = 'DONE'; }, 1000);
+            }
+        }
+    </script>

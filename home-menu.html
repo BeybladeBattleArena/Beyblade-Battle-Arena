@@ -1,0 +1,612 @@
+<style>
+    /* Full screen container */
+    #hub-container {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        overflow: hidden;
+        display: flex;
+        background: radial-gradient(circle at center, #1a1a2e 0%, #050508 100%);
+        user-select: none; /* Prevents text highlighting while dragging */
+    }
+
+    /* BACKGROUND CANVAS FOR SILHOUETTES */
+    #bg-canvas {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 1; /* Behind everything */
+        pointer-events: none;
+    }
+
+    /* LEFT SIDE: The News Panel */
+    #news-panel {
+        position: absolute;
+        top: 60px; /* Below the BP Bar */
+        left: 0;
+        width: 30%;
+        min-width: 250px;
+        height: calc(100% - 60px);
+        background: rgba(20, 25, 40, 0.65); /* Semi-transparent */
+        border-right: 2px solid rgba(0, 170, 255, 0.3);
+        box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        z-index: 10;
+        padding: 20px;
+        box-sizing: border-box;
+        overflow-y: auto;
+        color: #ccc;
+        backdrop-filter: blur(4px);
+    }
+    #news-panel h2 {
+        color: #00ffff;
+        margin-top: 0;
+        font-size: 18px;
+        letter-spacing: 2px;
+        border-bottom: 1px solid #00aaff;
+        padding-bottom: 10px;
+    }
+    .news-item { margin-bottom: 15px; font-size: 13px; line-height: 1.5; }
+    .news-date { font-size: 10px; color: #ffaa00; font-weight: bold; display: block; margin-bottom: 3px;}
+
+    /* CENTER-RIGHT: The Showcase */
+    #hub-showcase {
+        position: absolute;
+        left: 45%; /* Moved closer to the wheel */
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 30;
+        pointer-events: none; /* Let touches pass through to the wheel drag area */
+    }
+
+    .featured-label {
+        font-size: 12px;
+        font-weight: 900;
+        color: #00ffff;
+        letter-spacing: 3px;
+        margin-bottom: 15px;
+        text-shadow: 0 0 5px #00aaff;
+    }
+
+    /* Increased Size by 50% (From 150px to 225px) */
+    .hub-idle-spin {
+        width: 225px; 
+        height: 225px;
+        position: relative;
+        animation: hubSpin 2.5s linear infinite;
+        filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+    }
+    
+    @keyframes hubSpin { 100% { transform: rotate(360deg); } }
+
+    .hub-part {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+    }
+
+    #active-build-name {
+        margin-top: 25px;
+        font-size: 18px;
+        font-weight: bold;
+        color: #ffaa00;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 0px #000;
+    }
+
+.cycle-btn {
+        margin-top: 15px;
+        background: rgba(0,0,0,0.5);
+        border: 1px solid #00ffff;
+        color: #00ffff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+        transition: 0.2s;
+        
+        /* THE FIX: Poke through the drag zone! */
+        position: relative; 
+        z-index: 30; 
+        pointer-events: auto;
+    }
+    .cycle-btn:active { background: #00ffff; color: #000; transform: scale(0.95); }
+
+
+
+    /* RIGHT SIDE: The Rotary Wheel Menu */
+    #wheel-drag-zone {
+        position: absolute;
+        top: 0; right: 0; bottom: 0;
+        width: 55%; /* Covers the right half of the screen for dragging */
+        z-index: 20;
+        cursor: grab;
+    }
+    #wheel-drag-zone:active { cursor: grabbing; }
+
+    #wheel-menu-container {
+        position: absolute;
+        top: 50%;
+        right: -55vh; /* Shoves half the circle off the screen */
+        width: 110vh; /* Massive circle */
+        height: 110vh;
+        border-radius: 50%;
+        border-left: 2px solid rgba(0, 170, 255, 0.2);
+        box-shadow: -10px 0 50px rgba(0, 170, 255, 0.05);
+        transform: translateY(-50%) rotate(0deg);
+        /* No CSS transition here because JS handles the momentum math! */
+    }
+
+    .wheel-item {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 280px;
+        height: 60px;
+        margin-top: -30px; 
+        transform-origin: 55vh 50%; /* Anchor to the dead center of the 110vh wheel */
+        display: flex;
+        align-items: center;
+        padding-left: 40px;
+        font-size: 20px;
+        font-weight: 900;
+        color: #444;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        transition: color 0.2s, font-size 0.2s, text-shadow 0.2s;
+        pointer-events: none; /* Let the drag zone handle clicks */
+    }
+
+    /* The "Selected" state */
+    .wheel-item.active {
+        color: #fff;
+        text-shadow: 0 0 15px #ffaa00, 0 0 30px #ffaa00;
+        font-size: 34px;
+        border-left: 5px solid #ffaa00;
+        padding-left: 35px;
+    }
+
+</style>
+
+<div id="hub-container">
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="news-panel">
+        <h2>ARENA NEWS</h2>
+        <div class="news-item">
+            <span class="news-date">MARCH 14, 2026</span>
+            My neck hurts. But let's keep pushing through this.
+        </div>
+        <div class="news-item">
+            <span class="news-date">FEB 28, 2026</span>
+            Patch 1.2: Added momentum physics to the UI wheel and dynamic background clashes. Keep your RPMs high!
+        </div>
+    </div>
+    
+    <div id="hub-showcase">
+        <div class="featured-label">FEATURED BEYBLADE:</div>
+        <div class="hub-idle-spin" id="hub-bey-stack">
+            </div>
+        <div id="active-build-name">LOADING...</div>
+        <button class="cycle-btn" onclick="window.cycleLoadout()">⟳ CYCLE LOADOUT</button>
+    </div>
+
+    <div id="wheel-drag-zone">
+        <div id="wheel-menu-container">
+            </div>
+    </div>
+</div>
+
+<script type="module">
+    import { db } from './firebase-config.js';
+    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // 1. AUTHENTICATION GATEKEEPER
+    if (!window.CurrentUser || !window.PlayerData) {
+        window.navigateTo('login.html');
+    }
+
+    document.getElementById('player-bp-display').innerText = window.PlayerData.bp;
+
+// --- BGM AUDIO SETUP ---
+    // Cue the shell's audio manager to play the song and loop it at 12 seconds!
+    window.AudioManager.playBGM('audio/music/Let_It_Rip_ForTitleScreen.wav', 12.007855);
+
+
+// --- SHOWCASE LOGIC ---
+    let saves = window.PlayerData.saves || new Array(10).fill(null);
+    // Load their saved preference, or default to 0
+    let activeSaveIndex = window.PlayerData.featuredBuildIndex || 0;
+
+    // --- NEW: Safe Image Retrieval Helper ---
+    function getSafeImage(part, isTopDown = false) {
+        if (!part) return '';
+        let key = isTopDown ? 'topDownImage' : 'image';
+        if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
+        if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
+        return part.fallbackImage || part[key] || '';
+    }
+
+    window.renderShowcase = function() {
+        const stack = document.getElementById('hub-bey-stack');
+        const nameLabel = document.getElementById('active-build-name');
+        
+        let currentSave = saves[activeSaveIndex];
+        
+        // EMPTY STATE: No build found!
+        if (!currentSave || !currentSave.parts) {
+            stack.innerHTML = `<img src="images/menu_icons/AR_icon.png" class="hub-part" style="opacity: 0.5;">`;
+            nameLabel.innerText = "NO BUILD SAVED";
+            nameLabel.style.color = "#666";
+            return;
+        }
+
+        // Limit name to 20 chars
+        let displayName = currentSave.name || `Build ${activeSaveIndex + 1}`;
+        if (displayName.length > 20) displayName = displayName.substring(0, 20) + "...";
+        nameLabel.innerText = displayName;
+        nameLabel.style.color = "#ffaa00";
+
+        // NEW: Use the safe image retriever!
+        const bbImg = getSafeImage(currentSave.parts.bladeBase, true);
+        const sgImg = getSafeImage(currentSave.parts.spinGear, true);
+        const wdImg = getSafeImage(currentSave.parts.weightDisk, true);
+        const arImg = getSafeImage(currentSave.parts.attackRing, true);
+        const bcImg = getSafeImage(currentSave.parts.bitChip, true);
+
+        stack.innerHTML = `
+            ${bbImg ? `<img src="${bbImg}" class="hub-part" style="z-index: 1;">` : ''}
+            ${sgImg ? `<img src="${sgImg}" class="hub-part" style="z-index: 2;">` : ''}
+            ${wdImg ? `<img src="${wdImg}" class="hub-part" style="z-index: 3;">` : ''}
+            ${arImg ? `<img src="${arImg}" class="hub-part" style="z-index: 4;">` : ''}
+            ${bcImg ? `<img src="${bcImg}" class="hub-part" style="z-index: 5;">` : ''}
+        `;
+    };
+
+    window.cycleLoadout = function() {
+        // If they have NO saves at all, do nothing
+        if (!saves.some(s => s && s.parts)) return;
+
+        let startingIndex = activeSaveIndex;
+        do {
+            activeSaveIndex++;
+            if (activeSaveIndex >= 10) activeSaveIndex = 0;
+            if (activeSaveIndex === startingIndex) break; 
+        } while (!saves[activeSaveIndex] || !saves[activeSaveIndex].parts);
+        
+        window.PlayerData.featuredBuildIndex = activeSaveIndex;
+        
+        // Save to Firebase so it remembers!
+        const userRef = doc(db, "users", window.CurrentUser.uid);
+        updateDoc(userRef, { featuredBuildIndex: activeSaveIndex }).catch(e => console.error(e));
+
+        window.renderShowcase();
+    };
+
+
+    // --- MOMENTUM WHEEL ENGINE ---
+    const MENU_OPTIONS = [
+        { id: "build.html", name: "BUILD" },
+        { id: "store_hub.html", name: "SPIN EXCHANGE" },
+        { id: "beybattle.html", name: "FREE BATTLE" },
+        { id: null, name: "VERSUS" },
+        { id: "adventure.html", name: "ADVENTURE" }
+    ];
+    
+    const wheelContainer = document.getElementById('wheel-menu-container');
+    const dragZone = document.getElementById('wheel-drag-zone');
+    
+    // Inject items evenly spaced
+    const angleSpacing = 360 / MENU_OPTIONS.length;
+    MENU_OPTIONS.forEach((opt, index) => {
+        let angle = index * angleSpacing;
+        wheelContainer.innerHTML += `<div class="wheel-item" id="menu-item-${index}" style="transform: rotate(${angle}deg)">${opt.name}</div>`;
+    });
+
+    let currentRotation = 144; // Start with Free Battle (Index 2) centered
+    let targetRotation = 144;
+    let velocity = 0;
+    let isDragging = false;
+    let previousY = 0;
+    let activeIndex = 2;
+
+    function updateWheelMath() {
+        if (!isDragging) {
+            // Friction and snapping
+            currentRotation += velocity;
+            velocity *= 0.92; 
+
+            if (Math.abs(velocity) < 0.5) {
+                // Snap to nearest item
+                targetRotation = Math.round(currentRotation / angleSpacing) * angleSpacing;
+                currentRotation += (targetRotation - currentRotation) * 0.15; // Smooth snap
+            }
+        }
+
+        // Apply visual rotation
+        wheelContainer.style.transform = `translateY(-50%) rotate(${currentRotation}deg)`;
+
+        // Calculate which item is closest to the 0-degree (left-pointing) horizon
+        // Because the wheel rotates clockwise (+), the item that comes to 0 is negative relative
+        let normalizedRot = (currentRotation % 360 + 360) % 360; 
+        let rawIndex = Math.round(normalizedRot / angleSpacing);
+        
+        // If the wheel rotates +72 degrees, item index 4 rotates into the 0 slot. 
+        activeIndex = (MENU_OPTIONS.length - rawIndex) % MENU_OPTIONS.length;
+        if (activeIndex < 0) activeIndex += MENU_OPTIONS.length;
+
+        // Update CSS classes
+        document.querySelectorAll('.wheel-item').forEach((el, i) => {
+            if (i === activeIndex) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+
+        requestAnimationFrame(updateWheelMath);
+    }
+    updateWheelMath();
+
+// --- MOMENTUM WHEEL TOUCH & CLICK LOGIC ---
+    let totalDragDistance = 0; // We add a tracker for how far they moved
+
+    dragZone.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        previousY = e.clientY;
+        velocity = 0;
+        totalDragDistance = 0; // Reset distance on new touch
+    });
+
+    document.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        let deltaY = e.clientY - previousY;
+        
+        // Add the absolute value of the movement to our total distance
+        totalDragDistance += Math.abs(deltaY); 
+        
+        previousY = e.clientY;
+        
+        // Swiping UP (-) means wheel rotates Counter-Clockwise (-)
+        velocity = deltaY * 0.4; 
+        currentRotation += velocity;
+    });
+
+    document.addEventListener('pointerup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+    });
+
+	// TAPPING to Enter
+    dragZone.addEventListener('click', (e) => {
+        // If they moved their cursor more than 10 pixels, it was a spin, NOT a click!
+        if (totalDragDistance > 10) return; 
+
+        let selectedTarget = MENU_OPTIONS[activeIndex];
+        
+        if (!selectedTarget.id) {
+            alert("This feature is currently under construction!");
+            return;
+        }
+
+        // --- NEW: GATEKEEPER FOR BOTH BATTLE AND ADVENTURE ---
+        if (selectedTarget.id === "beybattle.html" || selectedTarget.id === "adventure.html") {
+            let currentSave = saves[activeSaveIndex];
+            
+            // If they don't have a build or it's empty, block entry!
+            if (!currentSave || !currentSave.parts) {
+                if (selectedTarget.id === "adventure.html") {
+                    alert("Adventuring can be fun, but you'll probably want to save a Beyblade build before you try to... play Beyblade. Check out the Build section first.");
+                } else {
+                    alert("You must Build and Save a Beyblade before battling!");
+                }
+                return; // Stop the navigation instantly!
+            }
+            
+            // If they pass the check, equip their Beyblade globally for the engine to use!
+            window.ActiveBey = currentSave;
+        }
+        
+        window.navigateTo(selectedTarget.id);
+    });
+
+    
+    // --- BACKGROUND CANVAS ENGINE ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    function resizeCanvas() { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // Load Silhouettes
+    const bgImages = [];
+    let loadedCount = 0;
+    for (let i = 1; i <= 8; i++) {
+        let img = new Image();
+        img.src = `images/home_screen/bg_beyblade${i}.png`; // Ensure this matches your path!
+        bgImages.push(img);
+    }
+
+    let bgBeys = [];
+    let sparks = [];
+    let clashEvent = null;
+
+	function spawnBgBey() {
+        if (clashEvent) return; // Don't spawn standard ones during a clash!
+        if (bgBeys.length > 5) return; // Max at once
+
+        let img = bgImages[Math.floor(Math.random() * bgImages.length)];
+        let size = Math.random() * 80 + 40; // 40px to 120px
+        
+        // Determine edge (Left to Right, or Right to Left)
+        let isMovingRight = Math.random() > 0.5;
+        let x = isMovingRight ? -size : width + size;
+        let y = Math.random() * height;
+        
+        // Target an opposite edge
+        let targetY = Math.random() * height;
+        let dx = (isMovingRight ? width : 0) - x;
+        let dy = targetY - y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        let speed = Math.random() * 1.5 + 0.5;
+
+        bgBeys.push({
+            img: img, x: x, y: y,
+            vx: (dx/dist) * speed, vy: (dy/dist) * speed,
+            size: size, rotation: 0, rotSpeed: Math.random() * 0.2 + 0.05,
+            hue: Math.random() * 360 // NEW: Give it a random color!
+        });
+    }
+
+    // Try spawning occasionally
+    setInterval(spawnBgBey, 2000);
+
+    // Try spawning a clash occasionally (Every 15-25 seconds)
+	function attemptClash() {
+        if (clashEvent) return;
+        
+        // Pick two random images
+        let img1 = bgImages[Math.floor(Math.random() * bgImages.length)];
+        let img2 = bgImages[Math.floor(Math.random() * bgImages.length)];
+        
+        let clashY = height * 0.5 + (Math.random() * 200 - 100);
+        
+        clashEvent = {
+            phase: 'APPROACH_1',
+            timer: 0,
+            // FIXED: y is exactly clashY, and vy is 0. They hit head-on!
+            b1: { img: img1, x: -100, y: clashY, vx: 6, vy: 0, size: 80, rotation: 0, hue: Math.random() * 360 },
+            b2: { img: img2, x: width + 100, y: clashY, vx: -6, vy: 0, size: 80, rotation: 0, hue: Math.random() * 360 }
+        };
+    }
+    setInterval(attemptClash, 20000);
+
+    function createSparks(x, y) {
+        for(let i=0; i<15; i++) {
+            let angle = Math.random() * Math.PI * 2;
+            let speed = Math.random() * 4 + 2;
+            sparks.push({
+                x: x, y: y,
+                vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                life: 1.0, decay: Math.random() * 0.05 + 0.02
+            });
+        }
+    }
+
+	function renderBg(timestamp) {
+        ctx.clearRect(0, 0, width, height);
+        
+        // Draw Sparks
+        for (let i = sparks.length - 1; i >= 0; i--) {
+            let s = sparks[i];
+            s.x += s.vx; s.y += s.vy;
+            s.life -= s.decay;
+            if (s.life <= 0) { sparks.splice(i, 1); continue; }
+            ctx.fillStyle = `rgba(255, 200, 0, ${s.life})`;
+            ctx.beginPath(); ctx.arc(s.x, s.y, 2, 0, Math.PI*2); ctx.fill();
+        }
+
+        // Draw Generic Beys
+        for (let i = bgBeys.length - 1; i >= 0; i--) {
+            let b = bgBeys[i];
+            b.x += b.vx; b.y += b.vy; b.rotation += b.rotSpeed;
+            
+            // Delete if way off screen
+            if (b.x < -200 || b.x > width + 200 || b.y < -200 || b.y > height + 200) {
+                bgBeys.splice(i, 1); continue;
+            }
+            
+            ctx.save();
+            ctx.translate(b.x, b.y); ctx.rotate(b.rotation);
+            ctx.globalAlpha = 0.15; // Semi-transparent
+            
+            // NEW: Wash the image in sepia, then spin the color wheel to the random hue!
+            ctx.filter = `sepia(1) saturate(300%) hue-rotate(${b.hue}deg)`;
+            
+            ctx.drawImage(b.img, -b.size/2, -b.size/2, b.size, b.size);
+            ctx.restore(); // Automatically removes the filter for the next drawing!
+        }
+
+        // Handle Clash Event
+        if (clashEvent) {
+            let c = clashEvent;
+            c.b1.rotation += 0.2; c.b2.rotation += 0.2;
+            c.timer++;
+
+            if (c.phase === 'APPROACH_1') {
+                c.b1.x += c.b1.vx; c.b1.y += c.b1.vy;
+                c.b2.x += c.b2.vx; c.b2.y += c.b2.vy;
+                let dist = Math.abs(c.b1.x - c.b2.x);
+                if (dist < 40) {
+                    c.phase = 'RECOIL'; c.timer = 0;
+                    createSparks((c.b1.x + c.b2.x)/2, (c.b1.y + c.b2.y)/2);
+                    c.b1.vx *= -0.5; c.b2.vx *= -0.5; // Bounce back
+                }
+            } 
+            else if (c.phase === 'RECOIL') {
+                c.b1.x += c.b1.vx; c.b2.x += c.b2.vx;
+                if (c.timer > 30) {
+                    c.phase = 'APPROACH_2';
+                    c.b1.vx = 4; c.b2.vx = -4; // Drive back in
+                }
+            }
+            else if (c.phase === 'APPROACH_2') {
+                c.b1.x += c.b1.vx; c.b2.x += c.b2.vx;
+                let dist = Math.abs(c.b1.x - c.b2.x);
+                if (dist < 20) {
+                    c.phase = 'GRINDING'; c.timer = 0;
+                    createSparks((c.b1.x + c.b2.x)/2, (c.b1.y + c.b2.y)/2);
+                }
+            }
+            else if (c.phase === 'GRINDING') {
+                // Orbit around a center point
+                let cx = (c.b1.x + c.b2.x)/2; let cy = (c.b1.y + c.b2.y)/2;
+                let radius = 20;
+                let angle = c.timer * 0.1; 
+                c.b1.x = cx + Math.cos(angle) * radius; c.b1.y = cy + Math.sin(angle) * radius;
+                c.b2.x = cx + Math.cos(angle + Math.PI) * radius; c.b2.y = cy + Math.sin(angle + Math.PI) * radius;
+                
+                if (c.timer % 5 === 0) createSparks(cx, cy); // Constant sparks
+
+                if (c.timer > 60) { // Half circle completed (switched places)
+                    c.phase = 'FINAL_BOUNCE'; c.timer = 0;
+                    // Shoot them off opposite of how they came
+                    c.b1.vx = -8; c.b1.vy = -3;
+                    c.b2.vx = 8;  c.b2.vy = 3;
+                    createSparks(cx, cy); createSparks(cx, cy); // Big burst
+                }
+            }
+            else if (c.phase === 'FINAL_BOUNCE') {
+                c.b1.x += c.b1.vx; c.b1.y += c.b1.vy;
+                c.b2.x += c.b2.vx; c.b2.y += c.b2.vy;
+                if (c.b1.x < -100 && c.b2.x > width + 100) {
+                    clashEvent = null; // End event
+                }
+            }
+
+            if (clashEvent) {
+                // Draw Clash Beys slightly more visible than standard ones
+                [c.b1, c.b2].forEach(b => {
+                    ctx.save();
+                    ctx.translate(b.x, b.y); ctx.rotate(b.rotation);
+                    ctx.globalAlpha = 0.3; 
+                    
+                    // NEW: Wash the clash images with random colors too!
+                    ctx.filter = `sepia(1) saturate(300%) hue-rotate(${b.hue}deg)`;
+                    
+                    ctx.drawImage(b.img, -b.size/2, -b.size/2, b.size, b.size);
+                    ctx.restore();
+                });
+            }
+        }
+
+        requestAnimationFrame(renderBg);
+    }
+    requestAnimationFrame(renderBg);
+
+    // Initial Boot Render
+    window.renderShowcase();
+</script>

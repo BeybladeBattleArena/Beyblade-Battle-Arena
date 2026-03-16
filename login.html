@@ -1,0 +1,215 @@
+<style>
+    .login-wrapper, .creation-wrapper { padding-top: 50px; display: flex; flex-direction: column; align-items: center; }
+    .input-box { width: 80%; max-width: 300px; padding: 12px; margin: 10px 0; border-radius: 5px; border: 1px solid #555; background: #333; color: white; font-size: 16px; }
+    .auth-btn { width: 80%; max-width: 300px; padding: 15px; margin: 10px 0; font-size: 18px; font-weight: bold; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    .btn-login { background-color: #007bff; }
+    .btn-register { background-color: #28a745; }
+    .btn-google { background-color: #383346; margin-top: 30px; }
+    .btn-create { background-color: #ffaa00; color: #000; box-shadow: 0 0 15px rgba(255,170,0,0.4); margin-top: 20px;}
+    .auth-btn:active { transform: scale(0.95); }
+    .error-msg { color: #ff4444; margin-top: 15px; font-weight: bold; height: 20px; }
+	
+	/* --- NEW: Google Beyblade Animation --- */
+    
+    /* Align the image and text perfectly inside the button */
+    .btn-google { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        gap: 12px; /* Space between the spinning beyblade and the text */
+    }
+
+    /* Set a standard size for the image so it fits the button */
+    .btn-google img {
+        width: 24px; 
+        height: 24px;
+        object-fit: contain;
+    }
+
+    /* When the button is hovered, spin the image! */
+    .btn-google:hover img {
+        animation: buzzsawSpin 0.3s linear infinite;
+    }
+
+    /* The actual rotation math */
+    @keyframes buzzsawSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); } /* Right/Clockwise spin */
+    }
+	
+</style>
+
+<div id="login-box" class="login-wrapper">
+    <h1 style="letter-spacing: 2px; color: #00aaff;">BEYBLADE ARENA</h1>
+    <p style="color: #aaa; margin-bottom: 30px;">Login or create an account to play!</p>
+
+    <input type="email" id="email-input" class="input-box" placeholder="Email Address">
+    <input type="password" id="password-input" class="input-box" placeholder="Password">
+    
+    <button class="auth-btn btn-login" onclick="window.handleEmailLogin()">Log In</button>
+    <button class="auth-btn btn-register" onclick="window.handleEmailRegister()">Create Account</button>
+    <button class="auth-btn btn-google" onclick="window.handleGoogleLogin()"><img id="btn-google" src="/images/login_page/GoogleBeyBlade.png"> Sign in with Google</button>
+	
+    <div id="login-error" class="error-msg"></div>
+
+    
+</div>
+
+<div id="creation-box" class="creation-wrapper" style="display: none;">
+    <h1 style="letter-spacing: 2px; color: #ffaa00;">NEW BLADER</h1>
+    <p style="color: #aaa; margin-bottom: 30px;">Tell us a bit about yourself before we begin.</p>
+
+    <input type="text" id="acc-name-input" class="input-box" placeholder="Enter Account Name" maxlength="15">
+    
+    <select id="acc-gender-input" class="input-box">
+        <option value="" disabled selected>Select Preferred Pronouns</option>
+        <option value="Male">He / Him</option>
+        <option value="Female">She / Her</option>
+        <option value="Androgynous">They / Them</option>
+    </select>
+    
+    <button class="auth-btn btn-create" onclick="window.finalizeAccount()">ENTER THE ARENA</button>
+    
+    <div id="creation-error" class="error-msg"></div>
+</div>
+
+<script type="module">
+    import { auth, db } from './firebase-config.js';
+    import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const googleProvider = new GoogleAuthProvider();
+    const errorDisplay = document.getElementById('login-error');
+
+const starterInventory = {
+        bp: 1000,
+        bitChips: ["starter_bc"], attackRings: ["starter_ar"], 
+        weightDisks: ["wd_01"], spinGears: ["sg_01"], bladeBases: ["bb_01"],
+        
+        // NEW: Provide the starter tools!
+        launchers: ["launcher_01"],
+        ripCords: ["ripcord_01"],
+        
+        unlockedStyles: [],
+        unlockedOpponents: [],
+        isSetupComplete: false 
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            errorDisplay.style.color = "#00aaff"; 
+            errorDisplay.innerText = "Restoring session...";
+            await loadUserDatabase(user);
+        }
+    });
+
+async function loadUserDatabase(user) {
+        try {
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+
+            window.CurrentUser = user; 
+
+            // Check if the user exists AND if their setup flag is true
+            if (userSnap.exists() && userSnap.data().isSetupComplete === true) {
+                // Yes! Returning Player!
+                window.PlayerData = userSnap.data();
+                
+                document.getElementById('player-name-display').innerText = window.PlayerData.accountName;
+                document.getElementById('player-bp-display').innerText = window.PlayerData.bp;
+                document.getElementById('info-right').style.opacity = '1';
+
+                window.navigateTo('home-menu.html');
+            } else {
+                // Brand new player, OR they closed the window during setup last time.
+                // We make sure their base inventory exists first!
+                if (!userSnap.exists()) {
+                    await setDoc(userRef, starterInventory);
+                }
+                
+                // Show the survey!
+                document.getElementById('login-box').style.display = 'none';
+                document.getElementById('creation-box').style.display = 'flex';
+            }
+            
+        } catch (error) {
+            console.error("Database Error:", error);
+            errorDisplay.style.color = "#ff4444";
+            errorDisplay.innerText = "Connection blocked. Check adblockers or VPNs!";
+        }
+    }
+
+    // --- NEW: Finalize Account Function ---
+	window.finalizeAccount = async () => {
+        const name = document.getElementById('acc-name-input').value.trim();
+        const gender = document.getElementById('acc-gender-input').value;
+        const errDisplay = document.getElementById('creation-error');
+
+        if (!name) return errDisplay.innerText = "Please enter an account name.";
+        if (!gender) return errDisplay.innerText = "Please select your preferred pronouns.";
+
+        // Build the profile update and FLIP THE FLAG
+        const newProfileData = {
+            accountName: name,
+            genderPreference: gender,
+            isSetupComplete: true // FLIPPED TO TRUE!
+        };
+
+        try {
+            const userRef = doc(db, "users", window.CurrentUser.uid);
+            await setDoc(userRef, newProfileData, { merge: true }); // Merges with their starter items
+            
+            // Fetch the finalized document so Global State is perfectly synced
+            const updatedSnap = await getDoc(userRef);
+            window.PlayerData = updatedSnap.data();
+
+            document.getElementById('player-name-display').innerText = window.PlayerData.accountName;
+            document.getElementById('player-bp-display').innerText = window.PlayerData.bp;
+            document.getElementById('info-right').style.opacity = '1';
+
+            window.navigateTo('home-menu.html');
+
+        } catch (error) {
+            console.error(error);
+            errDisplay.innerText = "Failed to create character data.";
+        }
+    };
+
+
+    // --- Button Click Handlers ---
+    window.handleGoogleLogin = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            await loadUserDatabase(result.user);
+        } catch (error) {
+            errorDisplay.style.color = "#ff4444";
+            errorDisplay.innerText = error.message.replace("Firebase: ", "");
+        }
+    };
+
+    window.handleEmailRegister = async () => {
+        const email = document.getElementById('email-input').value;
+        const pass = document.getElementById('password-input').value;
+        if (!email || !pass) return errorDisplay.innerText = "Please enter email and password.";
+        try {
+            const result = await createUserWithEmailAndPassword(auth, email, pass);
+            await loadUserDatabase(result.user);
+        } catch (error) {
+            errorDisplay.style.color = "#ff4444";
+            errorDisplay.innerText = error.message.replace("Firebase: ", "");
+        }
+    };
+
+    window.handleEmailLogin = async () => {
+        const email = document.getElementById('email-input').value;
+        const pass = document.getElementById('password-input').value;
+        if (!email || !pass) return errorDisplay.innerText = "Please enter email and password.";
+        try {
+            const result = await signInWithEmailAndPassword(auth, email, pass);
+            await loadUserDatabase(result.user);
+        } catch (error) {
+            errorDisplay.style.color = "#ff4444";
+            errorDisplay.innerText = "Invalid credentials.";
+        }
+    };
+</script>

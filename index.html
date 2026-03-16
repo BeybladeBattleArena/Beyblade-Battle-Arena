@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyblade Arena</title>
+    <style>
+        /* Global Styles */
+        body { font-family: sans-serif; text-align: center; background-color: #222; color: #fff; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* The Persistent BP Bar */
+        #top-info-bar { 
+            position: relative; /* CRITICAL FIX: Activates the z-index! */
+            z-index: 99999; /* Pushes the entire bar above the Home Menu drag zone */
+            width: 100%; height: 30px; flex-shrink: 0; 
+            background: rgba(0, 150, 255, 0.15); 
+            border-bottom: 1px solid rgba(0, 150, 255, 0.3); 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 0 15px; box-sizing: border-box; 
+            font-family: "Courier New", Courier, monospace; 
+            font-size: 14px; font-weight: 900; color: #00ffff; text-shadow: 1px 1px 0 #000; 
+        }
+        
+        /* Account Controls */
+        #info-right { display: flex; align-items: center; gap: 15px; opacity: 0; transition: opacity 0.3s; }
+        #account-controls { position: relative; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        #player-name-display { color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        #account-dropdown-arrow { font-size: 10px; color: #aaa; transition: transform 0.2s; }
+        
+        .dropdown-menu {
+            display: none; position: absolute; top: 25px; right: 0; background: #111; 
+            border: 1px solid #444; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); z-index: 99999; min-width: 120px;
+        }
+        .dropdown-menu button {
+            background: none; border: none; color: #ff4444; padding: 12px 20px; width: 100%; 
+            text-align: left; cursor: pointer; font-weight: bold; font-family: sans-serif;
+            pointer-events: auto; /* Ensures it is clickable */
+        }
+        .dropdown-menu button:hover { background: #333; color: #ff6666; }
+        .show-dropdown { display: block; }
+        .arrow-up { transform: rotate(180deg); color: #fff !important; }
+
+        /* The Container for Dynamic Screens */
+        #app-root { flex: 1; overflow-y: auto; position: relative; z-index: 1; }
+        
+        /* Global Glossary Tooltip Styles */
+        #global-tooltip {
+            display: none; position: absolute; z-index: 100000; background: rgba(10, 15, 25, 0.95); 
+            border: 1px solid #00ffff; box-shadow: 0 4px 12px rgba(0, 255, 255, 0.2);
+            color: #ddd; padding: 12px; border-radius: 6px; width: 220px; font-size: 13px; 
+            pointer-events: none; line-height: 1.4;
+        }
+        #global-tooltip strong {
+            color: #ffaa00; display: block; margin-bottom: 6px; font-size: 14px;
+            text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 4px;
+        }
+        .glossary-term { color: #ffaa00; text-decoration: underline dotted #ffaa00; cursor: help; font-weight: bold; transition: color 0.2s; }
+        .glossary-term:hover { color: #00ffff; }
+        
+    </style>
+</head>
+<body>
+
+    <div id="global-tooltip">
+        <strong id="tooltip-title">Term</strong>
+        <span id="tooltip-desc">Definition goes here...</span>
+    </div>
+
+    <div id="top-info-bar">
+        <div id="info-left"></div> 
+        <div id="info-right">
+            <div id="account-controls" onclick="window.toggleAccountMenu(event)">
+                <span id="player-name-display">GUEST</span>
+                <span id="account-dropdown-arrow">▼</span>
+                <div id="account-dropdown-menu" class="dropdown-menu">
+                    <button onclick="window.handleLogout(event)">Log Out</button>
+                </div>
+            </div>
+            <span style="color: #444;">|</span>
+            <div><span id="player-bp-display">0</span> BP</div>
+        </div>
+    </div>
+
+    <div id="app-root"></div>
+
+    <script type="module" src="firebase-config.js"></script>
+    <script src="equipment.js"></script>
+    <script src="skills.js"></script>
+    <script src="opponents.js"></script>
+    <script src="encyclopedia.js"></script>
+	<script src="maps.js"></script>
+	<script src="story_tokyo.js"></script>
+
+		<script>
+			window.StoryDB = {
+			...window.TokyoEpisodes
+			};
+		</script>
+		
+    <script type="module">
+        import { GlossaryDB } from './encyclopedia.js';
+        import { auth } from './firebase-config.js';
+        import { signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+ // --- NEW: THE GLOBAL AUDIO ENGINE ---
+        window.AudioManager = {
+            currentBGM: null,
+            loopFrame: null,
+
+            playBGM: function(src, loopStartMark, customVolume) {
+                this.stopBGM(); // Kill any currently playing music
+
+                this.currentBGM = new Audio(src);
+                
+                // If a page asks for a specific volume, use it. Otherwise, default to 0.6.
+                this.currentBGM.volume = customVolume !== undefined ? customVolume : 0.6;
+
+                // Attempt to play (with a safety net for browser autoplay rules)
+                this.currentBGM.play().catch(e => {
+                    document.addEventListener('pointerdown', () => {
+                        if (this.currentBGM) this.currentBGM.play();
+                    }, { once: true });
+                });
+
+                // Start the precision loop if a custom loop mark is provided!
+                if (loopStartMark !== undefined) {
+                    
+                    const checkLoop = () => {
+                        if (this.currentBGM && this.currentBGM.duration) {
+                            // Increased padding slightly to 0.08 to catch it before the browser auto-pauses
+                            if (this.currentBGM.currentTime >= this.currentBGM.duration - 0.08) {
+                                this.currentBGM.currentTime = loopStartMark;
+                                
+                                // FORCE PLAY: If the track accidentally hit the absolute end and paused, wake it back up!
+                                if (this.currentBGM.paused) {
+                                    this.currentBGM.play().catch(err => console.log(err));
+                                }
+                            }
+                        }
+                        this.loopFrame = requestAnimationFrame(checkLoop);
+                    };
+                    this.loopFrame = requestAnimationFrame(checkLoop);
+
+                    // SAFETY NET: If the animation frame completely misses the end, this guarantees it loops
+                    this.currentBGM.addEventListener('ended', () => {
+                        this.currentBGM.currentTime = loopStartMark;
+                        this.currentBGM.play();
+                    });
+
+                } else {
+                    // Standard Loop: If no custom mark is provided, just loop normally!
+                    this.currentBGM.loop = true; 
+                }
+            },
+
+            stopBGM: function() {
+                if (this.currentBGM) {
+                    this.currentBGM.pause();
+                    this.currentBGM = null;
+                }
+                if (this.loopFrame) {
+                    cancelAnimationFrame(this.loopFrame);
+                    this.loopFrame = null;
+                }
+            }
+        };
+        // --- UPDATED NAVIGATION (Kills music on page change!) ---
+        async function navigateTo(pageUrl) {
+            try {
+                window.AudioManager.stopBGM();
+
+                const response = await fetch(pageUrl);
+                const html = await response.text();
+                document.getElementById('app-root').innerHTML = html;
+                
+                const scripts = document.getElementById('app-root').querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            } catch (error) {
+                console.error("Navigation Error:", error);
+            }
+        }
+        window.navigateTo = navigateTo;
+
+        window.onload = () => {
+            navigateTo('login.html'); 
+        };
+
+        // --- Account Controls ---
+        window.toggleAccountMenu = function(e) {
+            e.stopPropagation(); 
+            const menu = document.getElementById('account-dropdown-menu');
+            const arrow = document.getElementById('account-dropdown-arrow');
+            menu.classList.toggle('show-dropdown');
+            arrow.classList.toggle('arrow-up');
+        };
+
+        window.handleLogout = async function(e) {
+            if (e) e.stopPropagation(); // Blocks the wheel drag zone from intercepting!
+            try {
+                await signOut(auth);
+                window.CurrentUser = null;
+                window.PlayerData = null;
+                document.getElementById('info-right').style.opacity = '0';
+                
+                // Hide dropdown visually
+                document.getElementById('account-dropdown-menu').classList.remove('show-dropdown');
+                document.getElementById('account-dropdown-arrow').classList.remove('arrow-up');
+                
+                window.navigateTo('login.html');
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        };
+
+        // --- Glossary Features ---
+        window.parseKeywords = function(text) {
+            if (!text) return text;
+            let parsedText = text;
+            const terms = Object.keys(GlossaryDB).sort((a, b) => b.length - a.length);
+            terms.forEach(term => {
+                const regex = new RegExp(`\\b(${term})\\b(?![^<]*>)`, 'gi');
+                parsedText = parsedText.replace(regex, `<span class="glossary-term" onclick="window.showTooltip(event, '${term}')">$&</span>`);
+            });
+            return parsedText;
+        };
+
+        window.showTooltip = function(event, term) {
+            const tooltip = document.getElementById('global-tooltip');
+            const title = document.getElementById('tooltip-title');
+            const desc = document.getElementById('tooltip-desc');
+            
+            const actualTerm = Object.keys(GlossaryDB).find(k => k.toLowerCase() === term.toLowerCase());
+            title.innerText = actualTerm;
+            desc.innerText = GlossaryDB[actualTerm];
+            
+            tooltip.style.display = 'block';
+            let leftPos = event.pageX + 15;
+            if (leftPos + 220 > window.innerWidth) leftPos = window.innerWidth - 240; 
+            tooltip.style.left = leftPos + 'px';
+            tooltip.style.top = (event.pageY + 15) + 'px';
+        };
+
+        // --- Document Click Handler (Closes Menus) ---
+        document.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('glossary-term')) {
+                const tooltip = document.getElementById('global-tooltip');
+                if(tooltip) tooltip.style.display = 'none';
+            }
+            
+            if (!e.target.closest('#account-controls')) {
+                const menu = document.getElementById('account-dropdown-menu');
+                const arrow = document.getElementById('account-dropdown-arrow');
+                if(menu) menu.classList.remove('show-dropdown');
+                if(arrow) arrow.classList.remove('arrow-up');
+            }
+        });
+    </script>
+</body>
+</html>

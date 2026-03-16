@@ -1,0 +1,241 @@
+
+    <style>
+        body {
+            margin: 0; padding: 0; overflow: hidden; background-color: #1a1512;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
+            user-select: none;
+        }
+
+        /* --- UI OVERLAYS --- */
+        #top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between;
+            padding: 15px 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 100; pointer-events: none;
+        }
+        .back-btn { 
+            background: #222; color: #fff; border: 1px solid #00aaff; padding: 8px 20px; 
+            cursor: pointer; border-radius: 6px; font-weight: bold; pointer-events: auto;
+        }
+        .currency-display {
+            background: rgba(0,0,0,0.8); border: 2px solid #ffaa00; border-radius: 8px;
+            padding: 5px 15px; font-size: 20px; font-weight: 900; color: #ffaa00; text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- SHOP LAYOUT --- */
+        #shop-container {
+            display: flex; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, #2a221d 0%, #0d0a09 100%);
+        }
+
+        /* LEFT COLUMN: The Shopkeeper */
+        #npc-section {
+            flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center;
+            border-right: 4px solid #111; box-shadow: inset -20px 0 50px rgba(0,0,0,0.5);
+            background: url('images/dialogue_backgrounds/shop_bg_placeholder.png') center/cover;
+        }
+        #npc-sprite {
+            max-width: 90%; max-height: 85%; object-fit: contain;
+            filter: drop-shadow(10px 10px 15px rgba(0,0,0,0.8));
+        }
+        #npc-dialogue-box {
+            position: absolute; bottom: 30px; left: 20px; right: 20px;
+            background: rgba(0, 0, 0, 0.85); border: 2px solid #ffaa00; border-radius: 10px;
+            padding: 15px; font-size: 18px; line-height: 1.4; color: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8); pointer-events: auto;
+        }
+        .npc-name { font-weight: 900; color: #ffaa00; margin-bottom: 5px; font-size: 20px; }
+
+        /* RIGHT COLUMN: The Pegboard & Shelves */
+        #wall-section {
+            flex: 1.5; padding: 80px 40px 40px 40px; box-sizing: border-box;
+            background-image: 
+                radial-gradient(#332922 2px, transparent 2px),
+                radial-gradient(#332922 2px, transparent 2px);
+            background-size: 30px 30px; background-position: 0 0, 15px 15px; /* Creates the pegboard look */
+            background-color: #1f1915;
+            display: flex; flex-direction: column; gap: 40px;
+            overflow-y: auto;
+        }
+
+        /* --- THE SHELVES --- */
+        .shelf {
+            display: flex; justify-content: center; gap: 40px;
+            position: relative; padding-bottom: 2px;
+        }
+        
+        /* The physical wood/metal shelf for the heavy boxes */
+        .heavy-shelf {
+            border-bottom: 20px solid #4a3b32; /* Shelf thickness */
+            border-radius: 4px; box-shadow: 0 15px 20px rgba(0,0,0,0.7);
+            z-index: 11;
+        }
+
+        /* --- ITEM STYLING --- */
+        .item-slot {
+            position: relative; cursor: pointer;
+            width: 169px; /* Placeholder width - Adjust to match your canvas size */
+            height: 169px; /* Placeholder height */
+        }
+
+        .item-slot img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(5px 10px 10px rgba(0,0,0,0.6));
+            transition: filter 0.2s;
+        }
+        
+        /* The sitting boxes just glow on hover */
+        .sitting-item:hover img { filter: drop-shadow(0 0 15px #ffaa00) brightness(1.1); }
+
+        /* --- HANGING PHYSICS & PEGS --- */
+        
+        /* The 6x6 Peg */
+        .peg {
+            position: absolute;
+            width: 6px; height: 6px;
+            background: linear-gradient(135deg, #ccc, #666);
+            border-radius: 50%; border: 1px solid #333;
+            box-shadow: 2px 5px 5px rgba(0,0,0,0.8);
+            /* Exact coordinates you provided: X=81, Y=8. 
+               We subtract 3px (half the peg width/height) to perfectly center the peg on that coordinate! */
+            left: 80px; 
+            top: 8px;  
+            z-index: 10;
+        }
+
+        /* The Box */
+        .hanging-item {
+            /* Pin the rotation point EXACTLY to your peg coordinates */
+            transform-origin: 81px 8px; 
+            will-change: transform; /* Optimizes rendering for smooth swinging */
+        }
+
+        /* The Sway Animation */
+        .item-slot:hover .hanging-item {
+            animation: sway 1.5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 0 15px #00aaff) brightness(1.1);
+        }
+
+        @keyframes sway {
+            0% { transform: rotate(-4deg); }
+            100% { transform: rotate(4deg); }
+        }
+
+        /* --- TOOLTIP UI --- */
+        .item-label {
+            position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9); border: 1px solid #ffaa00; padding: 4px 8px;
+            border-radius: 4px; font-size: 14px; font-weight: bold; color: #fff;
+            white-space: nowrap; opacity: 0; transition: 0.2s; pointer-events: none;
+            z-index: 20;
+        }
+        .item-slot:hover .item-label { opacity: 1; bottom: -40px; }
+        .price-tag { color: #00ffff; margin-left: 8px; }
+
+    </style>
+
+
+    <div id="top-bar">
+        <button class="back-btn" onclick="window.location.href='store_hub.html'">◀ Back</button>
+        <div class="currency-display"><span id="bp-display">0</span> BP</div>
+    </div>
+
+    <div id="shop-container">
+        
+        <div id="npc-section">
+            <img id="npc-sprite" src="images/dialogue_portraits/Shopkeeper_Placeholder.png" alt="Shopkeeper" onerror="this.src=''; this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.width='400px'; this.style.height='600px';">
+            
+            <div id="npc-dialogue-box">
+                <div class="npc-name">Rin</div>
+                <div id="npc-text">Welcome to the Parts Depot! We just got a fresh shipment!</div>
+            </div>
+        </div>
+
+        <div id="wall-section">
+            
+            <div class="shelf heavy-shelf">
+                <div class="item-slot sitting-item" onmouseenter="updateDialogue('Everyone&apos;s favorite little Ghost! Isn&apos;t the Attack Ring cute!? Not a bad pick for Defense or Stamina.')" onclick="buyItem('Crested Carapace', 1200)">
+                    <img src="images/store_items/boxed_kits/FullBoxKit_POLTA.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#553333';">
+                    <div class="item-label">Crested Carapace Kit <span class="price-tag">1200 BP</span></div>
+                </div>
+
+                <div class="item-slot sitting-item" onmouseenter="updateDialogue('Isn&apos;t this one based on a beetle? Gross... At least it&apos;s got good Defense, right?')" onclick="buyItem('Crimson Impact', 1200)">
+                    <img src="images/store_items/boxed_kits/FullBoxKit_CRESTEDCARAPACE.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#335533';">
+                    <div class="item-label">Crimson Impact Kit <span class="price-tag">1200 BP</span></div>
+                </div>
+            </div>
+
+            <div class="shelf peg-shelf" style="margin-top: 20px;">
+                <div class="item-slot" onmouseenter="updateDialogue('Need a replacement Attack Ring? This one&apos;s got great Stamina and Mobility!')" onclick="buyItem('Tiger Claw AR', 300)">
+                    <div class="peg"></div>
+                    <img class="hanging-item" src="images/store_items/single_parts/SinglePartBox_CrossTalon_AR.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">Tiger Claw AR <span class="price-tag">300 BP</span></div>
+                </div>
+
+                <div class="item-slot" onmouseenter="updateDialogue('A solid Heavy Weight Disk. Crucial for stamina builds.')" onclick="buyItem('Heavy WD', 250)">
+                    <div class="peg"></div>
+                    <img class="hanging-item" src="images/shop/blister_wd.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">Heavy WD <span class="price-tag">250 BP</span></div>
+                </div>
+
+                <div class="item-slot" onmouseenter="updateDialogue('Just a standard Blade Base. Always good to have spares.')" onclick="buyItem('Flat Base', 200)">
+                    <div class="peg"></div>
+                    <img class="hanging-item" src="images/shop/blister_bb.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">Flat Base <span class="price-tag">200 BP</span></div>
+                </div>
+            </div>
+
+            <div class="shelf peg-shelf" style="margin-top: 20px;">
+                <div class="item-slot" onmouseenter="updateDialogue('Looking for more RPMs? The EZ Launcher is a classic.')" onclick="buyItem('EZ Launcher', 500)">
+                    <div class="peg"></div>
+                    <img class="hanging-item" src="images/shop/blister_launcher1.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">EZ Launcher (Magenta) <span class="price-tag">500 BP</span></div>
+                </div>
+
+                <div class="item-slot" onmouseenter="updateDialogue('A longer Ripcord for a stronger pull. Don&apos;t snap it!')" onclick="buyItem('Long Ripcord', 150)">
+                    <div class="peg"></div>
+                    <img class="hanging-item" src="images/shop/blister_cord.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">Standard Ripcord (Red) <span class="price-tag">150 BP</span></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        // Set player currency from memory
+        let currentBP = 2000;
+        if (window.PlayerData && window.PlayerData.bp !== undefined) {
+            currentBP = window.PlayerData.bp;
+        }
+        document.getElementById('bp-display').innerText = currentBP;
+
+        // THE FIX: Expose to window so the HTML can see it!
+        window.updateDialogue = function(text) {
+            document.getElementById('npc-text').innerText = text;
+        };
+
+        // THE FIX: Expose to window!
+        window.buyItem = function(itemName, cost) {
+            if (currentBP >= cost) {
+                if (confirm(`Purchase ${itemName} for ${cost} BP?`)) {
+                    currentBP -= cost;
+                    document.getElementById('bp-display').innerText = currentBP;
+                    
+                    if (window.PlayerData) {
+                        window.PlayerData.bp = currentBP;
+                        // Add save logic here later
+                    }
+                    
+                    window.updateDialogue(`Thanks! I've sent the ${itemName} to your Garage.`);
+                }
+            } else {
+                window.updateDialogue(`Sorry, you don't have enough BP for that!`);
+                // Shake the BP display
+                const bpUI = document.querySelector('.currency-display');
+                bpUI.style.transform = 'translateX(-10px)';
+                setTimeout(() => bpUI.style.transform = 'translateX(10px)', 50);
+                setTimeout(() => bpUI.style.transform = 'translateX(-10px)', 100);
+                setTimeout(() => bpUI.style.transform = 'translateX(0)', 150);
+            }
+        };
+    </script>

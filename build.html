@@ -1,0 +1,951 @@
+<style>
+    /* Header pushed down to account for Shell's BP bar */
+    .header-bar { left: 0; right: 0; background: #000; padding: 10px; display: flex; justify-content: space-between; border-bottom: 2px solid #333; z-index: 10; }
+    
+    .content-wrapper { display: flex; width: 100%; flex: 1; overflow: hidden; } 
+    
+    /* Layout: Shrunk left panel to 40%, expanded right to 60% */
+    #left-panel { width: 40%; display: flex; flex-direction: column; border-right: 2px solid #333; background: #111; }
+    #right-panel { width: 60%; padding: 20px; overflow-y: auto; background-color: #1a1a1a; }
+    
+    /* Tab Navigation Styles (UPDATED FOR TWO ROWS) */
+    .tab-row { display: flex; flex-wrap: wrap; background: #000; padding: 5px 5px 0 5px; }
+    .tab-row.bottom-row { border-bottom: 2px solid #00aaff; } /* Only the bottom row gets the blue border */
+    
+    .tab-btn { flex: 1; min-width: 60px; background: #222; color: #888; border: 1px solid #444; border-bottom: none; padding: 8px 4px; cursor: pointer; font-size: 12px; font-weight: bold; border-radius: 6px 6px 0 0; margin-right: 2px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .tab-btn.active { background: #003355; color: #00ffff; border-color: #00aaff; }
+    .tab-icon { width: 40px; height: 40px; object-fit: contain; }
+    
+    /* Left Panel Lists */
+    #inventory-list { flex: 1; overflow-y: auto; padding: 10px; }
+    .item-row { padding: 8px 10px; background: #222; margin: 5px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; transition: background 0.2s; }
+    .item-row:hover { background: #334455; } 
+    .item-row:active { transform: scale(0.98); }
+    .item-row.equipped { border-color: #00aaff; background: #003355; }
+    
+    .item-icon { width: 40px; height: 40px; margin-left: 55px; margin-right: 15px; background: linear-gradient(to bottom, #00aaff, #800080); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: rgba(255,255,255,0.7); flex-shrink: 0; overflow: hidden; }
+    .item-icon img { transform: scale(2.25); image-rendering: pixelated; pointer-events: none; }
+    .item-name { font-size: 14px; }
+    
+    /* Search & Filter Bar */
+    .filter-container { background: #111; padding: 10px; border-bottom: 2px solid #333; display: flex; flex-direction: column; gap: 8px; }
+    .search-row { display: flex; gap: 8px; }
+    .search-box { flex: 1; padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; font-family: sans-serif; font-size: 14px; }
+    .search-box:focus { outline: none; border-color: #00aaff; }
+    .sort-dropdown { padding: 8px; background: #222; color: #fff; border: 1px solid #444; border-radius: 4px; font-size: 14px; }
+    .sort-dir-btn { background: #ffaa00; color: #000; border: none; border-radius: 4px; padding: 8px 0; font-weight: 900; cursor: pointer; transition: 0.1s; width: 60px; text-align: center; }
+    .sort-dir-btn:active { transform: scale(0.95); }
+    
+    .dynamic-toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+    .toggle-btn { background: #003355; color: #00ffff; border: 1px solid #00aaff; border-radius: 12px; padding: 6px 12px; font-size: 11px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    .toggle-btn.inactive { background: #222; color: #666; border-color: #444; text-decoration: line-through; }
+    
+    /* Right Panel Modules */
+    .panel-section { margin-bottom: 20px; padding: 15px; background: #2a2a2a; border-radius: 8px; }
+    .section-title { font-size: 14px; color: #888; text-transform: uppercase; margin-top: 0; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
+    .ultimate-box { background: #443300; border: 2px solid #ffaa00; padding: 15px; margin-top: 10px; border-radius: 4px; box-shadow: 0 0 10px rgba(255, 170, 0, 0.2); }
+    
+    /* Skills Split Layout */
+    .skills-split-layout { display: flex; gap: 15px; margin-bottom: 15px; }
+    .skill-column { flex: 1; background: #111; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; max-height: 250px; border: 1px solid #333; }
+    .skill-col-header { font-weight: 900; font-size: 13px; text-transform: uppercase; margin-bottom: 10px; padding-bottom: 5px; }
+    .skill-scroll-area { overflow-y: auto; flex: 1; padding-right: 5px; }
+    
+    .passive-box { background: #2a1133; border: 1px solid #b026ff; padding: 8px; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(176, 38, 255, 0.1); }
+    .attack-box { background: #442222; border: 1px solid #ff4444; padding: 8px; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(255, 68, 68, 0.1); }
+    .skill-source { font-size: 9px; color: #aaa; text-transform: uppercase; margin-bottom: 3px; display: block; letter-spacing: 0.5px; }
+
+    /* Inspect Layout & Grid */
+    .inspect-layout { display: flex; justify-content: flex-start; align-items: flex-start; gap: 20px; }
+    .inspect-text { flex: 0 1 auto; min-width: 50%; } 
+    .inspect-img-box { width: 80px; height: 80px; flex-shrink: 0; background: linear-gradient(to bottom, #00aaff, #800080); border: 2px solid #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.7); box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow: hidden; }
+    .inspect-img-box img { transform: scale(1.5); image-rendering: pixelated; pointer-events: none; }
+    
+    .inspect-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; font-size: 11px; color: #ddd; }
+    .inspect-stat-item { background: #222; padding: 4px 6px; border-radius: 4px; border: 1px solid #333; white-space: nowrap; text-align: center; }
+    /* New Feature Icons (Tips, Bases, Sub-Rings) */
+    .feature-icon-box { 
+        width: 32px; 
+        height: 32px; 
+        flex-shrink: 0; 
+        background: #1a1a1a; 
+        border: 1px solid #444; 
+        border-radius: 4px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5); 
+    }
+    .feature-icon-box img { 
+        width: 80%; 
+        height: 80%; 
+        object-fit: contain; 
+        image-rendering: pixelated; 
+    }
+	
+	
+	
+    /* Top Header Save Slots */
+    .save-btn { background: #333; color: #fff; border: 1px solid #555; padding: 5px 15px; cursor: pointer; border-radius: 4px; }
+    .save-btn:active { background: #555; }
+    .header-bar { flex-direction: column; gap: 10px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .save-slots-scroll { display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden; padding-bottom: 5px; scrollbar-width: thin; }
+    .save-slot-card { background: #222; border: 1px solid #444; border-radius: 6px; padding: 5px 15px; cursor: pointer; min-width: 180px; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+    .save-slot-card:hover { border-color: #00aaff; background: #2a3a4a; }
+    .save-slot-card.empty { color: #666; font-style: italic; justify-content: center; }
+    .save-slot-card.saving-mode { border-color: #ffaa00; box-shadow: 0 0 8px rgba(255,170,0,0.5); animation: pulse 1.5s infinite; }
+    .save-slot-mini { width: 40px; height: 40px; position: relative; flex-shrink: 0; margin-left: 10px; margin-right: 20px; }
+    .save-slot-mini img { transform: scale(1.8); image-rendering: pixelated; position: absolute; width: 100%; height: 100%; object-fit: contain; }
+    .save-slot-info { display: flex; flex-direction: column; font-size: 10px; color: #aaa; }
+    .save-slot-name { color: #fff; font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+    
+    @keyframes pulse { 0% { background: #222; } 50% { background: #443300; } 100% { background: #222; } }
+
+    /* Assembly Line & Save Button (UPDATED FOR TWO ROWS) */
+    .assembly-wrapper { display: flex; flex-direction: column; gap: 10px; background: #111; border-radius: 8px; border: 1px inset #333; margin-bottom: 15px; padding: 10px 0; }
+    .assembly-row { display: flex; justify-content: space-around; align-items: center; height: 140px; }
+    
+    .assembly-part { width: 128px; height: 128px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3); border-radius: 4px; border: 1px dashed #444; position: relative; }
+    .assembly-part img { width: 100%; height: 100%; object-fit: contain; z-index: 10; }
+    .assembly-part.empty::after { content: "?"; color: #444; font-size: 20px; font-weight: bold; }
+    
+    .save-build-btn { background: #ffaa00; color: #000; border: none; border-radius: 4px; padding: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.1s; width: 100%; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+    .save-build-btn:active { transform: scale(0.98); }
+    .save-build-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
+    
+    /* Assembly Animation Overlay & Effects */
+    #animation-overlay { 
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0, 0, 0, 0.85); z-index: 9999; 
+        display: none; justify-content: center; align-items: center; 
+        backdrop-filter: blur(4px);
+    }
+    .anim-stack { position: relative; width: 200px; height: 200px; }
+    .anim-part { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        object-fit: contain; image-rendering: pixelated;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    #anim-bb { z-index: 1; } #anim-sg { z-index: 2; } #anim-wd { z-index: 3; } #anim-ar { z-index: 4; } #anim-bc { z-index: 5; }
+    .hyper-spin { animation: beySpin 0.8s ease-in-out forwards; }
+    @keyframes beySpin {
+        0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
+        50%  { transform: scale(1.3) rotate(720deg); filter: brightness(2) drop-shadow(0 0 30px #00ffff); }
+        100% { transform: scale(1) rotate(1440deg); filter: brightness(1) drop-shadow(0 0 10px #00ffff); }
+    }
+
+    /* Alt Designs Popover */
+    #designs-modal-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); z-index: 9999; backdrop-filter: blur(2px); justify-content: center; align-items: center; }
+    #designs-popover { background: #111; border: 2px solid #00aaff; border-radius: 8px; width: 80%; max-width: 350px; padding: 15px; box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2); position: relative; }
+    .popover-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+    .popover-title { color: #fff; font-size: 16px; font-weight: bold; text-transform: uppercase; }
+    .close-btn { background: transparent; color: #ff4444; border: none; font-size: 20px; font-weight: bold; cursor: pointer; }
+    .close-btn:active { transform: scale(0.9); }
+    .designs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 10px; }
+    .design-swatch { width: 40px; height: 40px; border-radius: 4px; border: 2px solid #444; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
+    .design-swatch:hover { transform: scale(1.1); border-color: #fff; }
+    .design-swatch.active { border-color: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+    .design-swatch.locked { opacity: 0.3; cursor: not-allowed; border-color: #222; }
+    .design-swatch.locked::after { content: "🔒"; font-size: 14px; }
+    .alt-designs-btn { background: #222; color: #00ffff; border: 1px solid #00aaff; border-radius: 4px; padding: 4px 8px; font-size: 10px; font-weight: bold; margin-left: auto; cursor: pointer; transition: 0.2s; }
+    .alt-designs-btn:active { background: #00aaff; color: #000; }
+
+    /* Mobile Portrait Adjustments */
+    @media (max-width: 768px) and (orientation: portrait) {
+        .stat-grid { grid-template-columns: 1fr; font-size: 11px; }
+        .section-title { font-size: 12px; }
+        #left-panel { width: 45%; }
+        #right-panel { width: 55%; padding: 10px; }
+        .tab-text { display: none; }
+        .tab-btn { padding: 10px 2px; flex-direction: row; justify-content: center; }
+        .tab-icon { width: 24px; height: 24px; }
+        .skills-split-layout { flex-direction: column; }
+        .skill-column { max-height: 200px; }
+    }
+</style>
+
+<div id="designs-modal-overlay" onclick="window.closeDesignsModal(event)">
+    <div id="designs-popover" onclick="event.stopPropagation()">
+        <div class="popover-header">
+            <span class="popover-title" id="designs-part-name">Part Name</span>
+            <button class="close-btn" onclick="window.closeDesignsModal(event)">✖</button>
+        </div>
+        <div class="designs-grid" id="designs-grid-container">
+            </div>
+    </div>
+</div>
+
+<div class="header-bar">
+    <div class="header-top">
+        <button class="save-btn" onclick="window.navigateTo('home-menu.html')">Back to Home</button>
+        <div id="save-instruction" style="color: #ffaa00; font-weight: bold; display: none; cursor: pointer;" onclick="window.cancelSaveMode()">
+            Select a Save Slot (Click here to Cancel)
+        </div>
+    </div>
+    <div class="save-slots-scroll" id="save-slots-container"></div>
+</div>
+
+<div class="content-wrapper">
+    <div id="left-panel">
+        
+        <div class="tab-container" id="category-tabs">
+            <div class="tab-row" style="width: 100%;">
+                <button class="tab-btn" onclick="window.switchTab('launchers')">
+                    <img src="images/menu_icons/Launcher_icon.png" class="tab-icon" alt="Launcher"> <span class="tab-text">Launcher</span>
+                </button>
+                <button class="tab-btn" onclick="window.switchTab('ripCords')">
+                    <img src="images/menu_icons/Cord_icon.png" class="tab-icon" alt="Ripcord"> <span class="tab-text">Rip Cord</span>
+                </button>
+                <div style="flex: 3;"></div> </div>
+            
+            <div class="tab-row bottom-row" style="width: 100%;">
+                <button class="tab-btn active" onclick="window.switchTab('bitChips')">
+                    <img src="images/menu_icons/BC_icon.png" class="tab-icon" alt="BC"> <span class="tab-text">Bit Chip</span>
+                </button>
+                <button class="tab-btn" onclick="window.switchTab('attackRings')">
+                    <img src="images/menu_icons/AR_icon.png" class="tab-icon" alt="AR"> <span class="tab-text">Attack Ring</span>
+                </button>
+                <button class="tab-btn" onclick="window.switchTab('weightDisks')">
+                    <img src="images/menu_icons/WD_icon.png" class="tab-icon" alt="WD"> <span class="tab-text">Weight Disk</span>
+                </button>
+                <button class="tab-btn" onclick="window.switchTab('spinGears')">
+                    <img src="images/menu_icons/SG_icon.png" class="tab-icon" alt="SG"> <span class="tab-text">Spin Gear</span>
+                </button>
+                <button class="tab-btn" onclick="window.switchTab('bladeBases')">
+                    <img src="images/menu_icons/BB_icon.png" class="tab-icon" alt="BB"> <span class="tab-text">Blade Base</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="filter-container">
+            <div class="search-row">
+                <input type="text" id="part-search" class="search-box" placeholder="Search parts..." onkeyup="window.renderLeftPanel()">
+                <select id="part-sort" class="sort-dropdown" onchange="window.renderLeftPanel()">
+                    <option value="name" hidden>Sort By...</option>
+                    <option value="name">Name</option>
+                    <option value="hp">HP</option>
+                    <option value="rpm">RPM</option>
+                    <option value="attack">Attack</option>
+                    <option value="defense">Defense</option>
+                    <option value="stamina">Stamina</option>
+                    <option value="endurance">Endurance</option>
+                    <option value="speed">Speed</option>
+                    <option value="mobility">Mobility</option>
+                    <option value="grip">Grip</option>
+                    <option value="balance">Balance</option>
+                    <option value="weight">Weight</option>
+                    <option value="recoil">Recoil</option>
+                    <option value="recoilReduction">Recoil Red.</option>
+                    <option value="spiritCharge">Spirit Charge</option>
+                    <option value="cdr">Cooldown Red.</option>
+                </select>
+                <button id="sort-dir" class="sort-dir-btn" onclick="window.toggleSortDir()">ASC</button>
+            </div>
+            <div class="dynamic-toggles" id="dynamic-toggles"></div>
+        </div>
+        
+        <div id="inventory-list"></div>
+    </div>
+
+    <div id="right-panel">
+        <div class="panel-section" id="inspect-panel">
+            <h3 class="section-title">Inspecting Part</h3>
+            <div id="inspect-content">Tap a part to view details...</div>
+        </div>
+
+        <div class="panel-section" id="assembly-panel">
+            <h3 class="section-title">Current Loadout</h3>
+            
+            <div class="assembly-wrapper" id="assembly-visual">
+                </div>
+            
+            <button class="save-build-btn" id="init-save-btn" onclick="window.initSaveMode()">Save This Build</button>
+        </div>
+
+        <div class="panel-section" id="total-stats-panel">
+            <h3 class="section-title">Build Totals</h3>
+            <div class="stat-grid" id="total-stats"></div>
+        </div>
+
+        <div class="panel-section" id="skills-panel"> 
+            <h3 class="section-title">Passives & Attacks</h3>
+            
+            <div class="skills-split-layout">
+                <div class="skill-column">
+                    <div class="skill-col-header" style="border-bottom: 2px solid #b026ff; color: #b026ff;">Passives</div>
+                    <div class="skill-scroll-area" id="passives-list"></div>
+                </div>
+
+                <div class="skill-column">
+                    <div class="skill-col-header" style="border-bottom: 2px solid #ff4444; color: #ff4444;">Attacks</div>
+                    <div class="skill-scroll-area" id="attacks-list"></div>
+                </div>
+            </div>
+
+            <div id="ultimate-container"></div>
+        </div>
+    </div>
+</div>
+
+<div id="animation-overlay">
+    <div class="anim-stack" id="anim-stack-container">
+        </div>
+</div>
+
+<script type="module">
+
+    window.AudioManager.playBGM('audio/music/Get_The_Wrench_ForBuildScreen.wav', 10.2934375, 0.4);
+    
+    import { db } from './firebase-config.js';
+    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    var myInventory = window.PlayerData;
+    document.getElementById('player-bp-display').innerText = myInventory.bp;
+
+    function getOwnedParts(categoryStr) {
+        let ownedIds = myInventory[categoryStr] || [];
+        let allCategoryParts = window.equipmentDB[categoryStr] || [];
+        return allCategoryParts.filter(part => ownedIds.includes(part.id));
+    }
+
+    // Include the new arrays!
+    var availableBitChips = getOwnedParts("bitChips");
+    var availableAttackRings = getOwnedParts("attackRings");
+    var availableWeightDisks = getOwnedParts("weightDisks");
+    var availableSpinGears = getOwnedParts("spinGears");
+    var availableBladeBases = getOwnedParts("bladeBases");
+    var availableLaunchers = getOwnedParts("launchers");
+    var availableRipCords = getOwnedParts("ripCords");
+
+    // NEW: Build object now explicitly tracks the tools
+    var currentBuild = { 
+        bitChip: null, attackRing: null, weightDisk: null, spinGear: null, bladeBase: null,
+        launcher: null, ripCord: null 
+    };
+
+    if (!window.PlayerData.saves) window.PlayerData.saves = new Array(10).fill(null);
+    if (window.PlayerData.saves.length < 10) {
+        let oldSaves = window.PlayerData.saves;
+        window.PlayerData.saves = new Array(10).fill(null);
+        for (let i = 0; i < oldSaves.length; i++) {
+            window.PlayerData.saves[i] = oldSaves[i];
+        }
+    }
+    for (let i = 0; i < window.PlayerData.saves.length; i++) {
+        if (window.PlayerData.saves[i] && !window.PlayerData.saves[i].parts) {
+            window.PlayerData.saves[i] = { name: `Legacy Build ${i+1}`, parts: window.PlayerData.saves[i] };
+        }
+    }
+
+    var isSavingMode = false;
+
+    function getSafeImage(part, isTopDown = false) {
+        if (!part) return '';
+        let key = isTopDown ? 'topDownImage' : 'image';
+        if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
+        if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
+        return part.fallbackImage || part[key] || '';
+    }
+
+    window.renderSaveSlots = function() {
+        const container = document.getElementById('save-slots-container');
+        let html = '';
+        
+        for (let i = 0; i < 10; i++) {
+            const slotData = window.PlayerData.saves[i];
+            const pulseClass = isSavingMode ? 'saving-mode' : '';
+            
+            if (slotData && slotData.parts) {
+                const bbImg = getSafeImage(slotData.parts.bladeBase, true);
+                const sgImg = getSafeImage(slotData.parts.spinGear, true);
+                const wdImg = getSafeImage(slotData.parts.weightDisk, true);
+                const arImg = getSafeImage(slotData.parts.attackRing, true);
+                const bcImg = getSafeImage(slotData.parts.bitChip, true);
+
+                html += `
+                <div class="save-slot-card ${pulseClass}" onclick="window.handleSlotClick(${i})">
+                    <div class="save-slot-mini">
+                        ${bbImg ? `<img src="${bbImg}" style="z-index: 1;">` : ''}
+                        ${sgImg ? `<img src="${sgImg}" style="z-index: 2;">` : ''}
+                        ${wdImg ? `<img src="${wdImg}" style="z-index: 3;">` : ''}
+                        ${arImg ? `<img src="${arImg}" style="z-index: 4;">` : ''}
+                        ${bcImg ? `<img src="${bcImg}" style="z-index: 5;">` : ''}
+                    </div>
+                    <div class="save-slot-info">
+                        <span style="color:#aaa;">Slot ${i + 1}</span>
+                        <span class="save-slot-name">${slotData.name}</span>
+                    </div>
+                </div>`;
+            } else {
+                html += `
+                <div class="save-slot-card empty ${pulseClass}" onclick="window.handleSlotClick(${i})">
+                    Slot ${i + 1} - Empty
+                </div>`;
+            }
+        }
+        container.innerHTML = html;
+    }
+
+    window.renderAssemblyVisual = function() {
+        const container = document.getElementById('assembly-visual');
+        
+        // Row 1: The Beyblade
+        const beySlots = ["bladeBase", "spinGear", "weightDisk", "attackRing", "bitChip"];
+        let beyHtml = '<div class="assembly-row">';
+        beySlots.forEach(slot => {
+            const part = currentBuild[slot];
+            const imgSrc = getSafeImage(part, true); 
+            if (imgSrc) beyHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
+            else beyHtml += `<div class="assembly-part empty"></div>`;
+        });
+        beyHtml += '</div>';
+
+        // Row 2: The Tools
+        const toolSlots = ["launcher", "ripCord"];
+        let toolHtml = '<div class="assembly-row" style="justify-content: flex-start; padding-left: 20px; gap: 20px;">';
+        toolSlots.forEach(slot => {
+            const part = currentBuild[slot];
+            const imgSrc = getSafeImage(part, true); 
+            if (imgSrc) toolHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
+            else toolHtml += `<div class="assembly-part empty"></div>`;
+        });
+        toolHtml += '</div>';
+
+        container.innerHTML = beyHtml + toolHtml;
+
+        // Validation Check: Need ALL 7 pieces to save!
+        const allEquipped = currentBuild.bitChip && currentBuild.attackRing && 
+                            currentBuild.weightDisk && currentBuild.spinGear && 
+                            currentBuild.bladeBase && currentBuild.launcher && 
+                            currentBuild.ripCord;
+                            
+        document.getElementById('init-save-btn').disabled = !allEquipped;
+    }
+
+    // --- POPUP MODAL LOGIC ---
+    window.openDesignsModal = function(itemId, dbKey) {
+        const item = window.equipmentDB[dbKey].find(i => i.id === itemId);
+        if (!item || !item.styles) return;
+
+        document.getElementById('designs-part-name').innerText = item.name;
+        let unlockedStyles = window.PlayerData.unlockedStyles || [];
+        
+        const activeCategory = {
+            bitChips: 'bitChip', attackRings: 'attackRing', weightDisks: 'weightDisk', 
+            spinGears: 'spinGear', bladeBases: 'bladeBase', launchers: 'launcher', ripCords: 'ripCord'
+        }[dbKey];
+        
+        let equippedStyleId = null;
+        if (currentBuild[activeCategory] && currentBuild[activeCategory].id === itemId) {
+            equippedStyleId = currentBuild[activeCategory].activeStyle ? currentBuild[activeCategory].activeStyle.styleId : item.styles[0].styleId;
+        }
+
+        let gridHtml = '';
+        item.styles.forEach(style => {
+            let isOwned = unlockedStyles.includes(style.styleId);
+            if (item.styles.indexOf(style) === 0) isOwned = true; 
+
+            let activeClass = (equippedStyleId === style.styleId) ? 'active' : '';
+            let lockedClass = !isOwned ? 'locked' : '';
+            
+            let clickEvent = isOwned ? `onclick="window.equipItem('${activeCategory}', '${dbKey}', '${itemId}', '${style.styleId}'); window.closeDesignsModal();"` : '';
+
+            gridHtml += `
+                <div class="design-swatch ${activeClass} ${lockedClass}" 
+                     style="background-color: ${style.styleColorSample};" 
+                     title="${style.styleName}" 
+                     ${clickEvent}>
+                </div>
+            `;
+        });
+
+        document.getElementById('designs-grid-container').innerHTML = gridHtml;
+        document.getElementById('designs-modal-overlay').style.display = 'flex';
+    };
+
+    window.closeDesignsModal = function(e) {
+        if(e) e.stopPropagation();
+        document.getElementById('designs-modal-overlay').style.display = 'none';
+    };
+
+    // --- Save/Load Logic ---
+    window.initSaveMode = function() {
+        const allEquipped = currentBuild.bitChip && currentBuild.attackRing && currentBuild.weightDisk && currentBuild.spinGear && currentBuild.bladeBase && currentBuild.launcher && currentBuild.ripCord;
+        if (!allEquipped) return;
+        
+        isSavingMode = true;
+        document.getElementById('save-instruction').style.display = 'block';
+        document.getElementById('init-save-btn').innerText = "SELECT SLOT ABOVE...";
+        window.renderSaveSlots();
+    };
+
+    window.cancelSaveMode = function() {
+        isSavingMode = false;
+        document.getElementById('save-instruction').style.display = 'none';
+        document.getElementById('init-save-btn').innerText = "SAVE THIS BUILD";
+        window.renderSaveSlots();
+    };
+
+    window.handleSlotClick = function(index) {
+        if (isSavingMode) {
+            let buildName = prompt("Name your build (Max 20 chars):", `Build ${index + 1}`);
+            if (buildName === null) {
+                window.cancelSaveMode();
+                return; 
+            }
+            buildName = buildName.substring(0, 20); 
+            
+            window.PlayerData.saves[index] = {
+                name: buildName,
+                parts: { ...currentBuild } 
+            };
+            
+            const userRef = doc(db, "users", window.CurrentUser.uid);
+            updateDoc(userRef, { saves: window.PlayerData.saves }).then(() => {
+                
+                const overlay = document.getElementById('animation-overlay');
+                const stack = document.getElementById('anim-stack-container');
+                overlay.style.display = 'flex';
+                
+                const sfxClank = new Audio('audio/sounds/PartsMeet.wav');
+                const sfxSpin = new Audio('audio/sounds/ClickIntoPlace.wav');
+                const sfxSuccess = new Audio('audio/sounds/BuildSuccess.wav');
+                
+                sfxClank.volume = 0.8; 
+                sfxSpin.volume = 0.6;
+
+                const bbImg = getSafeImage(currentBuild.bladeBase, true);
+                const sgImg = getSafeImage(currentBuild.spinGear, true);
+                const wdImg = getSafeImage(currentBuild.weightDisk, true);
+                const arImg = getSafeImage(currentBuild.attackRing, true);
+                const bcImg = getSafeImage(currentBuild.bitChip, true);
+
+                stack.innerHTML = `
+                    <img src="${bbImg}" id="anim-bb" class="anim-part" style="transform: translateY(120px) scale(0.8); opacity: 0;">
+                    <img src="${sgImg}" id="anim-sg" class="anim-part" style="transform: translateY(60px) scale(0.8); opacity: 0;">
+                    <img src="${wdImg}" id="anim-wd" class="anim-part" style="transform: translateY(0px) scale(0.8); opacity: 0;">
+                    <img src="${arImg}" id="anim-ar" class="anim-part" style="transform: translateY(-60px) scale(0.8); opacity: 0;">
+                    <img src="${bcImg}" id="anim-bc" class="anim-part" style="transform: translateY(-120px) scale(0.8); opacity: 0;">
+                `;
+
+                stack.classList.remove('hyper-spin');
+
+                setTimeout(() => { document.querySelectorAll('.anim-part').forEach(part => part.style.opacity = '1'); }, 10);
+                setTimeout(() => { document.querySelectorAll('.anim-part').forEach(part => { part.style.transform = 'translateY(0px) scale(1)'; }); sfxClank.play(); }, 400);
+                setTimeout(() => { stack.classList.add('hyper-spin'); sfxSpin.play(); }, 800);
+
+                setTimeout(() => {
+                    sfxSuccess.play(); 
+                    overlay.style.display = 'none';
+                    setTimeout(() => {
+                        alert("Build Saved Successfully!");
+                        window.cancelSaveMode();
+                        window.renderSaveSlots(); 
+                    }, 50);
+                }, 1700);
+
+            }).catch(e => {
+                console.error(e);
+                alert("Cloud save failed. Check connection.");
+                window.cancelSaveMode();
+            });
+
+        } else {
+            const slotData = window.PlayerData.saves[index];
+            if (slotData && slotData.parts) {
+                currentBuild = { ...slotData.parts };
+                window.renderLeftPanel();
+                calculateAndRenderTotals();
+                const oldText = document.getElementById('init-save-btn').innerText;
+                document.getElementById('init-save-btn').innerText = `LOADED: ${slotData.name}`;
+                setTimeout(() => { if(!isSavingMode) document.getElementById('init-save-btn').innerText = oldText; }, 2000);
+            }
+        }
+    };
+
+    var activeTabKey = 'bitChips';
+    var sortDirection = 'ASC';
+    var activeFilters = {};
+
+    var categoryFilters = {
+        bitChips: [], 
+        attackRings: ["Stationary SubAR", "Free-Spinning SubAR", "Specialized Mechanism", "Smash Attack", "Upper Attack", "Spike Attack"],
+        weightDisks: ["8 Series", "10 Series", "Magnecore"],
+        spinGears: ["Left Spin", "Right Spin", "Magnecore", "Engine Gear", "Specialized"],
+        bladeBases: ["Integrated Base", "Open Base", "Specialized Mechanism", "Rubber Tip", "Metal Tip", "Sharp Tip", "Flat Tip"],
+        launchers: [], // We can add Launcher filters later if you invent more tags!
+        ripCords: []
+    };
+
+    window.toggleSortDir = function() {
+        sortDirection = sortDirection === 'ASC' ? 'DESC' : 'ASC';
+        document.getElementById('sort-dir').innerText = sortDirection;
+        window.renderLeftPanel();
+    };
+
+    window.toggleFilter = function(filterName) {
+        activeFilters[filterName] = !activeFilters[filterName];
+        window.renderLeftPanel();
+    };
+
+    window.switchTab = function(tabKey) {
+        activeTabKey = tabKey;
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        const activeBtn = Array.from(buttons).find(btn => btn.getAttribute('onclick').includes(tabKey));
+        if (activeBtn) activeBtn.classList.add('active');
+        
+        document.getElementById('part-search').value = "";
+        activeFilters = {};
+        const toggleContainer = document.getElementById('dynamic-toggles');
+        toggleContainer.innerHTML = '';
+        
+        categoryFilters[tabKey].forEach(filter => {
+            activeFilters[filter] = true; 
+            const safeFilterId = filter.replace(/\s+/g, '');
+            toggleContainer.innerHTML += `<button class="toggle-btn" id="btn-filter-${safeFilterId}" onclick="window.toggleFilter('${filter}')">${filter}</button>`;
+        });
+        window.renderLeftPanel();
+    };
+
+    window.renderLeftPanel = function() {
+        const container = document.getElementById('inventory-list');
+        container.innerHTML = ''; 
+        
+        const categories = {
+            bitChips: { slot: 'bitChip', ownedList: availableBitChips },
+            attackRings: { slot: 'attackRing', ownedList: availableAttackRings },
+            weightDisks: { slot: 'weightDisk', ownedList: availableWeightDisks },
+            spinGears: { slot: 'spinGear', ownedList: availableSpinGears },
+            bladeBases: { slot: 'bladeBase', ownedList: availableBladeBases },
+            launchers: { slot: 'launcher', ownedList: availableLaunchers },
+            ripCords: { slot: 'ripCord', ownedList: availableRipCords }
+        };
+
+        const activeCategory = categories[activeTabKey];
+        const searchTerm = document.getElementById('part-search').value.toLowerCase();
+        const sortBy = document.getElementById('part-sort').value;
+        
+        categoryFilters[activeTabKey].forEach(filter => {
+            const btn = document.getElementById(`btn-filter-${filter.replace(/\s+/g, '')}`);
+            if (btn) {
+                if (activeFilters[filter]) btn.classList.remove('inactive');
+                else btn.classList.add('inactive');
+            }
+        });
+
+        let filteredList = activeCategory.ownedList.filter(item => {
+            if (searchTerm && !item.name.toLowerCase().includes(searchTerm)) return false;
+            if (item.tags) {
+                for (let tag of item.tags) {
+                    if (activeFilters[tag] === false) return false; 
+                }
+            }
+            return true;
+        });
+        
+        filteredList.sort((a, b) => {
+            let valA, valB;
+            if (sortBy === 'name') {
+                valA = a.name.toLowerCase();
+                valB = b.name.toLowerCase();
+            } else {
+                valA = (a.stats && a.stats[sortBy]) ? a.stats[sortBy] : 0;
+                valB = (b.stats && b.stats[sortBy]) ? b.stats[sortBy] : 0;
+            }
+            if (valA < valB) return sortDirection === 'ASC' ? -1 : 1;
+            if (valA > valB) return sortDirection === 'ASC' ? 1 : -1;
+            return 0;
+        });
+
+        let html = '';
+        filteredList.forEach(item => {
+            const isEquipped = currentBuild[activeCategory.slot] && currentBuild[activeCategory.slot].id === item.id;
+            let displayImage = getSafeImage(item, false);
+            
+            let iconBoxStyle = displayImage ? 'background: transparent; border: none; box-shadow: none;' : '';
+            let iconHtml = displayImage ? `<img src="${displayImage}" style="width:100%; height:100%; object-fit:contain; border-radius: 4px;">` : `?`;
+
+            let altDesignsHtml = '';
+            if (item.styles && item.styles.length > 1) {
+                altDesignsHtml = `<button class="alt-designs-btn" onclick="event.stopPropagation(); window.openDesignsModal('${item.id}', '${activeTabKey}')">Designs (${item.styles.length})</button>`;
+            }
+
+            html += `<div class="item-row ${isEquipped ? 'equipped' : ''}" 
+                          onclick="window.equipItem('${activeCategory.slot}', '${activeTabKey}', '${item.id}')">
+                        <div class="item-icon" style="${iconBoxStyle}">${iconHtml}</div>
+                        <div class="item-name">${item.name}</div>
+                        ${altDesignsHtml}
+                     </div>`;
+        });
+        
+        if (activeCategory.ownedList.length === 0) {
+            html += `<div style="color: #666; font-style: italic; padding: 10px;">No parts owned in this category.</div>`;
+        } else if (filteredList.length === 0) {
+            html += `<div style="color: #ffaa00; font-style: italic; padding: 10px;">No parts match your search.</div>`;
+        }
+        
+        container.innerHTML = html;
+    }
+
+	window.equipItem = function(slot, dbKey, itemId, styleId = null) {
+        const baseItem = window.equipmentDB[dbKey].find(i => i.id === itemId);
+        let item = JSON.parse(JSON.stringify(baseItem));
+        
+        if (item.styles && item.styles.length > 0) {
+            if (styleId) {
+                item.activeStyle = item.styles.find(s => s.styleId === styleId) || item.styles[0];
+            } else {
+                item.activeStyle = item.styles[0];
+            }
+        }
+        
+        currentBuild[slot] = item;
+        
+        const statOrder = [
+            "hp", "rpm", "attack", "defense", "stamina", "endurance", 
+            "speed", "mobility", "grip", "balance", "weight", 
+            "recoil", "recoilReduction", "spiritCharge", "cdr"
+        ];
+        
+        const statLabels = {
+            hp: "HP", rpm: "RPM", attack: "Attack", defense: "Defense", 
+            stamina: "Stamina", endurance: "Endurance", speed: "Speed", 
+            mobility: "Mobility", grip: "Grip", balance: "Balance", 
+            weight: "Weight", recoil: "Recoil", recoilReduction: "Recoil Red.", 
+            spiritCharge: "Spirit Charge", cdr: "Cooldown Red."
+        };
+
+        let formattedStatsHtml = '';
+        const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
+        
+        if (item.stats) {
+            statOrder.forEach(key => {
+                if (item.stats[key] !== undefined) {
+                    let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
+                    formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${item.stats[key]}${suffix}</div>`;
+                }
+            });
+        } else {
+            formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Passives.</div>`;
+        }
+
+        let displayName = item.activeStyle ? item.activeStyle.styleName : item.name;
+        let displayImg = getSafeImage(item, false);
+
+        let imgBoxStyle = displayImg ? 'background: transparent; border: none; box-shadow: none;' : '';
+        let imageHtml = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain;">` : `?`;
+
+        // ==========================================
+        // --- NEW: FEATURE ICONS GENERATION ---
+        let featureIconsHtml = '';
+
+        // 1. Blade Base Logic (Integrated vs Open)
+        if (slot === 'bladeBase') {
+            if (item.contactTipShape) {
+                featureIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="images/menu_icons/base_image_integratedtip.png"></div>`;
+            } else {
+                featureIconsHtml += `<div class="feature-icon-box" title="Open Tip Base"><img src="images/menu_icons/base_image_opentip.png"></div>`;
+            }
+        }
+
+        // 2. Attack Ring Sub-Ring Logic (Free vs Locked)
+        if (item.subRing === true && item.subRingType) {
+            let sarImg = item.subRingType.toLowerCase().includes('free') ? 'sar_image_free.png' : 'sar_image_locked.png';
+            featureIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="images/menu_icons/${sarImg}"></div>`;
+        }
+
+        // 3. Tip Shape Logic
+        if (item.contactTipShape) {
+            let tipImg = '';
+            let shape = item.contactTipShape.toLowerCase();
+            
+            if (shape.includes('semi-flat') || shape.includes('semiflat')) tipImg = 'tip_image_semiflat.png';
+            else if (shape.includes('flat')) tipImg = 'tip_image_flat.png';
+            else if (shape.includes('sharp')) tipImg = 'tip_image_sharp.png';
+            else if (shape.includes('ball')) tipImg = 'tip_image_ball.png';
+
+            if (tipImg) {
+                featureIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="images/menu_icons/${tipImg}"></div>`;
+            }
+        }
+        // ==========================================
+
+        document.getElementById('inspect-content').innerHTML = `
+            <div class="inspect-layout">
+                <div class="inspect-text">
+                    <strong style="font-size: 16px; color: #00ffff;">${displayName}</strong>
+                    <div class="inspect-stat-grid">
+                        ${formattedStatsHtml}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <div class="inspect-img-box" style="${imgBoxStyle}">
+                        ${imageHtml}
+                    </div>
+                    
+                    ${featureIconsHtml ? `<div style="display: flex; flex-direction: row; gap: 4px;">${featureIconsHtml}</div>` : ''}
+                </div>
+            </div>
+        `;
+
+        window.renderLeftPanel(); 
+        calculateAndRenderTotals();
+    };
+
+    function calculateAndRenderTotals() {
+        let totals = { hp: 0, rpm: 0, attack: 0, recoil: 0, recoilReduction: 0, defense: 0, endurance: 0, stamina: 0, balance: 0, weight: 0, speed: 0, mobility: 0, grip: 0, spiritCharge: 0, cdr: 0 };
+        let passives = [];
+        let attacks = [];
+        let ultimate = null;
+        
+        let spinDirection = "[No Spin Gear]";
+        if (currentBuild.spinGear) {
+            spinDirection = currentBuild.spinGear.spinDirection || "Right";
+        }
+
+        const slotNames = { 
+            bitChip: "Bit Chip", attackRing: "Attack Ring", 
+            weightDisk: "Weight Disk", spinGear: "Spin Gear", bladeBase: "Blade Base",
+            launcher: "Launcher", ripCord: "Rip Cord" // ADDED NEW SLOTS HERE
+        };
+
+        Object.entries(currentBuild).forEach(([slot, part]) => {
+            if (!part) return;
+            let partName = part.activeStyle ? part.activeStyle.styleName : part.name;
+            let originText = `${slotNames[slot]}: ${partName}`;
+
+            if (part.stats) {
+                for (let stat in part.stats) {
+                    if (totals[stat] !== undefined) totals[stat] += part.stats[stat];
+                }
+            }
+            
+            if (part.passives) {
+                part.passives.forEach(passiveName => {
+                    let desc = "";
+                    if (window.SkillsDB && window.SkillsDB.passives && window.SkillsDB.passives[passiveName]) {
+                        desc = window.SkillsDB.passives[passiveName].desc;
+                    }
+                    passives.push({ name: passiveName, desc: desc, source: originText });
+                });
+            }
+            
+            if (part.attacks) {
+                part.attacks.forEach(atkObj => {
+                    let desc = "";
+                    if (window.SkillsDB && window.SkillsDB.attacks && window.SkillsDB.attacks[atkObj.name]) {
+                        desc = window.SkillsDB.attacks[atkObj.name].desc;
+                    }
+                    attacks.push({ name: atkObj.name, cd: atkObj.cd, desc: desc, source: originText });
+                });
+            }
+            
+            // Look for special launches on Tools!
+            if (part.specialLaunch) {
+                part.specialLaunch.forEach(sl => {
+                    passives.push({ name: `Special Launch: ${sl}`, desc: "Modifies the Launch Minigame.", source: originText });
+                });
+            }
+
+            if (part.ultimate) {
+                ultimate = { name: part.ultimate.name, desc: part.ultimate.desc, source: originText };
+            }
+        });
+        
+        let atkScore = totals.attack + totals.speed + totals.mobility + totals.grip;
+        let defScore = totals.defense + totals.recoilReduction + (totals.weight * 0.2) + (totals.hp * 0.3);
+        let staScore = totals.stamina + totals.balance + (totals.rpm * 0.275) + totals.endurance;
+        
+        let maxScore = Math.max(atkScore, defScore, staScore);
+        let type = "Unknown";
+        
+        if (maxScore > 0) {
+            let threshold = maxScore * 0.85; 
+            let closeScores = [atkScore, defScore, staScore].filter(score => score >= threshold).length;
+            if (closeScores > 1) type = "Balance";
+            else if (maxScore === atkScore) type = "Attack";
+            else if (maxScore === defScore) type = "Defense";
+            else type = "Stamina";
+        }
+        
+        const statOrder = [
+            "hp", "rpm", "attack", "defense", "stamina", "endurance", 
+            "speed", "mobility", "grip", "balance", "weight", 
+            "recoil", "recoilReduction", "spiritCharge", "cdr"
+        ];
+        const statLabels = {
+            hp: "HP", rpm: "RPM", attack: "ATTACK", defense: "DEFENSE", 
+            stamina: "STAMINA", endurance: "ENDURANCE", speed: "SPEED", 
+            mobility: "MOBILITY", grip: "GRIP", balance: "BALANCE", 
+            weight: "WEIGHT", recoil: "RECOIL", recoilReduction: "RECOIL RED.", 
+            spiritCharge: "SPIRIT CHARGE", cdr: "COOLDOWN RED."
+        };
+
+        const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
+        let statHtml = '';
+        statOrder.forEach(key => {
+            if (totals[key] !== undefined) {
+                let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
+                statHtml += `<div><b>${statLabels[key]}:</b> ${totals[key]}${suffix}</div>`;
+            }
+        });
+        
+        statHtml += `<div style="grid-column: span 2; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; color: #00ffff;">
+                        <b>TYPE:</b> ${type} &nbsp;|&nbsp; <b>SPIN:</b> ${spinDirection}
+                     </div>`;
+                     
+        document.getElementById('total-stats').innerHTML = statHtml;
+
+        const safeParse = window.parseKeywords || function(text) { return text; };
+
+        let passiveHtml = '';
+        if (passives.length === 0) passiveHtml = `<div style="color: #666; font-style: italic; font-size: 12px; margin-top: 5px;">None equipped</div>`;
+        passives.forEach(p => {
+            let descText = p.desc ? `<div style="font-size: 11px; color: #ccc; margin-top: 4px; line-height: 1.3;">${safeParse(p.desc)}</div>` : '';
+            passiveHtml += `<div class="passive-box">
+                                <span class="skill-source">${p.source}</span>
+                                <strong style="color: #fff; font-size: 13px;">${p.name}</strong>
+                                ${descText}
+                            </div>`;
+        });
+        document.getElementById('passives-list').innerHTML = passiveHtml;
+        
+        let attackHtml = '';
+        if (attacks.length === 0) attackHtml = `<div style="color: #666; font-style: italic; font-size: 12px; margin-top: 5px;">None equipped</div>`;
+        attacks.forEach(atk => {
+            let descText = atk.desc ? `<div style="font-size: 11px; color: #ccc; margin-top: 4px; line-height: 1.3;">${safeParse(atk.desc)}</div>` : '';
+            attackHtml += `<div class="attack-box">
+                               <span class="skill-source">${atk.source}</span>
+                               <strong style="color: #fff; font-size: 13px;">${atk.name}</strong> 
+                               <span style="font-size:11px; color:#ddd; float:right;">${atk.cd}s</span>
+                               ${descText}
+                           </div>`;
+        });
+        document.getElementById('attacks-list').innerHTML = attackHtml;
+
+        if (ultimate) {
+            document.getElementById('ultimate-container').innerHTML = `
+                <div class="ultimate-box">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <span style="color: #ffaa00; font-size: 12px; font-weight: 900; letter-spacing: 1px;">ULTIMATE TECHNIQUE</span>
+                        <span class="skill-source" style="text-align: right; margin: 0;">${ultimate.source}</span>
+                    </div>
+                    <strong style="font-size: 16px; color: #fff; display: block; margin: 5px 0;">${ultimate.name}</strong>
+                    <span style="font-size: 13px; color: #ccc; line-height: 1.4;">${safeParse(ultimate.desc)}</span>
+                </div>`;
+        } else {
+            document.getElementById('ultimate-container').innerHTML = '';
+        }
+        
+        window.renderAssemblyVisual();
+        window.renderSaveSlots();
+    }
+
+    // BOOT SEQUENCE
+    window.switchTab('bitChips');
+    window.renderSaveSlots(); 
+</script>
