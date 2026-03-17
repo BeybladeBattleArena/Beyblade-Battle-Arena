@@ -31,6 +31,7 @@
         #npc-section {
             flex: 1; position: relative; display: flex; align-items: flex-end; justify-content: center;
             border-right: 4px solid #111; box-shadow: inset -20px 0 50px rgba(0,0,0,0.5);
+			top: -50;
             
             /* THE FIX: Anchor to 'bottom center', set Width to 'auto', and Height to '80%' */
             background: url('./images/store_items/register.png') bottom center / auto 80% no-repeat;
@@ -52,7 +53,8 @@
 		#npc-sprite {
             /* THE FIX: Match the exact same 80% height scale as the background */
             height: 80%; 
-            width: auto; 
+            width: auto;
+			top: -50;			
             object-fit: contain;
             
             /* The drop shadow stays on the sprite layer to make her pop! */
