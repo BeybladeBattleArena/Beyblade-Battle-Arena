@@ -379,10 +379,15 @@
         currentRotation += velocity;
     });
 
-    document.addEventListener('pointerup', (e) => {
+	// We bundle these together so if the user lets go, OR the phone interrupts the touch, it safely stops dragging.
+    function stopDragging(e) {
         if (!isDragging) return;
         isDragging = false;
-    });
+    }
+
+    document.addEventListener('pointerup', stopDragging);
+    document.addEventListener('pointercancel', stopDragging);
+    document.addEventListener('pointerleave', stopDragging);
 
 	// TAPPING to Enter
     dragZone.addEventListener('click', (e) => {
