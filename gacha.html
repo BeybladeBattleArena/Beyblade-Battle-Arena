@@ -2,7 +2,7 @@
         body {
             margin: 0; padding: 0; overflow: hidden; background-color: #05050a;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
-            user-select: none; -webkit-user-select: none; /* Prevent text highlighting */
+            user-select: none; -webkit-user-select: none;
         }
 
         /* --- UI OVERLAYS --- */
@@ -40,9 +40,9 @@
         
         .pull-number { 
             font-size: 100px; font-weight: 900; font-style: italic; 
-            color: #000; /* Solid Black */
-            -webkit-text-stroke: 2px #fff; /* White Outline */
-            text-shadow: 0 0 15px #00aaff, 0 0 5px #00aaff; /* Blue Glow */
+            color: #000;
+            -webkit-text-stroke: 2px #fff;
+            text-shadow: 0 0 15px #00aaff, 0 0 5px #00aaff;
             position: absolute; top: 20px; 
         }
         .pull-cost { font-size: 24px; font-weight: bold; color: #ffaa00; text-shadow: 2px 2px 0 #000; }
@@ -55,16 +55,13 @@
             background: rgba(0,0,0,0.8); z-index: 150; flex-direction: column; align-items: center;
         }
         
-        /* The container takes the exact size of the image, pinned to the top */
         #winder-container {
             position: absolute; top: 0; left: 50%;
-            width: 120px; /* Adjust width as needed for visuals */
+            width: 120px;
             cursor: grab;
-            /* transform is applied dynamically in JS using percentages */
         }
         #winder-container:active { cursor: grabbing; }
         
-        /* Disable ghost dragging natively in CSS and HTML */
         #winder-img { 
             width: 100%; display: block; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.8)); 
             user-select: none; -webkit-user-drag: none; pointer-events: none;
@@ -92,19 +89,19 @@
             opacity: 0; transition: opacity 0.3s ease;
         }
         .reveal-item-html.show { opacity: 1; }
-        .rarity-stars { font-size: 20px; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
-        .part-name { font-size: 16px; font-weight: bold; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;}
+        .rarity-stars { font-size: 30px; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; } /* Scaled up stars */
+        .part-name { font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;} /* Scaled up text */
         
         .badge-container { height: 20px; margin-bottom: 2px; }
         .new-badge {
-            display: inline-block; font-size: 12px; font-weight: 900;
+            display: inline-block; font-size: 14px; font-weight: 900;
             background: linear-gradient(90deg, #ff0000, #ffaa00, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
             background-size: 300% 300%; -webkit-background-clip: text; color: transparent;
             animation: rainbowBg 2s linear infinite, popBounce 0.4s ease-in-out infinite alternate;
             text-shadow: 0 0 2px rgba(255,255,255,0.2);
         }
         .new-design-badge {
-            display: inline-block; font-size: 12px; font-weight: 900;
+            display: inline-block; font-size: 14px; font-weight: 900;
             background: linear-gradient(90deg, #e5e4e2, #00ffff, #ffffff, #0088ff, #e5e4e2);
             background-size: 300% 300%; -webkit-background-clip: text; color: transparent;
             animation: rainbowBg 2s linear infinite, popBounce 0.4s ease-in-out infinite alternate;
@@ -201,7 +198,6 @@
         if (window.PlayerData && window.PlayerData.bp !== undefined) {
             playerBP = window.PlayerData.bp;
         } else {
-            // Failsafe pull from localStorage
             let storedData = JSON.parse(localStorage.getItem('playerData'));
             if (storedData && storedData.bp !== undefined) {
                 playerBP = storedData.bp;
@@ -218,7 +214,6 @@
             let totalRefund = 0;
 
             for(let i=0; i<num; i++) {
-                // 1. Determine Rarity based on rates
                 let roll = Math.random() * 100;
                 let cumulative = 0;
                 let hitRarity = 1;
@@ -231,18 +226,15 @@
                     }
                 }
 
-                // 2. Pick a random item from that rarity pool
                 let pool = banner.pools[hitRarity];
-                if (!pool || pool.length === 0) pool = banner.pools[1]; // Fallback if a tier is empty
+                if (!pool || pool.length === 0) pool = banner.pools[1]; 
                 let pulledItem = pool[Math.floor(Math.random() * pool.length)];
 
-                // 3. Look up the item in equipment.js
                 let baseItem = window.equipmentDB[pulledItem.category].find(item => item.id === pulledItem.id);
                 let styleData = baseItem.styles ? baseItem.styles.find(s => s.styleId === pulledItem.styleId) : null;
                 let itemName = styleData ? styleData.styleName : baseItem.name;
                 let itemImage = styleData ? styleData.image : baseItem.fallbackImage;
 
-                // 4. Check Inventory for Duplicates
                 let isNewBaseItem = false;
                 let isNewStyle = false;
                 let isDuplicate = false;
@@ -273,6 +265,7 @@
                     id: pulledItem.id,
                     name: itemName,
                     rarity: hitRarity,
+                    category: pulledItem.category, // <-- NEW: Tracking category for ripcord rotation
                     isNew: isNewBaseItem,
                     isNewStyle: !isNewBaseItem && isNewStyle,
                     isDuplicate: isDuplicate,
@@ -282,7 +275,6 @@
                 });
             }
 
-            // 5. Apply Refunds & Save
             playerBP += totalRefund;
             if (window.PlayerData) window.PlayerData.bp = playerBP;
             document.getElementById('bp-display').innerText = playerBP;
@@ -291,7 +283,6 @@
                 try {
                     const userRef = doc(db, "users", window.CurrentUser.uid);
                     await updateDoc(userRef, window.PlayerData);
-                    console.log("Gacha results saved to cloud.");
                 } catch (error) {
                     console.error("Cloud save failed:", error);
                 }
@@ -301,7 +292,7 @@
         }
 
         // ==========================================
-        // 1. HOVER PHYSICS ENGINE (With Anti-Jitter)
+        // 1. HOVER PHYSICS ENGINE 
         // ==========================================
         let physicsAnimFrame = null;
         let activeCanvasId = null;
@@ -340,7 +331,6 @@
                     p.vy += 0.8; 
                     p.x += p.vx; p.y += p.vy;
 
-                    // --- Stable Walls and Floor ---
                     if (p.x < p.radius) { p.x = p.radius; p.vx *= -0.5; }
                     if (p.x > canvas.width - p.radius) { p.x = canvas.width - p.radius; p.vx *= -0.5; }
                     
@@ -351,7 +341,6 @@
                         p.vx *= 0.8; 
                     }
 
-                    // --- Jitter-Free Icon Collision ---
                     for(let j=i+1; j<particles.length; j++) {
                         let p2 = particles[j];
                         let dx = p2.x - p.x; let dy = p2.y - p.y;
@@ -425,12 +414,10 @@
 
             let cost = num === 1 ? 150 : 1500;
             if (playerBP < cost) { alert("Not enough BP!"); return; }
-            playerBP -= cost;
-            document.getElementById('bp-display').innerText = playerBP;
-
-            currentPulls = num;
+            
             winderHiddenPct = num === 1 ? 82.4 : 79.55;
             winderFriction = num === 1 ? 1.0 : 0.45;
+            currentPulls = num;
 
             document.getElementById('selection-screen').style.display = 'none';
             document.getElementById('ripcord-screen').style.display = 'flex';
@@ -520,25 +507,34 @@
             let gachaItems = await rollGacha(currentPulls); 
             renderTargets = [];
             
-            let spacing = animCanvas.width / (currentPulls + 1);
-            let centerX = animCanvas.width / 2;
+            // --- NEW: Two-Row Grid Math for 10 Pulls ---
+            let cols = currentPulls > 5 ? Math.ceil(currentPulls / 2) : currentPulls;
+            let rows = currentPulls > 5 ? 2 : 1;
+            let spacingX = animCanvas.width / (cols + 1);
             let centerY = animCanvas.height / 2;
             
             for(let i=0; i<currentPulls; i++) {
+                let row = Math.floor(i / cols);
+                let col = i % cols;
+                
                 let distSpacing = (animCanvas.width * 0.7) / (currentPulls + 1);
                 let distX = (animCanvas.width * 0.15) + distSpacing * (i + 1);
                 let distY = centerY - 150 + (Math.random() * 40 - 20); 
 
+                // Offset the final Y position up or down based on which row it is
+                let finalXPos = spacingX * (col + 1);
+                let finalYPos = centerY + (rows > 1 ? (row === 0 ? -200 : 200) : 0);
+
                 renderTargets.push({
                     item: gachaItems[i],
-                    startX: spacing * (i + 1), 
+                    startX: finalXPos, 
                     startY: animCanvas.height + 200 + (Math.random()*150),
                     distX: distX, distY: distY,
-                    finalX: spacing * (i + 1), finalY: centerY,
-                    x: spacing * (i + 1), y: animCanvas.height + 200, z: 0,
+                    finalX: finalXPos, finalY: finalYPos,
+                    x: finalXPos, y: animCanvas.height + 200, z: 0,
                     scale: 1, rotation: 0,
                     img: loadedBeys[Math.floor(Math.random()*loadedBeys.length)],
-                    iconImg: gachaItems[i].iconImg, // Uses the real part image
+                    iconImg: gachaItems[i].iconImg, 
                     warpTime: 0, meteorTime: 0, warped: false
                 });
             }
@@ -630,7 +626,8 @@
                         t.x = t.distX + (t.finalX - t.distX) * p;
                         t.y = t.distY + (t.finalY - t.distY) * p;
                         
-                        let size = t.scale * 100;
+                        // --- NEW: Scaled up meteor crash canvas visuals (4x size) ---
+                        let size = t.scale * 200; 
                         
                         actx.beginPath(); actx.arc(t.x, t.y, size * 1.5, 0, Math.PI*2);
                         let grad = actx.createRadialGradient(t.x, t.y, 0, t.x, t.y, size * 1.5);
@@ -641,7 +638,13 @@
                             actx.save();
                             actx.translate(t.x, t.y);
                             actx.scale(t.scale, t.scale);
-                            actx.drawImage(t.iconImg, -40, -40, 80, 80);
+                            
+                            // Rotate the ripcord on the canvas before it lands
+                            if (t.item.category === 'ripCords') {
+                                actx.rotate(-Math.PI / 2);
+                            }
+                            
+                            actx.drawImage(t.iconImg, -120, -120, 240, 240);
                             actx.restore();
                         }
 
@@ -717,14 +720,17 @@
             } else if (t.item.isNewStyle) {
                 badgeHTML = `<div class="badge-container"><span class="new-design-badge">NEW DESIGN</span></div>`;
             } else if (t.item.isDuplicate) {
-                badgeHTML = `<div class="badge-container"><span style="color:#ffaa00; font-weight:bold; font-size:12px;">+${t.item.refund} BP REFUND</span></div>`;
+                badgeHTML = `<div class="badge-container"><span style="color:#ffaa00; font-weight:bold; font-size:14px;">+${t.item.refund} BP REFUND</span></div>`;
             }
+
+            // --- NEW: Scale HTML to 4x and apply the ripcord CSS rotation ---
+            let imgTransform = t.item.category === 'ripCords' ? 'transform: rotate(-90deg);' : '';
 
             div.innerHTML = `
                 ${badgeHTML}
                 <div class="rarity-stars" style="color: ${color};">${stars}</div>
-                <div style="width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, ${color} 0%, transparent 70%); margin-bottom: 10px; display: flex; justify-content:center; align-items:center;">
-                    <img src="${t.item.iconImg.src}" style="width: 60px; filter: drop-shadow(0 0 5px #000);">
+                <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, ${color} 0%, transparent 70%); margin-bottom: 10px; display: flex; justify-content:center; align-items:center;">
+                    <img src="${t.item.iconImg.src}" style="width: 240px; filter: drop-shadow(0 0 15px #000); ${imgTransform}">
                 </div>
                 <div class="part-name" style="color: ${color};">${t.item.name}</div>
             `;
