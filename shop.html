@@ -179,31 +179,48 @@
         <div id="wall-section">
             
             <div class="shelf heavy-shelf">
-                <div class="item-slot sitting-item" onmouseenter="updateDialogue(`Everyone's favorite little Ghost! Isn't the Attack Ring cute!? Not a bad pick for Defense or Stamina.`)" onclick="buyItem('Polta Kit', 1200)">
+                
+				<div class="item-slot sitting-item" onmouseenter="updateDialogue(`Everyone's favorite little Ghost! Isn't the Attack Ring cute!? Not a bad pick for Defense or Stamina.`)" onclick="buyItem([
+				{id:'bc_07', category:'bitChips', styleId: 'polta_default'}, 
+				{id:'ar_17', category:'attackRings', styleId: 'polta_red'}, 
+				{id:'wd_02', category:'weightDisks', styleId: 'six_wide'}, 
+				{id:'sg_01', category:'spinGears', styleId: 'SG_basic_red_polta'}, 
+				{id:'bb_05', category:'bladeBases', styleId: 'sharpbase_polta_red'}
+				], 1200, true, 'Polta Kit')">
                     <img src="./images/store_items/boxed_kits/FullBoxKit_POLTA.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#553333';">
-                    <div class="item-label">Polta Kit<span class="price-tag">1200 BP</span></div>
+                    <div class="item-label">Polta Boxed Kit<span class="price-tag">1200 BP</span></div>
                 </div>
 
-                <div class="item-slot sitting-item" onmouseenter="updateDialogue(`Isn't this one based on a beetle? Gross... At least it's got good Defense, right?`)" onclick="buyItem('Crested Carapace Kit', 1200)">
+
+
+                <div class="item-slot sitting-item" onmouseenter="updateDialogue(`Isn't this one based on a beetle? Gross... At least it's got good Defense, right?`)" onclick="buyItem([
+				{id:'bc_07', category:'bitChips', styleId: 'crestedcarapace_default'}, 
+				{id:'ar_17', category:'attackRings', styleId: 'quad_horn'}, 
+				{id:'wd_09', category:'weightDisks', styleId: 'eight_balance_indent'}, 
+				{id:'sg_01', category:'spinGears', styleId: 'SG_basic_green'}, 
+				{id:'bb_05', category:'bladeBases', styleId: 'semiflat_base_crestedcarapace'
+				], 1200, true, 'Crested Carapace Kit')">
                     <img src="./images/store_items/boxed_kits/FullBoxKit_CRESTEDCARAPACE.png" alt="Boxed Bey" onerror="this.src=''; this.style.backgroundColor='#335533';">
-                    <div class="item-label">Crested Carapace Kit<span class="price-tag">1200 BP</span></div>
+                    <div class="item-label">Crested Carapace Boxed Kit<span class="price-tag">1200 BP</span></div>
                 </div>
             </div>
 
+
+
             <div class="shelf peg-shelf" style="margin-top: 20px;">
-                <div class="item-slot" onmouseenter="updateDialogue(`Need a replacement Attack Ring? This one's got great Stamina and Mobility!`)" onclick="buyItem('Cross Talon AR', 300)">
+                <div class="item-slot" onmouseenter="updateDialogue(`Need a replacement Attack Ring? This one's got great Stamina and Mobility!`)" onclick="buyItem({ id: 'ar_crosstalon', category: 'attackRings', styleId: 'cross_talon' }, 300, false, 'Cross Talon AR')">
                     <div class="peg"></div>
                     <img class="hanging-item" src="./images/store_items/single_parts/SinglePartBox_CrossTalon_AR.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Cross Talon AR <span class="price-tag">300 BP</span></div>
                 </div>
 
-                <div class="item-slot" onmouseenter="updateDialogue('This Blade Base can pivot around its tip, allowing for reduced knockback!')" onclick="buyItem('Pivot Flat BB', 400)">
+                <div class="item-slot" onmouseenter="updateDialogue('This Blade Base can pivot around its tip, allowing for reduced knockback!')" onclick="buyItem({ id: 'bb_14', category: 'bladeBases', styleId: 'pivot_flat' }, 400, false, 'Pivot Flat BB')">
                     <div class="peg"></div>
                     <img class="hanging-item" src="./images/store_items/single_parts/SinglePartBox_PivotFlat_BB.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Pivot Flat BB <span class="price-tag">400 BP</span></div>
                 </div>
 
-                <div class="item-slot" onmouseenter="updateDialogue('The Six Wide Weight Disk. A pretty standard Stamina disk, but it sports good Mobility, too!')" onclick="buyItem('Six Wide WD', 300)">
+                <div class="item-slot" onmouseenter="updateDialogue('The Six Wide Weight Disk. A pretty standard Stamina disk, but it sports good Mobility, too!')" onclick="buyItem({ id: 'wd_02', category: 'weightDisks', styleId: 'six_wide' }, 300, false, 'Six Wide WD')">
                     <div class="peg"></div>
                     <img class="hanging-item" src="./images/store_items/single_parts/SinglePartBox_SixWide_WD.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
                     <div class="item-label">Six Wide WD <span class="price-tag">300 BP</span></div>
@@ -211,16 +228,16 @@
             </div>
 
             <div class="shelf peg-shelf" style="margin-top: 20px;">
-                <div class="item-slot" onmouseenter="updateDialogue('Looking for more RPMs? The EZ Shooter is a classic with a Marvelous Launch!')" onclick="buyItem('EZ Shooter', 400)">
+                <div class="item-slot" onmouseenter="updateDialogue('Looking for more RPMs? The EZ Shooter is a classic with a Marvelous Launch!')" onclick="buyItem({ id: 'launcher_01', category: 'launchers', styleId: 'ezshoot_standard_darkorange' }, 400, false, 'EZ Shooter (Dark Orange)')">
                     <div class="peg"></div>
-                    <img class="hanging-item" src="./images/store_items/packaged_launchers_and_cords/Packaged_Launcher_EZShooter_Orange.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
-                    <div class="item-label">EZ Launcher (Orange) <span class="price-tag">400 BP</span></div>
+                    <img class="hanging-item" src="./images/store_items/packaged_launchers_and_cords/Packaged_Launcher_EZShooter_DarkOrange.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
+                    <div class="item-label">EZ Shooter (Dark Orange) <span class="price-tag">400 BP</span></div>
                 </div>
 
-                <div class="item-slot" onmouseenter="updateDialogue(`A standard Ripcord in a unique color. Don't pull too hard and snap it!`)" onclick="buyItem('EZ Winder', 150)">
+                <div class="item-slot" onmouseenter="updateDialogue(`A standard Ripcord in a unique color. Just don't pull it with too much fighting spirit and snap it!`)" onclick="buyItem({ id: 'ripcord_01', category: 'ripCords', styleId: 'ezwinder_green' }, 150, false, 'EZ Winder (Green)')">
                     <div class="peg"></div>
                     <img class="hanging-item" src="./images/store_items/packaged_launchers_and_cords/Packaged_Ripcord_EZWinder_Green.png" alt="Hanging Part" onerror="this.src=''; this.style.backgroundColor='#444';">
-                    <div class="item-label">Standard Ripcord (Green) <span class="price-tag">150 BP</span></div>
+                    <div class="item-label">EZ Winder (Green) <span class="price-tag">150 BP</span></div>
                 </div>
             </div>
 
@@ -228,6 +245,9 @@
     </div>
 
     <script type="module">
+        import { db } from './firebase-config.js';
+        import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         // Set player currency from memory
         let currentBP = 2000;
         if (window.PlayerData && window.PlayerData.bp !== undefined) {
@@ -235,24 +255,62 @@
         }
         document.getElementById('bp-display').innerText = currentBP;
 
-        // THE FIX: Expose to window so the HTML can see it!
         window.updateDialogue = function(text) {
             document.getElementById('npc-text').innerText = text;
         };
 
-        // THE FIX: Expose to window!
-        window.buyItem = function(itemName, cost) {
+        // UPDATED: Now accepts an itemPayload (object or array of objects) and a displayName
+        window.buyItem = async function(itemPayload, cost, isKit = false, displayName = "Item") {
             if (currentBP >= cost) {
-                if (confirm(`Purchase ${itemName} for ${cost} BP?`)) {
+                if (confirm(`Purchase ${displayName} for ${cost} BP?`)) {
                     currentBP -= cost;
                     document.getElementById('bp-display').innerText = currentBP;
                     
                     if (window.PlayerData) {
                         window.PlayerData.bp = currentBP;
-                        // Add save logic here later
+                        
+						if (isKit) {
+                            // Unpack the kit and push each part to its respective category array
+                            itemPayload.forEach(part => {
+                                if (!window.PlayerData[part.category]) window.PlayerData[part.category] = [];
+                                if (!window.PlayerData[part.category].includes(part.id)) {
+                                    window.PlayerData[part.category].push(part.id);
+                                }
+                                
+                                // NEW: Unlock the specific style/design for the kit part
+                                if (part.styleId) {
+                                    if (!window.PlayerData.unlockedStyles) window.PlayerData.unlockedStyles = [];
+                                    if (!window.PlayerData.unlockedStyles.includes(part.styleId)) {
+                                        window.PlayerData.unlockedStyles.push(part.styleId);
+                                    }
+                                }
+                            });
+                        } else {
+                            // Single Item: Push to category array
+                            if (!window.PlayerData[itemPayload.category]) window.PlayerData[itemPayload.category] = [];
+                            if (!window.PlayerData[itemPayload.category].includes(itemPayload.id)) {
+                                window.PlayerData[itemPayload.category].push(itemPayload.id);
+                            }
+                            
+                            // If the item is a specific design/style, permanently unlock that style
+                            if (itemPayload.styleId) {
+                                if (!window.PlayerData.unlockedStyles) window.PlayerData.unlockedStyles = [];
+                                if (!window.PlayerData.unlockedStyles.includes(itemPayload.styleId)) {
+                                    window.PlayerData.unlockedStyles.push(itemPayload.styleId);
+                                }
+                            }
+                        }
+                        
+                        // Push the updated inventory and BP to Firebase
+                        try {
+                            const userRef = doc(db, "users", window.CurrentUser.uid);
+                            await updateDoc(userRef, window.PlayerData);
+                            window.updateDialogue(`Thanks! I've sent the ${displayName} to your Garage.`);
+                        } catch (error) {
+                            console.error("Cloud save failed:", error);
+                            window.updateDialogue(`Transaction complete, but cloud sync failed. Check connection!`);
+                        }
                     }
-                    
-                    window.updateDialogue(`Thanks! I've sent the ${itemName} to your Garage.`);
                 }
             } else {
                 window.updateDialogue(`Sorry, you don't have enough BP for that!`);

@@ -33,6 +33,24 @@ window.equipmentDB = {
 		stats: { spiritCharge: 10, cdr: 6, hp: 25, attack: 2, weight: 2, mobility: 2, speed: 2 }, 
 		ultimate: { name: "Storm Tornado", desc: "Huge RPM damage" } 
 		},
+		{ id: "bc_06", 
+		name: "Polta", 
+		type: "Bit Chip", 
+		tags: [], 
+		image: "./images/beyblade_parts/BC/StandardBitChip_PoltaRed.png", 
+		topDownImage: "./images/beyblade_parts/BC/StandardBitChip_PoltaRed.png", 
+		stats: { spiritCharge: 8, cdr: 3, recoilReduction: 1, hp: 30, defense: 5, endurance: 5, weight: 2 }, 
+		ultimate: { name: "Will 'O the Wisp", desc: "Generate a ghostly fireball as an arena hazard." } 
+		},
+		{ id: "bc_07", 
+		name: "Crested Carapace Bit Chip", 
+		type: "Bit Chip", 
+		tags: [], 
+		image: "./images/beyblade_parts/BC/StandardBitChip_CrestedCarapaceGreen.png", 
+		topDownImage: "./images/beyblade_parts/BC/StandardBitChip_CrestedCarapaceGreen.png", 
+		stats: { spiritCharge: 8, cdr: 3, recoilReduction: 1, hp: 30, defense: 5, endurance: 5, weight: 2 }, 
+		ultimate: { name: "Storm Tornado", desc: "Huge RPM damage" } 
+		},
     ],
 	
 	
@@ -236,6 +254,14 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/AR/HexaStrike.png", 
                     topDownImage: "./images/beyblade_parts/AR/HexaStrike.png" 
+                },
+				{ 
+                    styleId: "hexa_strike_marigold",
+                    styleName: "Hexa-Strike Marigold", 
+                    styleColorSample: "#f7ac3c", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/AR/HexaStrike_Marigold.png", 
+                    topDownImage: "./images/beyblade_parts/AR/HexaStrike_Marigold.png" 
                 },
             ]
 },
@@ -447,7 +473,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["As", "Survivor", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
-            stats: { attack: 21, hp: 10, defense: 8, recoil: 3, balance: 1, weight: 14, mobility: 1, recoilReduction: 1 },
+            stats: { attack: 24, hp: 10, defense: 8, recoil: 3, balance: 1, weight: 14, mobility: 1, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
@@ -460,6 +486,28 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/AR/AsSurvivor.png", 
                     topDownImage: "./images/beyblade_parts/AR/AsSurvivor.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_17", // Generalized ID
+            name: "Quad Horn", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Quad", "Horn", "Smash Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/QuadHorn.png",  
+            stats: { attack: 21, hp: 20, defense: 4, endurance: 2, balance: 1, weight: 13, mobility: 1, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Smash Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "quad_horn",
+                    styleName: "Quad Horn", 
+                    styleColorSample: "#466970", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/QuadHorn.png", 
+                    topDownImage: "./images/beyblade_parts/AR/QuadHorn.png" 
                 },
             ]
 },
@@ -839,6 +887,50 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "wd_16", // Generalized ID
+            name: "Ten Balance", // Generalized Name
+            type: "Weight Disk", 
+            tags: ["Ten", "Balance"], 
+			fallbackImage: "./images/beyblade_parts/WD/TenBalance.png",
+            stats: {  weight: 33, hp: 40, rpm: 125, attack: 3, defense: 2, balance: 1, stamina: 2, endurance: 1, recoil: 2, },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "ten_balance",
+                    styleName: "Ten Balance", 
+                    styleColorSample: "#a5a5a5", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/WD/TenBalance.png", 
+                    topDownImage: "./images/beyblade_parts/WD/TenBalance.png" 
+                },
+            ]
+},
+{ 
+            id: "wd_17", // Generalized ID
+            name: "Ten Heavy", // Generalized Name
+            type: "Weight Disk", 
+            tags: ["Ten", "Heavy"], 
+			fallbackImage: "./images/beyblade_parts/WD/TenBalance.png",
+            stats: {  weight: 35, rpm: 145, attack: 2, defense: 3, stamina: 3, endurance: 3, speed: -1, mobility: -1 },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "ten_heavy",
+                    styleName: "Ten Heavy", 
+                    styleColorSample: "#a5a5a5", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/WD/TenHeavy.png", 
+                    topDownImage: "./images/beyblade_parts/WD/TenHeavy.png" 
+                },
+            ]
+},
          ],
     spinGears: [
 { 
@@ -975,6 +1067,14 @@ window.equipmentDB = {
                     styleRarity: 4,
                     image: "./images/beyblade_parts/SG/StandardSG_Right_FenrirFPurple_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_FenrirFPurple_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_green",
+                    styleName: "Right Spin Gear Green (Crested Carapace)", 
+                    styleColorSample: "#466970", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_CrestedCarapaceGreen_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_CrestedCarapaceGreen__topdown.png" 
                 },
             ]
 },
@@ -1139,6 +1239,14 @@ window.equipmentDB = {
                     styleName: "Semi-Flat Base Magenta (Vortex Fang)", 
                     styleColorSample: "#964f77", 
                     styleRarity: 4,
+                    image: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_topdown.png" 
+                },
+                { 
+                    styleId: "semiflat_base_crestedcarapace",
+                    styleName: "Semi-Flat Base Green (Crested Carapace)", 
+                    styleColorSample: "#466970", 
+                    styleRarity: 1,
                     image: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_topdown.png" 
                 },
@@ -1327,7 +1435,7 @@ window.equipmentDB = {
 			contactTipType: "Metal",
 			contactTipShape: "Sharp",
             tags: ["Tilt", "Shift", "Rubber", "Tip", "Metal", "Sharp"], 
-			fallbackImage: "./images/beyblade_parts/BB/TiltShiftBaseLightBlue_sideview.png",  
+			fallbackImage: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_sideview.png",  
             stats: { hp: 20, rpm: 110, defense: 3, grip: 8, balance: 8, stamina: 6, mobility: 10, recoilReduction: 1, weight: 13 },
 			passives: ["Counterattack"], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
@@ -1339,8 +1447,16 @@ window.equipmentDB = {
                     styleName: "Tilt-Shift Light Blue", 
                     styleColorSample: "#61bbe4", 
                     styleRarity: 4,
-                    image: "./images/beyblade_parts/BB/TiltShiftBaseLightBlue_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/BB/TiltShiftBaseLightBlue_topdown.png" 
+                    image: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_topdown.png" 
+                },
+                { 
+                    styleId: "tiltshift_red",
+                    styleName: "Tilt-Shift Red", 
+                    styleColorSample: "#de4921", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/BB/TiltShiftBase_Red_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/TiltShift_Red_topdown.png" 
                 },
             ]
 },
@@ -1531,6 +1647,70 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_green.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_green.png" 
                 }
+				{ 
+                    styleId: "ezshoot_standard_orange",
+                    styleName: "EZ Shooter Launcher Orange", 
+                    styleColorSample: "#ed920a", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_orange.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_orange.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_darkorange",
+                    styleName: "EZ Shooter Launcher Dark Orange", 
+                    styleColorSample: "#be6d32", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_darkorange.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_darkorange.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_magenta",
+                    styleName: "EZ Shooter Launcher Magenta", 
+                    styleColorSample: "#923d77", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_magenta.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_magenta.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_black",
+                    styleName: "EZ Shooter Launcher Black", 
+                    styleColorSample: "#2b3638", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_black.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_black.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_mint",
+                    styleName: "EZ Shooter Launcher Mint", 
+                    styleColorSample: "#87ffbd", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_mint.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_mint.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_blue",
+                    styleName: "EZ Shooter Launcher Blue", 
+                    styleColorSample: "#115eff", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_blue.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_blue.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_electricblue",
+                    styleName: "EZ Shooter Launcher Electric Blue", 
+                    styleColorSample: "#118dff", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_electricblue.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_electricblue.png" 
+                }
+				{ 
+                    styleId: "ezshoot_standard_twotone_koamarublush",
+                    styleName: "EZ Shooter Launcher Koamaru Blush", 
+                    styleColorSample: "#2d336b", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png" 
+                }
             ]
         }
     ], // <-- CRITICAL FIX: Added this closing bracket for the launchers array!
@@ -1564,6 +1744,86 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Yellow.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Yellow.png" 
+                }
+                { 
+                    styleId: "ezwinder_blue",
+                    styleName: "EZ Winder Blue", 
+                    styleColorSample: "#333fba", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Blue.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Blue.png" 
+                }
+                { 
+                    styleId: "ezwinder_green",
+                    styleName: "EZ Winder Green", 
+                    styleColorSample: "#1f8822", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Green.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Green.png" 
+                }
+                { 
+                    styleId: "ezwinder_red",
+                    styleName: "EZ Winder Red", 
+                    styleColorSample: "#a51b1b", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Red.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Red.png" 
+                }
+                { 
+                    styleId: "ezwinder_black",
+                    styleName: "EZ Winder Black", 
+                    styleColorSample: "#454757", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Black.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Black.png" 
+                }
+                { 
+                    styleId: "ezwinder_purple",
+                    styleName: "EZ Winder Purple", 
+                    styleColorSample: "#8662b3", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Purple.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Purple.png" 
+                }
+				{ 
+                    styleId: "ezwinder_sandstone",
+                    styleName: "EZ Winder Sandstone", 
+                    styleColorSample: "#b7ab7e", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Sandstone.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Sandstone.png" 
+                }
+				{ 
+                    styleId: "ezwinder_coralpink",
+                    styleName: "EZ Winder Coral Pink", 
+                    styleColorSample: "#f49f97", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_CoralPink.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_CoralPink.png" 
+                }
+				{ 
+                    styleId: "ezwinder_monochromeblend",
+                    styleName: "EZ Winder Monochrome Blend", 
+                    styleColorSample: "#9ca0a5", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_MonochromeBlend.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_MonochromeBlend.png" 
+                }
+				{ 
+                    styleId: "ezwinder_creamsicleblend",
+                    styleName: "EZ Winder Creamsicle Blend", 
+                    styleColorSample: "#f1b081", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_CreamsicleBlend.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_CreamsicleBlend.png" 
+                }
+				{ 
+                    styleId: "ezwinder_rainbowblend",
+                    styleName: "EZ Winder Rainbow Blend", 
+                    styleColorSample: "#def4e7", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_RainbowBlend.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_RainbowBlend.png" 
                 }
             ]
         }
