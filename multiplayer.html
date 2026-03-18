@@ -1,0 +1,380 @@
+<style>
+        body {
+            margin: 0; padding: 0; overflow: hidden; background-color: #0a0a12;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
+            user-select: none; -webkit-user-select: none;
+            background-image: 
+                linear-gradient(rgba(0, 170, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 170, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* --- UI OVERLAYS --- */
+        #top-bar {
+            position: absolute; top: 0; left: 0; width: 100%; display: flex; justify-content: space-between;
+            padding: 15px 30px; box-sizing: border-box; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+            z-index: 100; pointer-events: none;
+        }
+        .back-btn { 
+            background: #222; color: #fff; border: 1px solid #00aaff; padding: 8px 20px; 
+            cursor: pointer; border-radius: 6px; font-weight: bold; pointer-events: auto;
+            font-family: inherit; transition: 0.2s;
+        }
+        .back-btn:hover { background: #00aaff; color: #000; box-shadow: 0 0 10px #00aaff; }
+        
+        .currency-display {
+            background: rgba(0,0,0,0.6); border: 2px solid #ffaa00; border-radius: 8px;
+            padding: 5px 15px; font-size: 20px; font-weight: 900; color: #ffaa00; text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- LOBBY LAYOUT --- */
+        #lobby-wrapper {
+            position: absolute; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
+            display: flex; justify-content: center; align-items: stretch; padding: 20px; box-sizing: border-box; gap: 40px;
+        }
+
+        .panel {
+            background: rgba(15, 20, 30, 0.85); border: 2px solid #334; border-radius: 12px;
+            width: 45%; max-width: 500px; display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            overflow: hidden; pointer-events: auto;
+        }
+
+        .panel-header {
+            background: linear-gradient(90deg, #112, #224); padding: 20px;
+            border-bottom: 2px solid #556; text-align: center;
+        }
+        .panel-header h2 { margin: 0; font-size: 28px; color: #fff; font-style: italic; letter-spacing: 2px; }
+        
+        .host-header { border-bottom-color: #00aaff; }
+        .host-header h2 { color: #00ffff; text-shadow: 0 0 10px #00aaff; }
+        
+        .join-header { border-bottom-color: #ffaa00; }
+        .join-header h2 { color: #ffcc00; text-shadow: 0 0 10px #ffaa00; }
+
+        .panel-content { padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1; }
+
+        /* --- FORM ELEMENTS --- */
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 14px; color: #aaa; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+        
+        select, input[type="text"], input[type="password"] {
+            background: #0a0a12; color: #fff; border: 1px solid #445; padding: 12px;
+            border-radius: 6px; font-size: 16px; font-family: inherit; outline: none; transition: 0.2s;
+        }
+        select:focus, input:focus { border-color: #00aaff; box-shadow: 0 0 10px rgba(0, 170, 255, 0.3); }
+        option { background: #112; }
+
+        /* --- THE TOGGLE SWITCH --- */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; background: #0a0a12; padding: 12px; border-radius: 6px; border: 1px solid #445; }
+        .toggle-label { font-weight: bold; color: #ddd; }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334; transition: .4s; border-radius: 26px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        #passcode-container { display: none; animation: slideDown 0.3s ease-out forwards; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- BUTTONS --- */
+        .action-btn {
+            background: #223; color: #fff; border: 2px solid; padding: 15px; font-size: 20px; font-weight: 900;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; letter-spacing: 1px; margin-top: auto; font-family: inherit;
+        }
+        .host-btn { border-color: #00aaff; color: #00ffff; }
+        .host-btn:hover { background: #00aaff; color: #000; box-shadow: 0 0 20px rgba(0, 170, 255, 0.6); }
+        
+        .join-btn { border-color: #ffaa00; color: #ffcc00; }
+        .join-btn:hover { background: #ffaa00; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
+
+        /* --- ROOM LIST UI --- */
+        .room-list { display: flex; flex-direction: column; gap: 10px; }
+        .room-card {
+            background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
+        }
+        .room-card:hover { border-color: #ffaa00; background: #1a1a24; }
+        .room-info { display: flex; flex-direction: column; gap: 5px; }
+        .room-name { font-weight: bold; font-size: 16px; color: #fff; }
+        .room-host { font-size: 12px; color: #889; }
+        .room-status { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .status-open { color: #00ff00; }
+        .status-locked { color: #ff4444; }
+
+    </style>
+
+    <div id="top-bar">
+        <button class="back-btn" onclick="window.navigateTo('store_hub.html')">◀ Back</button>
+        <div class="currency-display"><span id="bp-display">0</span> BP</div>
+    </div>
+
+    <div id="lobby-wrapper">
+        
+        <div class="panel">
+            <div class="panel-header host-header">
+                <h2>HOST MATCH</h2>
+            </div>
+            <div class="panel-content">
+                
+                <div class="form-group">
+                    <label>Lobby Name</label>
+                    <select id="host-room-name">
+                        <option value="The Underground Tournament">The Underground Tournament</option>
+                        <option value="Plastic Gen Purists">Plastic Gen Purists</option>
+                        <option value="Anything Goes Battle">Anything Goes Battle</option>
+                        <option value="Beginners Welcome">Beginners Welcome</option>
+                        <option value="Toma's Garage Scuffle">Toma's Garage Scuffle</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Stadium / Map</label>
+                    <select id="host-stadium">
+                        <option value="nikotama_river">Nikotama River</option>
+                        <option value="standard_dish">Standard BBA Dish</option>
+                        <option value="street_alley">Back-Alley Concrete</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Battle BGM</label>
+                    <select id="host-music">
+                        <option value="track_tension">Track 1: Tension</option>
+                        <option value="track_heavy_rock">Track 2: Heavy Rock</option>
+                        <option value="track_electronic">Track 3: Electronic Surge</option>
+                    </select>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="toggle-label">Private Match (Requires Code)</div>
+                    <label class="switch">
+                        <input type="checkbox" id="host-private-toggle" onchange="togglePasscodeField()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="form-group" id="passcode-container">
+                    <label>4-Digit Passcode</label>
+                    <input type="password" id="host-passcode" maxlength="4" placeholder="0000" pattern="\d{4}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                </div>
+
+                <button class="action-btn host-btn" onclick="initializeHost()">CREATE LOBBY</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header join-header">
+                <h2>JOIN MATCH</h2>
+            </div>
+            <div class="panel-content">
+                
+                <div class="room-list" id="active-rooms-container">
+                    
+                    <div class="room-card" onclick="promptJoin('room_1', false)">
+                        <div class="room-info">
+                            <span class="room-name">The Underground Tournament</span>
+                            <span class="room-host">Host: Tyson</span>
+                        </div>
+                        <div class="room-status status-open">🟢 OPEN</div>
+                    </div>
+
+                    <div class="room-card" onclick="promptJoin('room_2', true)">
+                        <div class="room-info">
+                            <span class="room-name">Plastic Gen Purists</span>
+                            <span class="room-host">Host: Kai</span>
+                        </div>
+                        <div class="room-status status-locked">🔒 LOCKED</div>
+                    </div>
+
+                </div>
+
+                <div style="text-align: center; color: #667; font-size: 14px; margin-top: 20px; font-style: italic;">
+                    Scanning network for challengers...
+                </div>
+
+                <button class="action-btn join-btn" onclick="refreshRoomList()" style="margin-top: auto;">REFRESH LIST</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { rtdb } from './firebase-config.js';
+        import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Grab Player Info
+        let currentBP = window.PlayerData?.bp || 0;
+        document.getElementById('bp-display').innerText = currentBP;
+        
+        let playerName = window.CurrentUser?.displayName || "Anonymous Blader";
+        let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9); // Fallback ID for testing
+
+        // --- UI TOGGLES ---
+        window.togglePasscodeField = function() {
+            const isPrivate = document.getElementById('host-private-toggle').checked;
+            const container = document.getElementById('passcode-container');
+            const input = document.getElementById('host-passcode');
+            if (isPrivate) {
+                container.style.display = 'flex';
+                input.value = ''; input.focus();
+            } else {
+                container.style.display = 'none';
+            }
+        };
+
+        // --- HOST LOGIC ---
+        let currentRoomRef = null;
+
+        window.initializeHost = async function() {
+            const roomName = document.getElementById('host-room-name').value;
+            const stadium = document.getElementById('host-stadium').value;
+            const music = document.getElementById('host-music').value;
+            const isLocked = document.getElementById('host-private-toggle').checked;
+            const passcode = document.getElementById('host-passcode').value;
+
+            if (isLocked && passcode.length !== 4) {
+                alert("Please enter a valid 4-digit passcode for your private room.");
+                return;
+            }
+
+            // 1. Generate a unique room ID in RTDB
+            const roomsRef = ref(rtdb, 'rooms');
+            currentRoomRef = push(roomsRef); 
+            const roomId = currentRoomRef.key;
+
+            const lobbySettings = {
+                hostUid: playerUid,
+                hostName: playerName,
+                guestUid: null,
+                guestName: null,
+                settings: { roomName, stadiumId: stadium, battleMusic: music, isLocked, passcode: isLocked ? passcode : null },
+                status: "WAITING_FOR_CHALLENGER"
+            };
+
+            try {
+                // 2. Save room to database
+                await set(currentRoomRef, lobbySettings);
+                
+                // 3. Crucial Cleanup: If the host closes the tab, delete the room automatically
+                onDisconnect(currentRoomRef).remove();
+
+                // 4. Change UI to show waiting state
+                document.querySelector('.host-btn').innerText = "WAITING FOR PLAYER...";
+                document.querySelector('.host-btn').style.background = "#00aaff";
+                document.querySelector('.host-btn').style.color = "#000";
+                document.querySelector('.host-btn').style.pointerEvents = "none";
+
+                // 5. Listen for someone joining
+                onValue(currentRoomRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.guestUid) {
+                        // A CHALLENGER APPEARS!
+                        window.ActiveMatch = { roomId: roomId, role: 'HOST', data: data };
+                        alert(`Challenger ${data.guestName} has joined! Transitioning to Arena...`);
+                        
+                        // Stop listening to the lobby node to prevent memory leaks
+                        onDisconnect(currentRoomRef).cancel(); 
+                        
+                        // Move to the next screen!
+                        window.navigateTo('arena.html'); // Or a 'match_prep.html' if you want a lock-in screen
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to host room:", error);
+                alert("Error connecting to matchmaking server.");
+            }
+        };
+
+        // --- JOIN LOGIC ---
+        window.promptJoin = async function(roomId, isLocked) {
+            const specificRoomRef = ref(rtdb, `rooms/${roomId}`);
+            
+            try {
+                const snapshot = await get(specificRoomRef);
+                if (!snapshot.exists()) {
+                    alert("This room no longer exists.");
+                    return;
+                }
+                
+                const roomData = snapshot.val();
+                
+                // 1. Check Passcode
+                if (isLocked) {
+                    const code = prompt("This room is locked. Enter the 4-digit passcode:");
+                    if (code === null) return; 
+                    if (code !== roomData.settings.passcode) {
+                        alert("Incorrect passcode!");
+                        return;
+                    }
+                }
+
+                // 2. Check if full
+                if (roomData.guestUid) {
+                    alert("Room is already full!");
+                    return;
+                }
+
+                // 3. Claim the guest slot
+                await update(specificRoomRef, {
+                    guestUid: playerUid,
+                    guestName: playerName,
+                    status: "STARTING"
+                });
+
+                // 4. Setup match data and transition
+                window.ActiveMatch = { roomId: roomId, role: 'GUEST', data: roomData };
+                alert(`Joined ${roomData.hostName}'s room! Transitioning to Arena...`);
+                window.navigateTo('arena.html');
+
+            } catch (error) {
+                console.error("Failed to join room:", error);
+            }
+        };
+
+        // --- LIVE ROOM LISTENER ---
+        function startRoomListener() {
+            const activeRoomsContainer = document.getElementById('active-rooms-container');
+            const roomsRef = ref(rtdb, 'rooms');
+
+            // This runs instantly, and then automatically re-runs every time a room is created/deleted!
+            onValue(roomsRef, (snapshot) => {
+                activeRoomsContainer.innerHTML = ''; // Clear old list
+                const rooms = snapshot.val();
+
+                if (!rooms) {
+                    activeRoomsContainer.innerHTML = '<div style="text-align: center; color: #667; font-size: 14px; font-style: italic; margin-top: 20px;">No active rooms found. Be the first to host!</div>';
+                    return;
+                }
+
+                // Loop through Firebase data and build the UI cards
+                Object.keys(rooms).forEach(roomId => {
+                    const room = rooms[roomId];
+                    
+                    // Only show rooms waiting for players
+                    if (room.status === "WAITING_FOR_CHALLENGER") {
+                        const statusClass = room.settings.isLocked ? "status-locked" : "status-open";
+                        const statusText = room.settings.isLocked ? "🔒 LOCKED" : "🟢 OPEN";
+                        
+                        const cardHTML = `
+                            <div class="room-card" onclick="promptJoin('${roomId}', ${room.settings.isLocked})">
+                                <div class="room-info">
+                                    <span class="room-name">${room.settings.roomName}</span>
+                                    <span class="room-host">Host: ${room.hostName}</span>
+                                </div>
+                                <div class="room-status ${statusClass}">${statusText}</div>
+                            </div>
+                        `;
+                        activeRoomsContainer.innerHTML += cardHTML;
+                    }
+                });
+            });
+        }
+
+        // --- INIT ---
+        window.refreshRoomList = startRoomListener; // Tie manual refresh button to the listener
+        startRoomListener(); // Start listening as soon as the page loads
+    </script>
