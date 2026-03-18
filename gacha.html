@@ -1,5 +1,4 @@
-
-    <style>
+<style>
         body {
             margin: 0; padding: 0; overflow: hidden; background-color: #05050a;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
@@ -166,10 +165,13 @@
     <div id="results-screen">
         <div id="skip-hint">Double-click anywhere to reveal all</div>
         <div id="html-items-container"></div>
-        <button id="finish-btn" onclick="window.location.href='store-hub.html'">DONE</button>
+        <button id="finish-btn" onclick="window.navigateTo('store_hub.html')">DONE</button>
     </div>
 
     <script type="module">
+        import { db } from './firebase-config.js';
+        import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
         // --- ASSETS & CONFIG ---
         const iconPaths = [
             './images/menu_icons/AR_icon.png', './images/menu_icons/BB_icon.png', 
@@ -194,20 +196,110 @@
             5: '#ffcc00'  // Gold
         };
 
-
         // --- GLOBAL STATE ---
         let currentPulls = 1;
-            let playerBP = 0;
-            if (window.PlayerData && window.PlayerData.bp) {
-                playerBP = window.PlayerData.bp;
-            } else {
-                // Failsafe pull from localStorage if window.PlayerData isn't heavily global yet
-                let storedData = JSON.parse(localStorage.getItem('playerData'));
-                if (storedData && storedData.bp) {
-                    playerBP = storedData.bp;
+        let playerBP = 0;
+        if (window.PlayerData && window.PlayerData.bp !== undefined) {
+            playerBP = window.PlayerData.bp;
+        } else {
+            // Failsafe pull from localStorage
+            let storedData = JSON.parse(localStorage.getItem('playerData'));
+            if (storedData && storedData.bp !== undefined) {
+                playerBP = storedData.bp;
+            }
+        }
+        document.getElementById('bp-display').innerText = playerBP;
+
+        // ==========================================
+        // REAL GACHA LOGIC & FIREBASE SAVE
+        // ==========================================
+        async function rollGacha(num) {
+            let results = [];
+            let banner = window.GachaBanners.standard;
+            let totalRefund = 0;
+
+            for(let i=0; i<num; i++) {
+                // 1. Determine Rarity based on rates
+                let roll = Math.random() * 100;
+                let cumulative = 0;
+                let hitRarity = 1;
+                
+                for (let rarity in banner.rates) {
+                    cumulative += banner.rates[rarity];
+                    if (roll <= cumulative) {
+                        hitRarity = parseInt(rarity);
+                        break;
+                    }
+                }
+
+                // 2. Pick a random item from that rarity pool
+                let pool = banner.pools[hitRarity];
+                if (!pool || pool.length === 0) pool = banner.pools[1]; // Fallback if a tier is empty
+                let pulledItem = pool[Math.floor(Math.random() * pool.length)];
+
+                // 3. Look up the item in equipment.js
+                let baseItem = window.equipmentDB[pulledItem.category].find(item => item.id === pulledItem.id);
+                let styleData = baseItem.styles ? baseItem.styles.find(s => s.styleId === pulledItem.styleId) : null;
+                let itemName = styleData ? styleData.styleName : baseItem.name;
+                let itemImage = styleData ? styleData.image : baseItem.fallbackImage;
+
+                // 4. Check Inventory for Duplicates
+                let isNewBaseItem = false;
+                let isNewStyle = false;
+                let isDuplicate = false;
+
+                if (!window.PlayerData[pulledItem.category]) window.PlayerData[pulledItem.category] = [];
+                if (!window.PlayerData.unlockedStyles) window.PlayerData.unlockedStyles = [];
+
+                if (!window.PlayerData[pulledItem.category].includes(pulledItem.id)) {
+                    isNewBaseItem = true;
+                    window.PlayerData[pulledItem.category].push(pulledItem.id);
+                }
+
+                if (!window.PlayerData.unlockedStyles.includes(pulledItem.styleId)) {
+                    isNewStyle = true;
+                    window.PlayerData.unlockedStyles.push(pulledItem.styleId);
+                }
+
+                if (!isNewBaseItem && !isNewStyle) {
+                    isDuplicate = true;
+                    let refundAmount = hitRarity * 100;
+                    totalRefund += refundAmount;
+                }
+
+                let itemIconImg = new Image();
+                itemIconImg.src = itemImage;
+
+                results.push({
+                    id: pulledItem.id,
+                    name: itemName,
+                    rarity: hitRarity,
+                    isNew: isNewBaseItem,
+                    isNewStyle: !isNewBaseItem && isNewStyle,
+                    isDuplicate: isDuplicate,
+                    refund: isDuplicate ? (hitRarity * 100) : 0,
+                    iconImg: itemIconImg,
+                    revealed: false
+                });
+            }
+
+            // 5. Apply Refunds & Save
+            playerBP += totalRefund;
+            if (window.PlayerData) window.PlayerData.bp = playerBP;
+            document.getElementById('bp-display').innerText = playerBP;
+
+            if (window.CurrentUser && window.CurrentUser.uid) {
+                try {
+                    const userRef = doc(db, "users", window.CurrentUser.uid);
+                    await updateDoc(userRef, window.PlayerData);
+                    console.log("Gacha results saved to cloud.");
+                } catch (error) {
+                    console.error("Cloud save failed:", error);
                 }
             }
-        document.getElementById('bp-display').innerText = playerBP;
+
+            return results;
+        }
 
         // ==========================================
         // 1. HOVER PHYSICS ENGINE (With Anti-Jitter)
@@ -223,7 +315,6 @@
             loadedIcons.push(img);
         });
 
-        // THE FIX: Expose functions to the global window so HTML can trigger them through module boundaries!
         window.startHoverPhysics = function(num) {
             activeCanvasId = num === 1 ? 'canvas-hover-1' : 'canvas-hover-10';
             const canvas = document.getElementById(activeCanvasId);
@@ -256,9 +347,9 @@
                     
                     if (p.y > canvas.height - p.radius - 20) { 
                         p.y = canvas.height - p.radius - 20; 
-                        if (p.vy > 2.0) { p.vy *= -0.4; } // Modest bounce
-                        else { p.vy = 0; } // Sleep
-                        p.vx *= 0.8; // Friction on the floor
+                        if (p.vy > 2.0) { p.vy *= -0.4; } 
+                        else { p.vy = 0; } 
+                        p.vx *= 0.8; 
                     }
 
                     // --- Jitter-Free Icon Collision ---
@@ -269,29 +360,22 @@
                         
                         if (dist < p.radius + p2.radius) {
                             if (dist === 0) { dx = 0.1; dy = 0.1; dist = Math.sqrt(dx*dx + dy*dy); }
-
                             let overlap = (p.radius + p2.radius) - dist;
                             let nx = dx/dist; let ny = dy/dist;
                             
-                            // 1. Resolve Position (push them exactly out of each other)
                             p.x -= nx * overlap * 0.5; p.y -= ny * overlap * 0.5;
                             p2.x += nx * overlap * 0.5; p2.y += ny * overlap * 0.5;
                             
-                            // 2. Calculate impact speed
-                            let rvx = p.vx - p2.vx;
-                            let rvy = p.vy - p2.vy;
+                            let rvx = p.vx - p2.vx; let rvy = p.vy - p2.vy;
                             let velAlongNormal = rvx * nx + rvy * ny;
                             
-                            // 3. Only apply bounce if they are actively smashing INTO each other
                             if (velAlongNormal > 0) {
                                 let bounciness = velAlongNormal > 3.0 ? 0.5 : 0.0;
                                 let impulse = velAlongNormal * (1 + bounciness) * 0.5;
-                                
                                 p.vx -= nx * impulse; p.vy -= ny * impulse;
                                 p2.vx += nx * impulse; p2.vy += ny * impulse;
                             }
                             
-                            // 4. Constant friction while touching to kill the infinite jitter
                             p.vx *= 0.85; p.vy *= 0.85;
                             p2.vx *= 0.85; p2.vy *= 0.85;
                         }
@@ -324,7 +408,7 @@
         };
 
         // ==========================================
-        // 2. THE RIPCORD PULL MECHANIC (Scaled & Weighted)
+        // 2. THE RIPCORD PULL MECHANIC
         // ==========================================
         let isDragging = false;
         let dragStartY = 0;
@@ -338,7 +422,7 @@
         const winderUI = document.getElementById('winder-container');
 
         window.startPullPhase = function(num) {
-            if (physicsAnimFrame) cancelAnimationFrame(physicsAnimFrame); // Failsafe to stop physics loop
+            if (physicsAnimFrame) cancelAnimationFrame(physicsAnimFrame);
 
             let cost = num === 1 ? 150 : 1500;
             if (playerBP < cost) { alert("Not enough BP!"); return; }
@@ -346,7 +430,6 @@
             document.getElementById('bp-display').innerText = playerBP;
 
             currentPulls = num;
-            
             winderHiddenPct = num === 1 ? 82.4 : 79.55;
             winderFriction = num === 1 ? 1.0 : 0.45;
 
@@ -429,31 +512,13 @@
 
         beyPaths.forEach(path => { let img = new Image(); img.src = path; loadedBeys.push(img); });
 
-        function generateDummyResults(num) {
-            let results = [];
-            const names = ["Dragoon AR", "Dranzer SG", "Draciel WD", "Driger BB", "Heavy Metal Core", "Sniper Tip"];
-            for(let i=0; i<num; i++) {
-                let r = Math.random();
-                let rarity = r > 0.95 ? 5 : (r > 0.8 ? 4 : (r > 0.5 ? 3 : (r > 0.2 ? 2 : 1)));
-                results.push({
-                    id: i,
-                    name: names[Math.floor(Math.random()*names.length)],
-                    rarity: rarity,
-                    isNew: Math.random() > 0.7,
-                    isNewStyle: Math.random() > 0.8 && rarity > 2,
-                    revealed: false
-                });
-            }
-            return results;
-        }
-
-        function executeGachaSequence() {
+        async function executeGachaSequence() {
             document.getElementById('ripcord-screen').style.display = 'none';
             animCanvas.style.display = 'block';
             animCanvas.width = window.innerWidth;
             animCanvas.height = window.innerHeight;
             
-            let gachaItems = generateDummyResults(currentPulls);
+            let gachaItems = await rollGacha(currentPulls); 
             renderTargets = [];
             
             let spacing = animCanvas.width / (currentPulls + 1);
@@ -465,9 +530,6 @@
                 let distX = (animCanvas.width * 0.15) + distSpacing * (i + 1);
                 let distY = centerY - 150 + (Math.random() * 40 - 20); 
 
-                let itemIcon = new Image();
-                itemIcon.src = iconPaths[Math.floor(Math.random() * iconPaths.length)];
-
                 renderTargets.push({
                     item: gachaItems[i],
                     startX: spacing * (i + 1), 
@@ -477,7 +539,7 @@
                     x: spacing * (i + 1), y: animCanvas.height + 200, z: 0,
                     scale: 1, rotation: 0,
                     img: loadedBeys[Math.floor(Math.random()*loadedBeys.length)],
-                    iconImg: itemIcon,
+                    iconImg: gachaItems[i].iconImg, // Uses the real part image
                     warpTime: 0, meteorTime: 0, warped: false
                 });
             }
@@ -651,14 +713,19 @@
             let color = rarityColors[t.item.rarity];
             
             let badgeHTML = `<div class="badge-container"></div>`;
-            if (t.item.isNew) badgeHTML = `<div class="badge-container"><span class="new-badge">NEW</span></div>`;
-            else if (t.item.isNewStyle) badgeHTML = `<div class="badge-container"><span class="new-design-badge">NEW DESIGN</span></div>`;
+            if (t.item.isNew) {
+                badgeHTML = `<div class="badge-container"><span class="new-badge">NEW</span></div>`;
+            } else if (t.item.isNewStyle) {
+                badgeHTML = `<div class="badge-container"><span class="new-design-badge">NEW DESIGN</span></div>`;
+            } else if (t.item.isDuplicate) {
+                badgeHTML = `<div class="badge-container"><span style="color:#ffaa00; font-weight:bold; font-size:12px;">+${t.item.refund} BP REFUND</span></div>`;
+            }
 
             div.innerHTML = `
                 ${badgeHTML}
                 <div class="rarity-stars" style="color: ${color};">${stars}</div>
                 <div style="width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle, ${color} 0%, transparent 70%); margin-bottom: 10px; display: flex; justify-content:center; align-items:center;">
-                    <img src="${t.iconImg.src}" style="width: 60px; filter: drop-shadow(0 0 5px #000);">
+                    <img src="${t.item.iconImg.src}" style="width: 60px; filter: drop-shadow(0 0 5px #000);">
                 </div>
                 <div class="part-name" style="color: ${color};">${t.item.name}</div>
             `;

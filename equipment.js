@@ -147,7 +147,7 @@ window.equipmentDB = {
                     styleId: "polta_red",
                     styleName: "Tri-Cutter Red (Polta)", 
                     styleColorSample: "#ce2008", 
-                    styleRarity: 2,
+                    styleRarity: 1,
                     image: "./images/beyblade_parts/AR/TriCutter_Red.png", 
                     topDownImage: "./images/beyblade_parts/AR/TriCutter_Red.png" 
                 },
@@ -565,7 +565,7 @@ window.equipmentDB = {
                     styleId: "six_balance",
                     styleName: "Six Balance", 
                     styleColorSample: "#a0a29d", 
-                    styleRarity: 2,
+                    styleRarity: 1,
                     image: "./images/beyblade_parts/WD/SixBalance.png", 
                     topDownImage: "./images/beyblade_parts/WD/SixBalance.png" 
                 },
@@ -609,7 +609,7 @@ window.equipmentDB = {
                     styleId: "six_balance_indent",
                     styleName: "Six Balance (Indentation Mold)", 
                     styleColorSample: "#6c756d", 
-                    styleRarity: 3,
+                    styleRarity: 2,
                     image: "./images/beyblade_parts/WD/SixBalance_IndentMold.png", 
                     topDownImage: "./images/beyblade_parts/WD/SixBalance_IndentMold.png" 
                 },
@@ -1270,7 +1270,7 @@ window.equipmentDB = {
                     styleId: "volcanoflatbase_ifrit",
                     styleName: "Volcano Flat Base Red (Ifrit)", 
                     styleColorSample: "#a9381d", 
-                    styleRarity: 1,
+                    styleRarity: 3,
                     image: "./images/beyblade_parts/BB/VolcanoFlatBase_IfritRed_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/VolcanoFlatBase_IfritRed_topdown.png" 
                 },
