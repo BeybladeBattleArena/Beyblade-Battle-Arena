@@ -9,6 +9,11 @@ window.SkillsDB = {
             desc: "Increases base Defense by 10.",
             apply: function(bey) { bey.stats.defense = (bey.stats.defense || 0) + 10; }
         },
+		"Recoil Rebounder": {
+            name: "Recoil Rebounder",
+            desc: "When a collision occurs, reduce knockback by 10% and RPM damage by 2%. Then, temporarily increase Speed and Attack by 6% for 7 seconds. Cooldown: 28s.",
+            apply: function(bey) {}
+        },
         "Engine Activation": {
             name: "Engine Activation",
             desc: "When RPM drops below 50%, activates for a massive 350 RPM burst and Mobility boost.",

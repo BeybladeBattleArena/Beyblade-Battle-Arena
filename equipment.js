@@ -1462,7 +1462,7 @@ window.equipmentDB = {
             type: "Blade Base",
 			contactTipType: "Plastic",
 			contactTipShape: "Sharp",
-            tags: ["Pulse", "Core", "Sharp", "Tip", "Plastic", "Cooldown Reduction" ], 
+            tags: ["Pulse", "Core", "Sharp", "Tip", "Plastic", "Cooldown Reduction", "CDR" ], 
 			fallbackImage: "./images/beyblade_parts/BB/PulseCore_Violet_sideview.png",  
             stats: { rpm: 130, defense: 1, endurance: 3, grip: 12, stamina: 2, mobility: 1, cdr: 4, weight: 13 },
 			passives: [], 
@@ -1485,6 +1485,30 @@ window.equipmentDB = {
                     styleRarity: 5,
                     image: "./images/beyblade_parts/BB/PulseCore_Emerald_PhototonicCrystalversion_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/PulseCore_Emerald_PhototonicCrystalversion__topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_14", // Generalized ID
+            name: "Pivot Flat", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Flat",
+            tags: ["Pivot", "Flat", "Tip", "Metal", "Recoil", "Rebounder", "Reduction" ], 
+			fallbackImage: "./images/beyblade_parts/BB/PivotFlat_sideview.png",  
+            stats: {  rpm: 120, speed: 10, defense: -1, attack: 12, grip: 22, balance: 14, endurance: -2, mobility: 11, recoilReduction: 4, weight: 12  },
+			passives: ["Recoil Rebounder"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "pivot_flat",
+                    styleName: "Pivot Flat", 
+                    styleColorSample: "#687077", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/PivotFlat_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/PivotFlat_topdown.png" 
                 },
             ]
 },
