@@ -89,8 +89,8 @@
             opacity: 0; transition: opacity 0.3s ease;
         }
         .reveal-item-html.show { opacity: 1; }
-        .rarity-stars { font-size: 30px; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; } /* Scaled up stars */
-        .part-name { font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;} /* Scaled up text */
+        .rarity-stars { font-size: 30px; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; }
+        .part-name { font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px #000; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;}
         
         .badge-container { height: 20px; margin-bottom: 2px; }
         .new-badge {
@@ -176,9 +176,12 @@
             './images/menu_icons/SubAR_icon.png', './images/menu_icons/WD_icon.png'
         ];
         
+        // --- FIX: Now includes all 8 silhouettes ---
         const beyPaths = [
             './images/home_screen/bg_beyblade1.png', './images/home_screen/bg_beyblade2.png',
-            './images/home_screen/bg_beyblade3.png', './images/home_screen/bg_beyblade4.png'
+            './images/home_screen/bg_beyblade3.png', './images/home_screen/bg_beyblade4.png',
+            './images/home_screen/bg_beyblade5.png', './images/home_screen/bg_beyblade6.png',
+            './images/home_screen/bg_beyblade7.png', './images/home_screen/bg_beyblade8.png'
         ];
 
         const winder1Path = './images/gacha/gacha_winder.png'; 
@@ -265,7 +268,7 @@
                     id: pulledItem.id,
                     name: itemName,
                     rarity: hitRarity,
-                    category: pulledItem.category, // <-- NEW: Tracking category for ripcord rotation
+                    category: pulledItem.category, 
                     isNew: isNewBaseItem,
                     isNewStyle: !isNewBaseItem && isNewStyle,
                     isDuplicate: isDuplicate,
@@ -507,7 +510,6 @@
             let gachaItems = await rollGacha(currentPulls); 
             renderTargets = [];
             
-            // --- NEW: Two-Row Grid Math for 10 Pulls ---
             let cols = currentPulls > 5 ? Math.ceil(currentPulls / 2) : currentPulls;
             let rows = currentPulls > 5 ? 2 : 1;
             let spacingX = animCanvas.width / (cols + 1);
@@ -521,7 +523,6 @@
                 let distX = (animCanvas.width * 0.15) + distSpacing * (i + 1);
                 let distY = centerY - 150 + (Math.random() * 40 - 20); 
 
-                // Offset the final Y position up or down based on which row it is
                 let finalXPos = spacingX * (col + 1);
                 let finalYPos = centerY + (rows > 1 ? (row === 0 ? -200 : 200) : 0);
 
@@ -575,6 +576,9 @@
                 let allWarped = true;
 
                 renderTargets.forEach((t, index) => {
+                    // --- FIX: Always spin, even while waiting to shoot or actively shooting! ---
+                    t.rotation += 0.5; 
+                    
                     if (sceneTime > index * 100) {
                         t.warpTime += 16;
                         let p = Math.min(1, t.warpTime / 800); 
@@ -587,7 +591,6 @@
                         
                         t.z = p * 1000;
                         t.scale = 300 / (300 + t.z);
-                        t.rotation += 0.5;
                         
                         if (p < 1) {
                             allWarped = false;
@@ -626,7 +629,6 @@
                         t.x = t.distX + (t.finalX - t.distX) * p;
                         t.y = t.distY + (t.finalY - t.distY) * p;
                         
-                        // --- NEW: Scaled up meteor crash canvas visuals (4x size) ---
                         let size = t.scale * 200; 
                         
                         actx.beginPath(); actx.arc(t.x, t.y, size * 1.5, 0, Math.PI*2);
@@ -639,7 +641,6 @@
                             actx.translate(t.x, t.y);
                             actx.scale(t.scale, t.scale);
                             
-                            // Rotate the ripcord on the canvas before it lands
                             if (t.item.category === 'ripCords') {
                                 actx.rotate(-Math.PI / 2);
                             }
@@ -723,15 +724,15 @@
                 badgeHTML = `<div class="badge-container"><span style="color:#ffaa00; font-weight:bold; font-size:14px;">+${t.item.refund} BP REFUND</span></div>`;
             }
 
-            // --- NEW: Scale HTML to 4x and apply the ripcord CSS rotation ---
             let imgTransform = t.item.category === 'ripCords' ? 'transform: rotate(-90deg);' : '';
 
+            // --- FIX: Placed the Badge/Receipt below the circle and above the item name! ---
             div.innerHTML = `
-                ${badgeHTML}
                 <div class="rarity-stars" style="color: ${color};">${stars}</div>
                 <div style="width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, ${color} 0%, transparent 70%); margin-bottom: 10px; display: flex; justify-content:center; align-items:center;">
                     <img src="${t.item.iconImg.src}" style="width: 240px; filter: drop-shadow(0 0 15px #000); ${imgTransform}">
                 </div>
+                ${badgeHTML}
                 <div class="part-name" style="color: ${color};">${t.item.name}</div>
             `;
 

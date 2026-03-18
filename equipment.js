@@ -1375,8 +1375,8 @@ window.equipmentDB = {
                     styleName: "Sharp Base Black (Saizo)", 
                     styleColorSample: "#2b2b2b", 
                     styleRarity: 2,
-                    image: "./images/beyblade_parts/BB/SharpBase_Saizo_Black_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/BB/SharpBase_Saizo_Black_topdown.png" 
+                    image: "./images/beyblade_parts/BB/SharpBase_SaizoBlack_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/SharpBase_SaizoBlack_topdown.png" 
                 },
             ]
 },
