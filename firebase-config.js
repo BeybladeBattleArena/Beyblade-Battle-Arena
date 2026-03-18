@@ -2,6 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js"; // <-- THE FIX: Added this line!
 
 // TODO: Replace this with your actual Firebase project config object!
 const firebaseConfig = {
@@ -20,4 +21,4 @@ const app = initializeApp(firebaseConfig);
 // Export Auth and Database so other files can use them
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const rtdb = getDatabase(app);
+export const rtdb = getDatabase(app); // Now it knows what this is!
