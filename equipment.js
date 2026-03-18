@@ -1646,7 +1646,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_green.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_green.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_orange",
                     styleName: "EZ Shooter Launcher Orange", 
@@ -1654,7 +1654,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_orange.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_orange.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_darkorange",
                     styleName: "EZ Shooter Launcher Dark Orange", 
@@ -1662,7 +1662,7 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_darkorange.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_darkorange.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_magenta",
                     styleName: "EZ Shooter Launcher Magenta", 
@@ -1670,7 +1670,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_magenta.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_magenta.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_black",
                     styleName: "EZ Shooter Launcher Black", 
@@ -1678,7 +1678,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_black.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_black.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_mint",
                     styleName: "EZ Shooter Launcher Mint", 
@@ -1686,7 +1686,7 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_mint.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_mint.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_blue",
                     styleName: "EZ Shooter Launcher Blue", 
@@ -1694,7 +1694,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_blue.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_blue.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_electricblue",
                     styleName: "EZ Shooter Launcher Electric Blue", 
@@ -1702,7 +1702,7 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_electricblue.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_electricblue.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_twotone_koamarublush",
                     styleName: "EZ Shooter Launcher Koamaru Blush", 
@@ -1744,7 +1744,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Yellow.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Yellow.png" 
-                }
+                },
                 { 
                     styleId: "ezwinder_blue",
                     styleName: "EZ Winder Blue", 
@@ -1752,7 +1752,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Blue.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Blue.png" 
-                }
+                },
                 { 
                     styleId: "ezwinder_green",
                     styleName: "EZ Winder Green", 
@@ -1760,7 +1760,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Green.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Green.png" 
-                }
+                },
                 { 
                     styleId: "ezwinder_red",
                     styleName: "EZ Winder Red", 
@@ -1768,7 +1768,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Red.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Red.png" 
-                }
+                },
                 { 
                     styleId: "ezwinder_black",
                     styleName: "EZ Winder Black", 
@@ -1776,7 +1776,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Black.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Black.png" 
-                }
+                },
                 { 
                     styleId: "ezwinder_purple",
                     styleName: "EZ Winder Purple", 
@@ -1784,7 +1784,7 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Purple.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Purple.png" 
-                }
+                },
 				{ 
                     styleId: "ezwinder_sandstone",
                     styleName: "EZ Winder Sandstone", 
@@ -1792,7 +1792,7 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Sandstone.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Sandstone.png" 
-                }
+                },
 				{ 
                     styleId: "ezwinder_coralpink",
                     styleName: "EZ Winder Coral Pink", 
@@ -1800,7 +1800,7 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_CoralPink.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_CoralPink.png" 
-                }
+                },
 				{ 
                     styleId: "ezwinder_monochromeblend",
                     styleName: "EZ Winder Monochrome Blend", 
@@ -1808,7 +1808,7 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_MonochromeBlend.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_MonochromeBlend.png" 
-                }
+                },
 				{ 
                     styleId: "ezwinder_creamsicleblend",
                     styleName: "EZ Winder Creamsicle Blend", 
@@ -1816,7 +1816,7 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_CreamsicleBlend.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Ripcords/Ripcord_EZWinder_Gradient_CreamsicleBlend.png" 
-                }
+                },
 				{ 
                     styleId: "ezwinder_rainbowblend",
                     styleName: "EZ Winder Rainbow Blend", 
