@@ -197,7 +197,16 @@
 
         // --- GLOBAL STATE ---
         let currentPulls = 1;
-        let playerBP = 2000; 
+            let playerBP = 0;
+            if (window.PlayerData && window.PlayerData.bp) {
+                playerBP = window.PlayerData.bp;
+            } else {
+                // Failsafe pull from localStorage if window.PlayerData isn't heavily global yet
+                let storedData = JSON.parse(localStorage.getItem('playerData'));
+                if (storedData && storedData.bp) {
+                    playerBP = storedData.bp;
+                }
+            }
         document.getElementById('bp-display').innerText = playerBP;
 
         // ==========================================
