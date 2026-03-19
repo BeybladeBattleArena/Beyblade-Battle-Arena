@@ -414,7 +414,7 @@
             }
         };
 
-        // --- LIVE ROOM LISTENER ---
+		// --- LIVE ROOM LISTENER ---
         function startRoomListener() {
             const activeRoomsContainer = document.getElementById('active-rooms-container');
             const roomsRef = ref(rtdb, 'rooms');
@@ -435,11 +435,10 @@
                         const statusClass = room.settings.isLocked ? "status-locked" : "status-open";
                         const statusText = room.settings.isLocked ? "🔒 LOCKED" : "🟢 OPEN";
                         
-                        // Default to right spin if not present
                         const spinClass = room.hostSpin === 'Left' ? 'bey-spin-left' : 'bey-spin-right';
-                        const glowClass = room.hostGlow || 'host-glow-blue'; // Fallback to blue
+                        const glowClass = room.hostGlow || 'host-glow-blue'; 
                         
-						// Prepare the layered HTML
+                        // --- THE FIX: Extract the 5 saved images and layer them! ---
                         const imgs = room.hostBuildImages || {};
                         const fallbackIcon = !imgs.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
 
