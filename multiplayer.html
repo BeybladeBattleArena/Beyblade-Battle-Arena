@@ -90,19 +90,31 @@
         .join-btn { border-color: #ffaa00; color: #ffcc00; }
         .join-btn:hover { background: #ffaa00; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
 
-        /* --- ROOM LIST UI --- */
+        /* --- ROOM LIST UI & NEW ANIMATIONS --- */
         .room-list { display: flex; flex-direction: column; gap: 10px; }
         .room-card {
             background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px;
             display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
         }
         .room-card:hover { border-color: #ffaa00; background: #1a1a24; }
+        
+        .room-left-section { display: flex; align-items: center; gap: 15px; }
         .room-info { display: flex; flex-direction: column; gap: 5px; }
         .room-name { font-weight: bold; font-size: 16px; color: #fff; }
         .room-host { font-size: 12px; color: #889; }
+        
+        .host-glow-blue { color: #00ffff; text-shadow: 0 0 8px #00aaff; font-weight: bold; }
+        .host-glow-red { color: #ff4444; text-shadow: 0 0 8px #ff0000; font-weight: bold; }
+
         .room-status { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .status-open { color: #00ff00; }
         .status-locked { color: #ff4444; }
+
+        /* The Spinning active builds */
+        @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin-left { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+        .bey-spin-right { animation: spin-right 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
+        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
 
     </style>
 
@@ -123,9 +135,9 @@
                     <select id="host-room-name">
                         <option value="Let It Rip!">Let It Rip!</option>
                         <option value="Go Shoot!">Go Shoot!</option>
-						<option value="Hey! Over Here!">Hey! Over Here!</option>
-						<option value="Anything Goes Battle">Anything Goes Battle</option>
-						<option value="Testing A New Build">Testing A New Build</option>
+                        <option value="Hey! Over Here!">Hey! Over Here!</option>
+                        <option value="Anything Goes Battle">Anything Goes Battle</option>
+                        <option value="Testing A New Build">Testing A New Build</option>
                         <option value="Beginners Welcome">Beginners Welcome</option>
                         <option value="Short On Time">Short On Time</option>
                     </select>
@@ -134,7 +146,7 @@
                 <div class="form-group">
                     <label>Stadium / Map</label>
                     <select id="host-stadium">
-						<option value="standard_dish">Standard BBA Dish</option>
+                        <option value="standard_dish">Standard BBA Dish</option>
                         <option value="nikotama_river">Nikotama River</option>
                         <option value="street_alley">Back-Alley Concrete</option>
                     </select>
@@ -148,8 +160,8 @@
                         <option value="track_electronic">Electronic Surge</option>
                     </select>
                 </div>
-				
-				    <div class="form-group">
+                
+                <div class="form-group">
                     <label>Lobby BGM</label>
                     <select id="host-lobbymusic">
                         <option value="track_tension">Jazzy</option>
@@ -171,7 +183,8 @@
                     <input type="password" id="host-passcode" maxlength="4" placeholder="0000" pattern="\d{4}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                 </div>
 
-                <button class="action-btn host-btn" id="create-lobby-btn" onclick="initializeHost()">CREATE LOBBY</button>
+                <button class="action-btn join-btn" id="close-room-btn" style="display:none; padding: 10px; font-size: 16px; margin-bottom: 10px; margin-top: auto;" onclick="cancelLobby()">CLOSE ROOM</button>
+                <button class="action-btn host-btn" id="create-lobby-btn" style="margin-top: 0;" onclick="initializeHost()">CREATE LOBBY</button>
             </div>
         </div>
 
@@ -201,22 +214,35 @@
         let currentBP = window.PlayerData?.bp || 0;
         document.getElementById('bp-display').innerText = currentBP;
         
-        let playerName = window.CurrentUser?.displayName || "Anonymous Blader";
-        let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9); 
+        let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
+        
+        let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
 
         let currentRoomRef = null;
+        let countdownInterval = null;
 
-        // --- NEW: THE CLEANUP PROTOCOL ---
         window.leaveLobby = function() {
-            if (currentRoomRef) {
-                // If they created a room, delete it immediately
-                remove(currentRoomRef);
-                currentRoomRef = null;
-            }
+            window.cancelLobby(); // Re-use the new cancel logic!
             window.navigateTo('home-menu.html');
         };
 
-        // --- UI TOGGLES ---
+        // --- NEW: CANCEL HOSTING / CLOSE ROOM ---
+        window.cancelLobby = function() {
+            if (currentRoomRef) {
+                remove(currentRoomRef);
+                currentRoomRef = null;
+            }
+            if (countdownInterval) clearInterval(countdownInterval);
+            
+            const hostBtn = document.getElementById('create-lobby-btn');
+            hostBtn.innerText = "CREATE LOBBY";
+            hostBtn.style.background = "";
+            hostBtn.style.color = "";
+            hostBtn.style.pointerEvents = "auto";
+            
+            document.getElementById('close-room-btn').style.display = 'none';
+        };
+
         window.togglePasscodeField = function() {
             const isPrivate = document.getElementById('host-private-toggle').checked;
             const container = document.getElementById('passcode-container');
@@ -229,15 +255,13 @@
             }
         };
 
-        // --- HOST LOGIC ---
         window.initializeHost = async function() {
-            // Prevent spamming the button
             if (currentRoomRef) return; 
 
             const roomName = document.getElementById('host-room-name').value;
             const stadium = document.getElementById('host-stadium').value;
-            const music = document.getElementById('host-music').value;
-			const music = document.getElementById('host-lobbymusic').value;
+            const battleMusic = document.getElementById('host-music').value;
+            const lobbyMusic = document.getElementById('host-lobbymusic').value;
             const isLocked = document.getElementById('host-private-toggle').checked;
             const passcode = document.getElementById('host-passcode').value;
 
@@ -246,29 +270,73 @@
                 return;
             }
 
+            // Fallback to fetch the active bey visually if they haven't explicitly built one this session
+            let activeBeyImg = './images/menu_icons/AR_icon.png';
+            let activeSpin = 'Right';
+
+            if (window.ActiveBey && window.ActiveBey.topDownImage) {
+                activeBeyImg = window.ActiveBey.topDownImage;
+                activeSpin = window.ActiveBey.spinDirection || 'Right';
+            } else if (window.PlayerData && window.PlayerData.activeBuild && window.equipmentDB) {
+                const arId = window.PlayerData.activeBuild.parts?.attackRing;
+                const sgId = window.PlayerData.activeBuild.parts?.spinGear;
+                const arStyle = window.PlayerData.activeBuild.styles?.attackRing;
+                
+                const arData = window.equipmentDB.attackRings.find(x => x.id === arId);
+                if (arData) {
+                    const styleData = arData.styles.find(s => s.styleId === arStyle);
+                    activeBeyImg = styleData ? styleData.topDownImage : arData.fallbackImage;
+                }
+                
+                const sgData = window.equipmentDB.spinGears.find(x => x.id === sgId);
+                if (sgData && sgData.spinDirection) {
+                    activeSpin = sgData.spinDirection;
+                }
+            }
+
             const roomsRef = ref(rtdb, 'rooms');
             currentRoomRef = push(roomsRef); 
             const roomId = currentRoomRef.key;
 
+            // Give the host a random glow color for the UI
+            const hostGlowColor = Math.random() > 0.5 ? 'host-glow-blue' : 'host-glow-red';
+
             const lobbySettings = {
                 hostUid: playerUid,
                 hostName: playerName,
+                hostGlow: hostGlowColor,
+                hostBeyImg: activeBeyImg,
+                hostSpin: activeSpin,
                 guestUid: null,
                 guestName: null,
-                settings: { roomName, stadiumId: stadium, battleMusic: music, isLocked, passcode: isLocked ? passcode : null },
+                settings: { roomName, stadiumId: stadium, battleMusic, lobbyMusic, isLocked, passcode: isLocked ? passcode : null },
                 status: "WAITING_FOR_CHALLENGER"
             };
 
             try {
                 await set(currentRoomRef, lobbySettings);
-                
                 onDisconnect(currentRoomRef).remove();
 
                 const hostBtn = document.getElementById('create-lobby-btn');
-                hostBtn.innerText = "WAITING FOR PLAYER...";
                 hostBtn.style.background = "#00aaff";
                 hostBtn.style.color = "#000";
                 hostBtn.style.pointerEvents = "none";
+                
+                // Implement the 3-2-1 Countdown
+                let countdown = 3;
+                hostBtn.innerText = `WAITING FOR PLAYER... (${countdown})`;
+                
+                countdownInterval = setInterval(() => {
+                    countdown--;
+                    if (countdown > 0) {
+                        hostBtn.innerText = `WAITING FOR PLAYER... (${countdown})`;
+                    } else {
+                        clearInterval(countdownInterval);
+                        hostBtn.innerText = `WAITING FOR PLAYER...`;
+                        // Reveal the close button after the 3 seconds!
+                        document.getElementById('close-room-btn').style.display = 'block';
+                    }
+                }, 1000);
 
                 onValue(currentRoomRef, (snapshot) => {
                     const data = snapshot.val();
@@ -276,6 +344,7 @@
                         window.ActiveMatch = { roomId: roomId, role: 'HOST', data: data };
                         alert(`Challenger ${data.guestName} has joined! Transitioning to Arena...`);
                         
+                        if (countdownInterval) clearInterval(countdownInterval);
                         onDisconnect(currentRoomRef).cancel(); 
                         
                         window.navigateTo('arena.html'); 
@@ -292,7 +361,7 @@
         // --- JOIN LOGIC ---
         window.promptJoin = async function(roomId, isLocked) {
             if (currentRoomRef) {
-                alert("You cannot join a room while you are hosting one! Please leave your lobby first.");
+                alert("You cannot join a room while you are hosting one! Please close your room first.");
                 return;
             }
 
@@ -357,11 +426,18 @@
                         const statusClass = room.settings.isLocked ? "status-locked" : "status-open";
                         const statusText = room.settings.isLocked ? "🔒 LOCKED" : "🟢 OPEN";
                         
+                        // Default to right spin if not present
+                        const spinClass = room.hostSpin === 'Left' ? 'bey-spin-left' : 'bey-spin-right';
+                        const glowClass = room.hostGlow || 'host-glow-blue'; // Fallback to blue
+                        
                         const cardHTML = `
                             <div class="room-card" onclick="promptJoin('${roomId}', ${room.settings.isLocked})">
-                                <div class="room-info">
-                                    <span class="room-name">${room.settings.roomName}</span>
-                                    <span class="room-host">Host: ${room.hostName}</span>
+                                <div class="room-left-section">
+                                    <img src="${room.hostBeyImg}" class="${spinClass}" style="width: 55px; height: 55px; object-fit: contain;">
+                                    <div class="room-info">
+                                        <span class="room-name">${room.settings.roomName}</span>
+                                        <span class="room-host">Host: <span class="${glowClass}">${room.hostName}</span></span>
+                                    </div>
                                 </div>
                                 <div class="room-status ${statusClass}">${statusText}</div>
                             </div>
