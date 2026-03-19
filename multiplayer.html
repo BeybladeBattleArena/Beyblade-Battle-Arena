@@ -221,6 +221,8 @@
 
         let currentRoomRef = null;
         let countdownInterval = null;
+		
+		        let currentSave = saves[activeSaveIndex];
 
         window.leaveLobby = function() {
             window.cancelLobby(); // Re-use the new cancel logic!
