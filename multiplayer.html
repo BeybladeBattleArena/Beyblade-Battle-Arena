@@ -211,8 +211,6 @@
         import { rtdb } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        let currentBP = window.PlayerData?.bp || 0;
-        document.getElementById('bp-display').innerText = currentBP;
         
         let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
         
