@@ -222,6 +222,8 @@
         let currentRoomRef = null;
         let countdownInterval = null;
 		
+				let saves = window.PlayerData.saves || new Array(10).fill(null);
+				let activeSaveIndex = window.PlayerData.featuredBuildIndex || 0;
 		        let currentSave = saves[activeSaveIndex];
 
         window.leaveLobby = function() {
