@@ -271,7 +271,16 @@
                 return;
             }
 
-            
+            // Define SafeImage
+			function getSafeImage(part, isTopDown = false) {
+					if (!part) return '';
+					let key = isTopDown ? 'topDownImage' : 'image';
+					if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
+					if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
+					return part.fallbackImage || part[key] || '';
+				}
+			
+			
 			// Build the full 5-part stack for the lobby!
             let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
             let activeSpin = 'Right';
