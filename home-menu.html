@@ -406,15 +406,13 @@
         }
 
         // --- NEW: GATEKEEPER FOR BOTH BATTLE AND ADVENTURE ---
-        if (selectedTarget.id === "beybattle.html" || selectedTarget.id === "adventure.html") {
+        if (selectedTarget.id === "beybattle.html" || selectedTarget.id === "adventure.html" || selectedTarget.id === "multiplayer.html") {
             let currentSave = saves[activeSaveIndex];
             
             // If they don't have a build or it's empty, block entry!
             if (!currentSave || !currentSave.parts) {
                 if (selectedTarget.id === "adventure.html") {
                     alert("Adventuring can be fun, but you'll probably want to save a Beyblade build before you try to... play Beyblade. Check out the Build section first.");
-                } else if (selectedTarget.id === "multiplayer.html") {
-                    alert("You must Build and Save a Beyblade before battling!");
                 } else {
                     alert("You must Build and Save a Beyblade before battling!");
 				}

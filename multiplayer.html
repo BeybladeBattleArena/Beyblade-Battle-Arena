@@ -114,7 +114,10 @@
         @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-left { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .bey-spin-right { animation: spin-right 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
-        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
+        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }\
+		
+		.lobby-bey-stack { position: relative; width: 55px; height: 55px; }
+        .lobby-bey-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 
     </style>
 
@@ -268,27 +271,26 @@
                 return;
             }
 
-            // Fallback to fetch the active bey visually if they haven't explicitly built one this session
-            let activeBeyImg = './images/menu_icons/AR_icon.png';
+            
+			// Build the full 5-part stack for the lobby!
+            let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
             let activeSpin = 'Right';
 
-            if (window.ActiveBey && window.ActiveBey.topDownImage) {
-                activeBeyImg = window.ActiveBey.topDownImage;
-                activeSpin = window.ActiveBey.spinDirection || 'Right';
-            } else if (window.PlayerData && window.PlayerData.activeBuild && window.equipmentDB) {
-                const arId = window.PlayerData.activeBuild.parts?.attackRing;
-                const sgId = window.PlayerData.activeBuild.parts?.spinGear;
-                const arStyle = window.PlayerData.activeBuild.styles?.attackRing;
-                
-                const arData = window.equipmentDB.attackRings.find(x => x.id === arId);
-                if (arData) {
-                    const styleData = arData.styles.find(s => s.styleId === arStyle);
-                    activeBeyImg = styleData ? styleData.topDownImage : arData.fallbackImage;
-                }
-                
-                const sgData = window.equipmentDB.spinGears.find(x => x.id === sgId);
-                if (sgData && sgData.spinDirection) {
-                    activeSpin = sgData.spinDirection;
+            let currentSave = window.ActiveBey;
+            if (!currentSave && window.PlayerData && window.PlayerData.saves) {
+                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
+                currentSave = window.PlayerData.saves[saveIndex];
+            }
+
+            if (currentSave && currentSave.parts) {
+                activeBuildImages.bb = getSafeImage(currentSave.parts.bladeBase, true);
+                activeBuildImages.sg = getSafeImage(currentSave.parts.spinGear, true);
+                activeBuildImages.wd = getSafeImage(currentSave.parts.weightDisk, true);
+                activeBuildImages.ar = getSafeImage(currentSave.parts.attackRing, true);
+                activeBuildImages.bc = getSafeImage(currentSave.parts.bitChip, true);
+
+                if (currentSave.parts.spinGear && currentSave.parts.spinGear.spinDirection) {
+                    activeSpin = currentSave.parts.spinGear.spinDirection;
                 }
             }
 
@@ -303,7 +305,7 @@
                 hostUid: playerUid,
                 hostName: playerName,
                 hostGlow: hostGlowColor,
-                hostBeyImg: activeBeyImg,
+                hostBuildImages: activeBuildImages,
                 hostSpin: activeSpin,
                 guestUid: null,
                 guestName: null,
@@ -428,10 +430,23 @@
                         const spinClass = room.hostSpin === 'Left' ? 'bey-spin-left' : 'bey-spin-right';
                         const glowClass = room.hostGlow || 'host-glow-blue'; // Fallback to blue
                         
+						// Prepare the layered HTML
+                        const imgs = room.hostBuildImages || {};
+                        const fallbackIcon = !imgs.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
+
                         const cardHTML = `
                             <div class="room-card" onclick="promptJoin('${roomId}', ${room.settings.isLocked})">
                                 <div class="room-left-section">
-                                    <img src="${room.hostBeyImg}" class="${spinClass}" style="width: 55px; height: 55px; object-fit: contain;">
+                                    
+                                    <div class="lobby-bey-stack ${spinClass}">
+                                        ${imgs.bb ? `<img src="${imgs.bb}" class="lobby-bey-part" style="z-index: 1;">` : ''}
+                                        ${imgs.sg ? `<img src="${imgs.sg}" class="lobby-bey-part" style="z-index: 2;">` : ''}
+                                        ${imgs.wd ? `<img src="${imgs.wd}" class="lobby-bey-part" style="z-index: 3;">` : ''}
+                                        ${imgs.ar ? `<img src="${imgs.ar}" class="lobby-bey-part" style="z-index: 4;">` : ''}
+                                        ${imgs.bc ? `<img src="${imgs.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
+                                        ${fallbackIcon}
+                                    </div>
+
                                     <div class="room-info">
                                         <span class="room-name">${room.settings.roomName}</span>
                                         <span class="room-host">Host: <span class="${glowClass}">${room.hostName}</span></span>
