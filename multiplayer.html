@@ -260,7 +260,7 @@
             }
         };
 
-        window.initializeHost = async function() {
+		window.initializeHost = async function() {
             if (currentRoomRef) return; 
 
             const roomName = document.getElementById('host-room-name').value;
@@ -275,7 +275,7 @@
                 return;
             }
 
-			// Bulletproof SafeImage Extractor
+            // Bulletproof SafeImage Extractor
             function getSafeImage(partData, category, isTopDown = false) {
                 if (!partData) return '';
                 
@@ -291,15 +291,24 @@
                 return partObj.fallbackImage || partObj[key] || '';
             }
 
-				if (currentSave && currentSave.parts) {
-                activeBuildImages.bb = getSafeImage(currentSave.parts.bladeBase, 'bladeBases', true);
-                activeBuildImages.sg = getSafeImage(currentSave.parts.spinGear, 'spinGears', true);
-                activeBuildImages.wd = getSafeImage(currentSave.parts.weightDisk, 'weightDisks', true);
-                activeBuildImages.ar = getSafeImage(currentSave.parts.attackRing, 'attackRings', true);
-                activeBuildImages.bc = getSafeImage(currentSave.parts.bitChip, 'bitChips', true);
+            // --- THE FIX: We declare the variables BEFORE trying to use them! ---
+            let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
+            let activeSpin = 'Right';
 
-                if (currentSave.parts.spinGear && currentSave.parts.spinGear.spinDirection) {
-                    activeSpin = currentSave.parts.spinGear.spinDirection;
+            // Refresh currentSave right when they click host to ensure it's up to date
+            let freshSaves = window.PlayerData?.saves || new Array(10).fill(null);
+            let freshActiveSaveIndex = window.PlayerData?.featuredBuildIndex || 0;
+            let freshCurrentSave = window.ActiveBey || freshSaves[freshActiveSaveIndex];
+
+            if (freshCurrentSave && freshCurrentSave.parts) {
+                activeBuildImages.bb = getSafeImage(freshCurrentSave.parts.bladeBase, 'bladeBases', true);
+                activeBuildImages.sg = getSafeImage(freshCurrentSave.parts.spinGear, 'spinGears', true);
+                activeBuildImages.wd = getSafeImage(freshCurrentSave.parts.weightDisk, 'weightDisks', true);
+                activeBuildImages.ar = getSafeImage(freshCurrentSave.parts.attackRing, 'attackRings', true);
+                activeBuildImages.bc = getSafeImage(freshCurrentSave.parts.bitChip, 'bitChips', true);
+
+                if (freshCurrentSave.parts.spinGear && freshCurrentSave.parts.spinGear.spinDirection) {
+                    activeSpin = freshCurrentSave.parts.spinGear.spinDirection;
                 }
             }
 
