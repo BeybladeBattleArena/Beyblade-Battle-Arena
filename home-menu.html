@@ -413,9 +413,11 @@
             if (!currentSave || !currentSave.parts) {
                 if (selectedTarget.id === "adventure.html") {
                     alert("Adventuring can be fun, but you'll probably want to save a Beyblade build before you try to... play Beyblade. Check out the Build section first.");
+                } else if (selectedTarget.id === "multiplayer.html") {
+                    alert("You must Build and Save a Beyblade before battling!");
                 } else {
                     alert("You must Build and Save a Beyblade before battling!");
-                }
+				}
                 return; // Stop the navigation instantly!
             }
             
