@@ -114,7 +114,7 @@
         @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-left { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .bey-spin-right { animation: spin-right 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
-        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }\
+        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
 		
 		.lobby-bey-stack { position: relative; width: 55px; height: 55px; }
         .lobby-bey-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
@@ -271,32 +271,28 @@
                 return;
             }
 
-            // Define SafeImage
-			function getSafeImage(part, isTopDown = false) {
-					if (!part) return '';
-					let key = isTopDown ? 'topDownImage' : 'image';
-					if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
-					if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
-					return part.fallbackImage || part[key] || '';
-				}
-			
-			
-			// Build the full 5-part stack for the lobby!
-            let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
-            let activeSpin = 'Right';
+			// Bulletproof SafeImage Extractor
+            function getSafeImage(partData, category, isTopDown = false) {
+                if (!partData) return '';
+                
+                // If the save file only holds the string ID, look up the real object in equipmentDB
+                let partObj = partData;
+                if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
+                    partObj = window.equipmentDB[category].find(p => p.id === partData) || partData;
+                }
 
-            let currentSave = window.ActiveBey;
-            if (!currentSave && window.PlayerData && window.PlayerData.saves) {
-                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
-                currentSave = window.PlayerData.saves[saveIndex];
+                let key = isTopDown ? 'topDownImage' : 'image';
+                if (partObj.activeStyle && partObj.activeStyle[key]) return partObj.activeStyle[key];
+                if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0][key]) return partObj.styles[0][key];
+                return partObj.fallbackImage || partObj[key] || '';
             }
 
-            if (currentSave && currentSave.parts) {
-                activeBuildImages.bb = getSafeImage(currentSave.parts.bladeBase, true);
-                activeBuildImages.sg = getSafeImage(currentSave.parts.spinGear, true);
-                activeBuildImages.wd = getSafeImage(currentSave.parts.weightDisk, true);
-                activeBuildImages.ar = getSafeImage(currentSave.parts.attackRing, true);
-                activeBuildImages.bc = getSafeImage(currentSave.parts.bitChip, true);
+				if (currentSave && currentSave.parts) {
+                activeBuildImages.bb = getSafeImage(currentSave.parts.bladeBase, 'bladeBases', true);
+                activeBuildImages.sg = getSafeImage(currentSave.parts.spinGear, 'spinGears', true);
+                activeBuildImages.wd = getSafeImage(currentSave.parts.weightDisk, 'weightDisks', true);
+                activeBuildImages.ar = getSafeImage(currentSave.parts.attackRing, 'attackRings', true);
+                activeBuildImages.bc = getSafeImage(currentSave.parts.bitChip, 'bitChips', true);
 
                 if (currentSave.parts.spinGear && currentSave.parts.spinGear.spinDirection) {
                     activeSpin = currentSave.parts.spinGear.spinDirection;
