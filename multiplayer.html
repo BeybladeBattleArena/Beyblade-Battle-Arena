@@ -107,8 +107,7 @@
     </style>
 
     <div id="top-bar">
-        <button class="back-btn" onclick="window.navigateTo('home-menu.html')">◀ Back</button>
-        <div class="currency-display"><span id="bp-display">0</span> BP</div>
+        <button class="back-btn" onclick="leaveLobby()">◀ Back</button>
     </div>
 
     <div id="lobby-wrapper">
@@ -122,19 +121,21 @@
                 <div class="form-group">
                     <label>Lobby Name</label>
                     <select id="host-room-name">
-                        <option value="The Underground Tournament">The Underground Tournament</option>
-                        <option value="Plastic Gen Purists">Plastic Gen Purists</option>
-                        <option value="Anything Goes Battle">Anything Goes Battle</option>
+                        <option value="Let It Rip!">Let It Rip!</option>
+                        <option value="Go Shoot!">Go Shoot!</option>
+						<option value="Hey! Over Here!">Hey! Over Here!</option>
+						<option value="Anything Goes Battle">Anything Goes Battle</option>
+						<option value="Testing A New Build">Testing A New Build</option>
                         <option value="Beginners Welcome">Beginners Welcome</option>
-                        <option value="Toma's Garage Scuffle">Toma's Garage Scuffle</option>
+                        <option value="Short On Time">Short On Time</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Stadium / Map</label>
                     <select id="host-stadium">
+						<option value="standard_dish">Standard BBA Dish</option>
                         <option value="nikotama_river">Nikotama River</option>
-                        <option value="standard_dish">Standard BBA Dish</option>
                         <option value="street_alley">Back-Alley Concrete</option>
                     </select>
                 </div>
@@ -142,9 +143,18 @@
                 <div class="form-group">
                     <label>Battle BGM</label>
                     <select id="host-music">
-                        <option value="track_tension">Track 1: Tension</option>
-                        <option value="track_heavy_rock">Track 2: Heavy Rock</option>
-                        <option value="track_electronic">Track 3: Electronic Surge</option>
+                        <option value="track_tension">Tension</option>
+                        <option value="track_heavy_rock">Heavy Rock</option>
+                        <option value="track_electronic">Electronic Surge</option>
+                    </select>
+                </div>
+				
+				    <div class="form-group">
+                    <label>Lobby BGM</label>
+                    <select id="host-lobbymusic">
+                        <option value="track_tension">Jazzy</option>
+                        <option value="track_heavy_rock">Punk Rock Funk</option>
+                        <option value="track_electronic">EDM Hype</option>
                     </select>
                 </div>
 
@@ -161,7 +171,7 @@
                     <input type="password" id="host-passcode" maxlength="4" placeholder="0000" pattern="\d{4}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                 </div>
 
-                <button class="action-btn host-btn" onclick="initializeHost()">CREATE LOBBY</button>
+                <button class="action-btn host-btn" id="create-lobby-btn" onclick="initializeHost()">CREATE LOBBY</button>
             </div>
         </div>
 
@@ -172,24 +182,7 @@
             <div class="panel-content">
                 
                 <div class="room-list" id="active-rooms-container">
-                    
-                    <div class="room-card" onclick="promptJoin('room_1', false)">
-                        <div class="room-info">
-                            <span class="room-name">The Underground Tournament</span>
-                            <span class="room-host">Host: Tyson</span>
-                        </div>
-                        <div class="room-status status-open">🟢 OPEN</div>
                     </div>
-
-                    <div class="room-card" onclick="promptJoin('room_2', true)">
-                        <div class="room-info">
-                            <span class="room-name">Plastic Gen Purists</span>
-                            <span class="room-host">Host: Kai</span>
-                        </div>
-                        <div class="room-status status-locked">🔒 LOCKED</div>
-                    </div>
-
-                </div>
 
                 <div style="text-align: center; color: #667; font-size: 14px; margin-top: 20px; font-style: italic;">
                     Scanning network for challengers...
@@ -205,12 +198,23 @@
         import { rtdb } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // Grab Player Info
         let currentBP = window.PlayerData?.bp || 0;
         document.getElementById('bp-display').innerText = currentBP;
         
         let playerName = window.CurrentUser?.displayName || "Anonymous Blader";
-        let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9); // Fallback ID for testing
+        let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9); 
+
+        let currentRoomRef = null;
+
+        // --- NEW: THE CLEANUP PROTOCOL ---
+        window.leaveLobby = function() {
+            if (currentRoomRef) {
+                // If they created a room, delete it immediately
+                remove(currentRoomRef);
+                currentRoomRef = null;
+            }
+            window.navigateTo('home-menu.html');
+        };
 
         // --- UI TOGGLES ---
         window.togglePasscodeField = function() {
@@ -226,12 +230,14 @@
         };
 
         // --- HOST LOGIC ---
-        let currentRoomRef = null;
-
         window.initializeHost = async function() {
+            // Prevent spamming the button
+            if (currentRoomRef) return; 
+
             const roomName = document.getElementById('host-room-name').value;
             const stadium = document.getElementById('host-stadium').value;
             const music = document.getElementById('host-music').value;
+			const music = document.getElementById('host-lobbymusic').value;
             const isLocked = document.getElementById('host-private-toggle').checked;
             const passcode = document.getElementById('host-passcode').value;
 
@@ -240,7 +246,6 @@
                 return;
             }
 
-            // 1. Generate a unique room ID in RTDB
             const roomsRef = ref(rtdb, 'rooms');
             currentRoomRef = push(roomsRef); 
             const roomId = currentRoomRef.key;
@@ -255,42 +260,42 @@
             };
 
             try {
-                // 2. Save room to database
                 await set(currentRoomRef, lobbySettings);
                 
-                // 3. Crucial Cleanup: If the host closes the tab, delete the room automatically
                 onDisconnect(currentRoomRef).remove();
 
-                // 4. Change UI to show waiting state
-                document.querySelector('.host-btn').innerText = "WAITING FOR PLAYER...";
-                document.querySelector('.host-btn').style.background = "#00aaff";
-                document.querySelector('.host-btn').style.color = "#000";
-                document.querySelector('.host-btn').style.pointerEvents = "none";
+                const hostBtn = document.getElementById('create-lobby-btn');
+                hostBtn.innerText = "WAITING FOR PLAYER...";
+                hostBtn.style.background = "#00aaff";
+                hostBtn.style.color = "#000";
+                hostBtn.style.pointerEvents = "none";
 
-                // 5. Listen for someone joining
                 onValue(currentRoomRef, (snapshot) => {
                     const data = snapshot.val();
                     if (data && data.guestUid) {
-                        // A CHALLENGER APPEARS!
                         window.ActiveMatch = { roomId: roomId, role: 'HOST', data: data };
                         alert(`Challenger ${data.guestName} has joined! Transitioning to Arena...`);
                         
-                        // Stop listening to the lobby node to prevent memory leaks
                         onDisconnect(currentRoomRef).cancel(); 
                         
-                        // Move to the next screen!
-                        window.navigateTo('arena.html'); // Or a 'match_prep.html' if you want a lock-in screen
+                        window.navigateTo('arena.html'); 
                     }
                 });
 
             } catch (error) {
                 console.error("Failed to host room:", error);
                 alert("Error connecting to matchmaking server.");
+                currentRoomRef = null;
             }
         };
 
         // --- JOIN LOGIC ---
         window.promptJoin = async function(roomId, isLocked) {
+            if (currentRoomRef) {
+                alert("You cannot join a room while you are hosting one! Please leave your lobby first.");
+                return;
+            }
+
             const specificRoomRef = ref(rtdb, `rooms/${roomId}`);
             
             try {
@@ -302,7 +307,6 @@
                 
                 const roomData = snapshot.val();
                 
-                // 1. Check Passcode
                 if (isLocked) {
                     const code = prompt("This room is locked. Enter the 4-digit passcode:");
                     if (code === null) return; 
@@ -312,20 +316,17 @@
                     }
                 }
 
-                // 2. Check if full
                 if (roomData.guestUid) {
                     alert("Room is already full!");
                     return;
                 }
 
-                // 3. Claim the guest slot
                 await update(specificRoomRef, {
                     guestUid: playerUid,
                     guestName: playerName,
                     status: "STARTING"
                 });
 
-                // 4. Setup match data and transition
                 window.ActiveMatch = { roomId: roomId, role: 'GUEST', data: roomData };
                 alert(`Joined ${roomData.hostName}'s room! Transitioning to Arena...`);
                 window.navigateTo('arena.html');
@@ -340,9 +341,8 @@
             const activeRoomsContainer = document.getElementById('active-rooms-container');
             const roomsRef = ref(rtdb, 'rooms');
 
-            // This runs instantly, and then automatically re-runs every time a room is created/deleted!
             onValue(roomsRef, (snapshot) => {
-                activeRoomsContainer.innerHTML = ''; // Clear old list
+                activeRoomsContainer.innerHTML = ''; 
                 const rooms = snapshot.val();
 
                 if (!rooms) {
@@ -350,11 +350,9 @@
                     return;
                 }
 
-                // Loop through Firebase data and build the UI cards
                 Object.keys(rooms).forEach(roomId => {
                     const room = rooms[roomId];
                     
-                    // Only show rooms waiting for players
                     if (room.status === "WAITING_FOR_CHALLENGER") {
                         const statusClass = room.settings.isLocked ? "status-locked" : "status-open";
                         const statusText = room.settings.isLocked ? "🔒 LOCKED" : "🟢 OPEN";
@@ -375,6 +373,6 @@
         }
 
         // --- INIT ---
-        window.refreshRoomList = startRoomListener; // Tie manual refresh button to the listener
-        startRoomListener(); // Start listening as soon as the page loads
+        window.refreshRoomList = startRoomListener; 
+        startRoomListener(); 
     </script>
