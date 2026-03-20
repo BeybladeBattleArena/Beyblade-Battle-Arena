@@ -659,19 +659,23 @@
                     return;
                 }
 
-                if (data.status === "ESTABLISHING_LINK") {
+				if (data.status === "ESTABLISHING_LINK") {
                     if (countdownInterval) clearInterval(countdownInterval);
                     document.getElementById('vs-waiting-text').innerText = "ESTABLISHING PEER CONNECTION...";
                     ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
                         document.getElementById(id).style.display = 'none';
                     });
-                    console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
                     
-                    // --- FIRE UP THE WEBRTC MANAGER! ---
-                    rtcManager.initConnection(roomId, window.ActiveMatch.role);
+                    // --- THE PADLOCK: PREVENT THE INFINITE LOOP ---
+                    if (window.ActiveMatch && !window.ActiveMatch.rtcStarted) {
+                        window.ActiveMatch.rtcStarted = true; // Lock the gate
+                        
+                        console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
+                        rtcManager.initConnection(roomId, window.ActiveMatch.role);
+                    }
                     
                     return; 
-                } 
+                }
 
                 document.getElementById('vs-p1-name').innerText = data.hostName;
                 if (data.guestName) {
