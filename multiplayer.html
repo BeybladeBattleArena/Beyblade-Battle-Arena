@@ -381,9 +381,12 @@
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
 
         let currentRoomRef = null;
+        let guestDisconnectRef = null; // NEW: Safely handles guest network drops
+        let roomListenerUnsubscribe = null; // NEW: Cleans up the listener when leaving
         let countdownInterval = null;
         let isVsActive = false;
         
+        // --- BGM AUDIO SETUP ---
         window.AudioManager.playBGM('./audio/music/BounceAround_ForVersusLobby.wav', 6.455);
 
         // --- GLOBAL HELPER FOR IMAGE EXTRACTION ---
@@ -399,7 +402,7 @@
             return partObj.fallbackImage || partObj[key] || '';
         }
 
-        // --- MASTER SHOWCASE RENDERERS ---
+        // --- RENDER VS BEYBLADE LOGIC ---
         function getLocalBuildData() {
             let saves = window.PlayerData?.saves || [];
             let saveIndex = window.PlayerData?.featuredBuildIndex || 0;
@@ -432,7 +435,7 @@
                 ${buildData.bc ? `<img src="${buildData.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
                 ${fallbackIcon}
             `;
-            stack.className = 'bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
+            stack.className = 'lobby-bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
             stack.style.animation = ''; // Ensure spinning is active
         }
 
@@ -485,13 +488,12 @@
             } while (!saves[activeSaveIndex] || !saves[activeSaveIndex].parts);
             
             window.PlayerData.featuredBuildIndex = activeSaveIndex;
-            window.ActiveBey = saves[activeSaveIndex]; 
+            window.ActiveBey = saves[activeSaveIndex]; // Update global ActiveBey
             
             // Render locally instantly
             let playerNum = window.ActiveMatch?.role === 'GUEST' ? 2 : 1;
             let buildData = renderLocalShowcase(playerNum);
             
-            // Keep it frozen (since it already rolled in) and spark again
             document.getElementById(`vs-p${playerNum}-bey-stack`).style.animation = 'none'; 
             const spark = document.getElementById(`vs-p${playerNum}-spark`);
             spark.classList.remove('spark-anim');
@@ -509,7 +511,6 @@
                 await update(currentRoomRef, updatePayload);
             }
         };
-
 
         // --- VS SCREEN BUTTON LOGIC ---
         window.startMatch = async function() {
@@ -538,6 +539,8 @@
 
         window.leaveGuestLobby = async function() {
             if (currentRoomRef) {
+                // Safely kill the automatic disconnect handler since we are manually leaving
+                if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
                 await update(currentRoomRef, { guestUid: null, guestName: null, guestBuildImages: null, guestSpin: null, guestReady: false });
                 currentRoomRef = null;
             }
@@ -545,6 +548,10 @@
         }
 
         window.cancelLobby = function() {
+            // Unsubscribe from database updates to prevent ghost interactions
+            if (roomListenerUnsubscribe) { roomListenerUnsubscribe(); roomListenerUnsubscribe = null; }
+            if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
+            
             if (window.ActiveMatch?.role === 'HOST' && currentRoomRef) { remove(currentRoomRef); currentRoomRef = null; }
             if (countdownInterval) clearInterval(countdownInterval);
             
@@ -577,7 +584,9 @@
 
         // --- ROOM NETWORKING ---
         function attachRoomListener(roomId) {
-            onValue(currentRoomRef, (snapshot) => {
+            if (roomListenerUnsubscribe) roomListenerUnsubscribe(); // Clean up just in case
+            
+            roomListenerUnsubscribe = onValue(currentRoomRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) {
                     if (window.ActiveMatch?.role === 'GUEST') { alert("The host closed the room."); window.cancelLobby(); }
@@ -587,7 +596,9 @@
                 // Both players jump to arena if host clicks start
                 if (data.status === "STARTING") {
                     if (countdownInterval) clearInterval(countdownInterval);
-                    onDisconnect(currentRoomRef).cancel(); 
+                    if (guestDisconnectRef) onDisconnect(guestDisconnectRef).cancel();
+                    if (window.ActiveMatch?.role === 'HOST') onDisconnect(currentRoomRef).cancel();
+                    
                     window.navigateTo('arena.html'); 
                     return;
                 }
@@ -612,7 +623,7 @@
                     if (data.guestUid) {
                         renderRemoteShowcase(2, data.guestBuildImages, data.guestSpin, data.guestName);
                         triggerRollIn(2);
-                        document.getElementById('vs-close-btn').style.display = 'none';
+                        document.getElementById('vs-close-btn').style.display = 'block'; // FIX: Don't hide the close button!
                         document.getElementById('vs-start-btn').style.display = data.guestReady ? 'block' : 'none';
                     } else {
                         // Guest Left
@@ -631,6 +642,7 @@
             });
         }
 
+        // --- MATCH INITIALIZATION ---
         window.initializeHost = async function() {
             if (currentRoomRef) return; 
 
@@ -687,7 +699,7 @@
                     }
                 }, 1000);
 
-                attachRoomListener(roomId);
+                attachRoomListener(roomId); // Only standard listener now!
             } catch (error) { console.error("Failed to host room:", error); currentRoomRef = null; }
         };
 
@@ -716,7 +728,8 @@
                 });
                 
                 currentRoomRef = specificRoomRef;
-                onDisconnect(ref(rtdb, `rooms/${roomId}/guestUid`)).set(null); // Clear slot if guest closes tab
+                guestDisconnectRef = ref(rtdb, `rooms/${roomId}/guestUid`);
+                onDisconnect(guestDisconnectRef).set(null); // Clear slot if guest closes tab
 
                 document.getElementById('host-panel').classList.add('slide-left');
                 document.getElementById('join-panel').classList.add('slide-right');
@@ -730,7 +743,7 @@
                 
                 isVsActive = true;
                 startParticleSystem();
-                attachRoomListener(roomId);
+                attachRoomListener(roomId); // Only standard listener now!
 
             } catch (error) { console.error("Failed to join room:", error); }
         };
