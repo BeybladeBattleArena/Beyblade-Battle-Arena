@@ -1057,8 +1057,8 @@ window.equipmentDB = {
                     styleName: "Right Spin Gear Magenta (Plum Blossom Mochi)", 
                     styleColorSample: "#ad6878", 
                     styleRarity: 4,
-                    image: "./images/beyblade_parts/SG/StandardSG_Right_PlumBlossomMochiPink_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_PlumBlossomMochiPink_topdown.png" 
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_PlumBlossomMochiMagenta_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_PlumBlossomMochiMagenta_topdown.png" 
                 },
 				{ 
                     styleId: "SG_basic_purple",
