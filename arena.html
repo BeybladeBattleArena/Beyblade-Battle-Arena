@@ -306,11 +306,14 @@
             let isHost = isMultiplayer && window.ActiveMatch.role === 'HOST';
             let isGuest = isMultiplayer && window.ActiveMatch.role === 'GUEST';
 
+            // THE FIX: Host gets Room ID from the rtcManager!
+            let activeRoomId = window.ActiveMatch?.roomId || (rtcManager ? rtcManager.roomId : null);
+
             let localLaunchReady = false;
             let remoteLaunchReady = false;
             let remoteLaunchData = null;
             let remoteStartRpmMod = 0.8;
-            let launchSyncInterval = null; // Our hammer to ensure packets arrive!
+            let launchSyncInterval = null; 
 
             let _saves = window.PlayerData?.saves || [];
             let _saveIndex = window.PlayerData?.featuredBuildIndex || 0;
@@ -362,110 +365,8 @@
             let activeBalloons = [];
             let balloonImg = new Image(); balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
-            // --- SECURE WEBRTC LISTENER ATTACHMENT ---
-            function handleNetworkMessage(event) {
-                let data = JSON.parse(event.data);
-                
-                if (data.type === "LAUNCH_READY") {
-                    remoteLaunchReady = true; 
-                    remoteLaunchData = data; 
-                    remoteStartRpmMod = data.rpmMod; 
-                    checkBothReady();
-                }
-                else if (data.type === "GUEST_INPUT" && isHost) {
-                    remoteJoyX = data.joyX; remoteJoyY = data.joyY;
-                }
-                else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
-                    if(window.cpuBey && window.playerBey) {
-                        window.cpuBey.x = data.p1.x; window.cpuBey.y = data.p1.y; window.cpuBey.z = data.p1.z;
-                        window.cpuBey.currentHp = data.p1.hp; window.cpuBey.currentRpm = data.p1.rpm;
-                        window.cpuBey.rotation = data.p1.rot;
-                        
-                        window.playerBey.x = data.p2.x; window.playerBey.y = data.p2.y; window.playerBey.z = data.p2.z;
-                        window.playerBey.currentHp = data.p2.hp; window.playerBey.currentRpm = data.p2.rpm;
-                        window.playerBey.rotation = data.p2.rot;
-                        
-                        matchTimerMs = data.timer;
-                        if (matchTimerMs < 0) matchTimerMs = 0; // Floor timer
 
-                        // Trigger visual bursts for Guest
-                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
-                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
-                    }
-                }
-            }
-
-            function attachNetworkListeners() {
-                if (isMultiplayer) {
-                    if (rtcManager.dataChannel) {
-                        rtcManager.dataChannel.addEventListener('message', handleNetworkMessage);
-                    } else {
-                        setTimeout(attachNetworkListeners, 100); // Check again in 100ms
-                    }
-                }
-            }
-            attachNetworkListeners();
-
-            // --- DATA FETCH & INITIALIZATION ---
-            if (isMultiplayer) {
-                matchData = window.ActiveMatch.data;
-                if (!matchData && window.ActiveMatch.roomId) {
-                    const snap = await get(ref(rtdb, `rooms/${window.ActiveMatch.roomId}`));
-                    matchData = snap.val();
-                    window.ActiveMatch.data = matchData;
-                }
-                if (matchData) {
-                    savedCpuData = {
-                        id: "remote_player",
-                        name: isHost ? matchData.guestName : matchData.hostName,
-                        isRemote: true,
-                        stats: {}, 
-                        spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
-                        images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
-                    };
-                }
-            } else {
-                savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
-            }
-            
-            if (!playerBuild || !savedCpuData) {
-                window.navigateTo('home-menu.html');
-                throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
-            }
-
-            cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
-            arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
-
-            document.getElementById('top-info-bar').style.display = 'none';
-
-            window.addEventListener('resize', () => {
-                width = window.innerWidth; height = window.innerHeight;
-                canvas.width = width; canvas.height = height;
-                if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
-            });
-
-            setupLaunchMinigame();
-            drawArena();
-
-
-            // --- CORE BATTLE FUNCTIONS ---
-            function checkBothReady() {
-                if (localLaunchReady && remoteLaunchReady && gameState === "WAITING_FOR_OPPONENT") {
-                    if (launchSyncInterval) clearInterval(launchSyncInterval); // Stop hammering the network
-                    
-                    const countText = document.getElementById('countdown-text');
-                    countText.innerText = "LINK ESTABLISHED!";
-                    countText.style.color = "#00ff00";
-                    
-                    setTimeout(() => {
-                        document.getElementById('minigame-overlay').style.display = 'none';
-                        document.getElementById('ui-layer').style.display = 'block';
-                        startBattleEngine();
-                        gameState = "DROP_IN";
-                    }, 1000);
-                }
-            }
-
+            // --- THE FIX: DEFINE TUTORIAL MANAGER IMMEDIATELY SO IT ISN'T UNDEFINED ---
             window.TutorialManager = {
                 isActive: window.ActiveTutorial === "basics" || window.ActiveTutorial === "combat",
                 tutorialType: window.ActiveTutorial,
@@ -728,6 +629,99 @@
                 }
             };
             
+            // Expose for HTML click attributes
+            window.TutorialManager.advanceVN = function() { window.TutorialManager.advanceVN(); };
+
+            // --- SECURE WEBRTC LISTENER ATTACHMENT ---
+            function handleNetworkMessage(event) {
+                let data = JSON.parse(event.data);
+                
+                if (data.type === "LAUNCH_READY") {
+                    remoteLaunchReady = true; 
+                    remoteLaunchData = data; 
+                    remoteStartRpmMod = data.rpmMod; 
+                    checkBothReady();
+                }
+                else if (data.type === "GUEST_INPUT" && isHost) {
+                    remoteJoyX = data.joyX; remoteJoyY = data.joyY;
+                }
+                else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
+                    if(window.cpuBey && window.playerBey) {
+                        window.cpuBey.x = data.p1.x; window.cpuBey.y = data.p1.y; window.cpuBey.z = data.p1.z;
+                        window.cpuBey.currentHp = data.p1.hp; window.cpuBey.currentRpm = data.p1.rpm;
+                        window.cpuBey.rotation = data.p1.rot;
+                        
+                        window.playerBey.x = data.p2.x; window.playerBey.y = data.p2.y; window.playerBey.z = data.p2.z;
+                        window.playerBey.currentHp = data.p2.hp; window.playerBey.currentRpm = data.p2.rpm;
+                        window.playerBey.rotation = data.p2.rot;
+                        
+                        matchTimerMs = data.timer;
+                        if (matchTimerMs < 0) matchTimerMs = 0; // Floor timer
+
+                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
+                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
+                    }
+                }
+            }
+
+            function attachNetworkListeners() {
+                if (isMultiplayer) {
+                    if (rtcManager.dataChannel) {
+                        rtcManager.dataChannel.addEventListener('message', handleNetworkMessage);
+                    } else {
+                        setTimeout(attachNetworkListeners, 100); 
+                    }
+                }
+            }
+            attachNetworkListeners();
+
+            // --- THE FIX: SAFE SPA INITIALIZATION ---
+            function finalizeArenaSetup() {
+                if (!playerBuild || !savedCpuData) {
+                    window.navigateTo('home-menu.html');
+                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
+                }
+
+                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+
+                document.getElementById('top-info-bar').style.display = 'none';
+
+                window.addEventListener('resize', () => {
+                    width = window.innerWidth; height = window.innerHeight;
+                    canvas.width = width; canvas.height = height;
+                    if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
+                });
+
+                setupLaunchMinigame();
+                drawArena();
+            }
+
+            // --- DATA FETCH & INITIALIZATION ---
+            if (isMultiplayer) {
+                matchData = window.ActiveMatch.data;
+                if (!matchData && activeRoomId) {
+                    const snap = await get(ref(rtdb, `rooms/${activeRoomId}`));
+                    matchData = snap.val();
+                    window.ActiveMatch.data = matchData;
+                }
+                if (matchData) {
+                    savedCpuData = {
+                        id: "remote_player",
+                        name: isHost ? matchData.guestName : matchData.hostName,
+                        isRemote: true,
+                        stats: {}, 
+                        spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
+                        images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
+                    };
+                }
+            } else {
+                savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
+            }
+            
+            finalizeArenaSetup();
+
+
             function triggerTutorialRelaunch() {
                 if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
                 if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
@@ -748,9 +742,6 @@
                 
                 setupLaunchMinigame(); drawArena(); 
             }
-            
-            // Expose for HTML click attributes
-            window.TutorialManager.advanceVN = function() { window.TutorialManager.advanceVN(); };
 
             window.addEventListener('keydown', e => { 
                 let k = e.key.toLowerCase(); 
@@ -1063,7 +1054,8 @@
                     if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
                     else {
                         setTimeout(() => {
-                            overlay.style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
+                            document.getElementById('minigame-overlay').style.display = 'none'; 
+                            document.getElementById('ui-layer').style.display = 'block';
                             window.playerBey.currentRpm = window.playerBey.maxRpm * playerStartRpmMod;
                             window.playerBey.x = playerLaunchSite.x; window.playerBey.y = playerLaunchSite.y;
                             window.playerBey.targetX = playerLaunchSite.x; window.playerBey.targetY = playerLaunchSite.y;
@@ -1081,9 +1073,17 @@
                     countText.innerText = "WAITING FOR OPPONENT...";
                     countText.style.color = "#ffaa00";
 
-                    // --- THE FIX: SEND THE CALCULATED STATS ALONG WITH LAUNCH DATA ---
+                    // Send the initial packet
                     let myTempStats = calculateStats(playerBuild);
+                    rtcManager.sendData({
+                        type: "LAUNCH_READY",
+                        rpmMod: playerStartRpmMod,
+                        x: playerLaunchSite.x,
+                        y: playerLaunchSite.y,
+                        stats: myTempStats 
+                    });
 
+                    // Fire a barrage of backup packets just in case UDP dropped the first one!
                     launchSyncInterval = setInterval(() => {
                         if (remoteLaunchReady) {
                             clearInterval(launchSyncInterval);
@@ -1101,7 +1101,7 @@
                     checkBothReady();
                 } else {
                     setTimeout(() => {
-                        overlay.style.display = 'none';
+                        document.getElementById('minigame-overlay').style.display = 'none';
                         document.getElementById('ui-layer').style.display = 'block';
                         startBattleEngine();
                         gameState = "DROP_IN";
@@ -1226,8 +1226,6 @@
                     const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
                     
                     const pStats = calculateStats(playerBuild); 
-                    
-                    // --- THE FIX: SYNCED CPU STATS ---
                     const cStats = isMultiplayer && remoteLaunchData && remoteLaunchData.stats ? remoteLaunchData.stats : calculateStats(cpuData);
 
                     let pMaxHp = safeNum(pStats.hp, 0); if (pMaxHp <= 0) pMaxHp = 1000;
@@ -1897,12 +1895,10 @@
                 
                 let instruction = document.getElementById('instruction-text');
                 
-                // --- WEBRTC PHASE 1: ROUND RESET FIX ---
                 instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
                 
                 setupLaunchMinigame(); playerLaunchSite = null; cpuLaunchSite = null; gameState = "SELECT_LAUNCH";
                 
-                // --- WEBRTC PHASE 1: CLEAR READY STATES ---
                 localLaunchReady = false; remoteLaunchReady = false; remoteLaunchData = null;
                 
                 burstParticles = []; drawArena(); 
@@ -1923,7 +1919,7 @@
                 else if (gameState === "BATTLE") {
                     if (!roundConcluding) { 
                         matchTimerMs -= dt; 
-                        if (matchTimerMs < 0) matchTimerMs = 0; // Fix negative timer bug!
+                        if (matchTimerMs < 0) matchTimerMs = 0; 
                     } 
                     else { roundConcludeTimer -= dt; if (roundConcludeTimer <= 0) { processRoundWinner(); return; } }
                     updatePhysics(dt); updateUI(dt); checkRoundCondition();
