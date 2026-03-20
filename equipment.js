@@ -1034,7 +1034,7 @@ window.equipmentDB = {
                     styleColorSample: "#964f77", 
                     styleRarity: 4,
                     image: "./images/beyblade_parts/SG/StandardSG_Right_VortexFangMagenta_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_FortexFangMagenta_topdown.png" 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_VortexFangMagenta_topdown.png" 
                 },
                 { 
                     styleId: "SG_basic_noxia",
