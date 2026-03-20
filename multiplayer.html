@@ -193,6 +193,9 @@
 
         .panel-content { padding: 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; flex: 1; }
 
+		.form-row { display: flex; gap: 15px; width: 100%; } /* NEW: Puts items side-by-side */
+        .form-row .form-group { flex: 1; } /* NEW: Makes them share the space equally 50/50 */
+
         .form-group { display: flex; flex-direction: column; gap: 8px; }
         .form-group label { font-size: 14px; color: #aaa; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
         select, input[type="text"], input[type="password"] {
@@ -330,17 +333,19 @@
                         <option value="Short On Time">Short On Time</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Number of Players</label>
-                    <select id="host-player-count" disabled style="opacity: 0.5; cursor: not-allowed;">
-                        <option value="2" selected>2 Players</option>
-                        <option value="3">3 Players</option>
-                        <option value="4">4 Players</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Match Type</label>
-                    <button type="button" class="match-type-btn teams" disabled>TEAMS</button>
+				<div class="form-row">
+                    <div class="form-group">
+                        <label>Number of Players</label>
+                        <select id="host-player-count" disabled style="opacity: 0.5; cursor: not-allowed;">
+                            <option value="2" selected>2 Players</option>
+                            <option value="3">3 Players</option>
+                            <option value="4">4 Players</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Match Type</label>
+                        <button type="button" class="match-type-btn teams" disabled>TEAMS</button>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -351,21 +356,23 @@
                         <option value="street_alley">Back-Alley Concrete</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Battle BGM</label>
-                    <select id="host-music">
-                        <option value="track_tension">Tension</option>
-                        <option value="track_heavy_rock">Heavy Rock</option>
-                        <option value="track_electronic">Electronic Surge</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Lobby BGM</label>
-                    <select id="host-lobbymusic">
-                        <option value="track_tension">Jazzy</option>
-                        <option value="track_heavy_rock">Punk Rock Funk</option>
-                        <option value="track_electronic">EDM Hype</option>
-                    </select>
+				<div class="form-row">
+                    <div class="form-group">
+                        <label>Battle BGM</label>
+                        <select id="host-music">
+                            <option value="track_tension">Tension</option>
+                            <option value="track_heavy_rock">Heavy Rock</option>
+                            <option value="track_electronic">Electronic Surge</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Lobby BGM</label>
+                        <select id="host-lobbymusic">
+                            <option value="track_tension">Jazzy</option>
+                            <option value="track_heavy_rock">Punk Rock Funk</option>
+                            <option value="track_electronic">EDM Hype</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="toggle-row">
                     <div class="toggle-label">Private Match (Requires Code)</div>
