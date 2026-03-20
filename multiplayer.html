@@ -1,4 +1,4 @@
-<style>
+    <style>
         :root {
             --p1-color: #e51c23; /* Deep Red */
             --p2-color: #0c58e0; /* Deep Blue */
@@ -147,8 +147,8 @@
 
         /* Nameplates */
         .ui-layer { position: absolute; bottom: 50px; width: 100%; display: flex; z-index: 10; pointer-events: none; }
-        .ui-half { width: 50%; display: flex; justify-content: center; }
-        .nameplate { display: flex; align-items: center; height: 45px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .ui-half { width: 50%; display: flex; justify-content: center; position: relative; }
+        .nameplate { display: flex; align-items: center; height: 45px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 2; }
         .plate-bg { flex-grow: 1; height: 100%; display: flex; align-items: center; padding: 0 20px; color: white; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
         .p1-nameplate .plate-bg { background-color: #b01015; border: 2px solid #ff4d4d; border-right: none; }
         .p2-nameplate .plate-bg { background-color: #0b3d99; border: 2px solid #4d88ff; border-left: none; justify-content: flex-end; }
@@ -156,11 +156,14 @@
         .p1-nameplate .chevron { clip-path: polygon(0 0, 60% 50%, 0 100%, 40% 100%, 100% 50%, 40% 0); margin-left: -5px; }
         .p2-nameplate .chevron { clip-path: polygon(100% 0, 40% 50%, 100% 100%, 60% 100%, 0 50%, 60% 0); margin-right: -5px; }
 
+        /* --- THE UPGRADED READY CHECKMARK --- */
         .ready-check {
-            font-size: 24px; font-weight: 900;
-            background: -webkit-linear-gradient(#ffaa00, #ffed4a);
+            position: absolute; left: calc(50% + 185px); top: 50%; transform: translateY(-50%);
+            font-size: 48px; font-weight: 900;
+            background: linear-gradient(to top, #d9534f, #ffaa00);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin: 0 10px; opacity: 0; transition: 0.3s;
+            opacity: 0; transition: 0.3s; filter: drop-shadow(0 4px 10px rgba(255,100,0,0.5));
+            z-index: 1;
         }
 
         /* --- LOBBY LAYOUT --- */
@@ -199,6 +202,13 @@
         select:focus, input:focus { border-color: #00aaff; box-shadow: 0 0 10px rgba(0, 170, 255, 0.3); }
         option { background: #112; }
 
+        /* Future Proofing: Match Type Toggle */
+        .match-type-btn {
+            background: linear-gradient(90deg, var(--p1-color) 0%, var(--p2-color) 100%);
+            color: white; border: 1px solid #445; padding: 12px; border-radius: 6px;
+            font-size: 16px; font-weight: 900; letter-spacing: 2px; cursor: not-allowed; opacity: 0.5; transition: 0.3s;
+        }
+
         .toggle-row { display: flex; justify-content: space-between; align-items: center; background: #0a0a12; padding: 12px; border-radius: 6px; border: 1px solid #445; }
         .toggle-label { font-weight: bold; color: #ddd; }
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
@@ -220,7 +230,7 @@
         .join-btn { border-color: #ffaa00; color: #ffcc00; }
         .join-btn:hover { background: #ffaa00; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
 
-        /* --- ROOM LIST UI & NEW ANIMATIONS --- */
+        /* --- ROOM LIST UI --- */
         .room-list { display: flex; flex-direction: column; gap: 10px; }
         .room-card { background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; pointer-events: auto; }
         .room-card:hover { border-color: #ffaa00; background: #1a1a24; }
@@ -232,8 +242,8 @@
         .room-name { font-weight: bold; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 10px;}
         .player-count { font-size: 11px; color: #ffaa00; font-style: italic; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px;}
         .room-host { font-size: 12px; color: #889; }
-        .host-glow-blue { color: #00ffff; text-shadow: 0 0 8px #00aaff; font-weight: bold; }
         .host-glow-red { color: #ff4444; text-shadow: 0 0 8px #ff0000; font-weight: bold; }
+        .host-glow-blue { color: #00aaff; text-shadow: 0 0 8px #00aaff; font-weight: bold; }
         .room-status { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .status-open { color: #00ff00; }
         .status-locked { color: #ff4444; }
@@ -295,8 +305,9 @@
             <div class="ui-half">
                 <div class="nameplate p2-nameplate" style="opacity: 0.5;">
                     <div class="chevron"></div>
-                    <div class="plate-bg"><span id="p2-ready" class="ready-check">✔</span><span id="vs-p2-name">SEARCHING...</span></div>
+                    <div class="plate-bg"><span id="vs-p2-name">SEARCHING...</span></div>
                 </div>
+                <div id="p2-ready" class="ready-check">✔</div>
             </div>
         </div>
     </div>
@@ -319,6 +330,19 @@
                         <option value="Short On Time">Short On Time</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Number of Players</label>
+                    <select id="host-player-count" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        <option value="2" selected>2 Players</option>
+                        <option value="3">3 Players</option>
+                        <option value="4">4 Players</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Match Type</label>
+                    <button type="button" class="match-type-btn teams" disabled>TEAMS</button>
+                </div>
+                
                 <div class="form-group">
                     <label>Stadium / Map</label>
                     <select id="host-stadium">
@@ -354,7 +378,7 @@
                     <label>4-Digit Passcode</label>
                     <input type="password" id="host-passcode" maxlength="4" placeholder="0000" pattern="\d{4}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                 </div>
-                <button class="action-btn host-btn" id="create-lobby-btn" style="margin-top: auto;" onclick="initializeHost()">CREATE LOBBY</button>
+                <button class="action-btn host-btn" id="create-lobby-btn" style="margin-top: auto;" onclick="initializeHost()">HOST ROOM</button>
             </div>
         </div>
 
@@ -434,8 +458,15 @@
                 ${buildData.bc ? `<img src="${buildData.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
                 ${fallbackIcon}
             `;
+            
             stack.className = 'bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
-            stack.style.animation = ''; 
+            
+            // FIX: Prevent spin reset if it has already rolled in
+            if (hasRolledIn[playerNum]) {
+                stack.style.animation = 'none'; 
+            } else {
+                stack.style.animation = ''; 
+            }
         }
 
         function renderLocalShowcase(playerNum) {
@@ -521,7 +552,11 @@
             let btn = document.getElementById('vs-ready-btn');
             btn.innerText = isReady ? "CANCEL READY" : "READY";
             btn.style.background = isReady ? "rgba(255,170,0,0.5)" : "rgba(0,0,0,0.7)";
-            document.getElementById('vs-p2-cycle-btn').style.display = isReady ? 'none' : 'block';
+            
+            // FIX: Gray out cycle button instead of hiding it
+            let cycleBtn = document.getElementById('vs-p2-cycle-btn');
+            cycleBtn.style.opacity = isReady ? '0.3' : '1';
+            cycleBtn.style.pointerEvents = isReady ? 'none' : 'auto';
             
             let leaveBtn = document.getElementById('vs-leave-btn');
             leaveBtn.style.opacity = isReady ? '0.4' : '1';
@@ -531,9 +566,7 @@
         };
 
 
-        // --- FIX: ASYNC NAVIGATION & CLEANUP ---
-        
-        // Ensure leaving waits for database updates before the browser destroys the page
+        // --- ASYNC NAVIGATION & CLEANUP ---
         window.leaveLobby = async function() {
             if (window.ActiveMatch?.role === 'GUEST') {
                 await window.leaveGuestLobby();
@@ -544,14 +577,11 @@
         };
 
         window.leaveGuestLobby = async function() {
-            // 1. Capture the room reference before we wipe the UI
             const roomToLeave = currentRoomRef;
             const disconnectRef = guestDisconnectRef;
 
-            // 2. Shut the visual doors instantly so the user doesn't feel lag
             window.cancelLobby(); 
             
-            // 3. Tell Firebase to safely delete the guest data in the background
             if (roomToLeave) {
                 try {
                     if (disconnectRef) { onDisconnect(disconnectRef).cancel().catch(e=>e); }
@@ -563,19 +593,15 @@
         };
 
         window.cancelLobby = async function() {
-            // Detach listeners safely
             if (roomListenerUnsubscribe) { roomListenerUnsubscribe(); roomListenerUnsubscribe = null; }
             if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel().catch(e=>e); guestDisconnectRef = null; }
             
-            // Capture host room to delete
             const roomToDestroy = currentRoomRef;
             const isHost = window.ActiveMatch?.role === 'HOST';
 
-            // Reset Global Variables
             isVsActive = false; window.ActiveMatch = null; currentRoomRef = null;
             if (countdownInterval) clearInterval(countdownInterval);
             
-            // UI Reset
             document.getElementById('vs-arena').classList.remove('active');
             
             hasRolledIn = { 1: false, 2: false };
@@ -596,12 +622,15 @@
             
             let readyBtn = document.getElementById('vs-ready-btn');
             readyBtn.innerText = "READY"; readyBtn.style.background = "rgba(0,0,0,0.7)";
+            
+            // Clean up cycle button opacity state
+            let cycleBtn = document.getElementById('vs-p2-cycle-btn');
+            cycleBtn.style.opacity = '1'; cycleBtn.style.pointerEvents = 'auto';
 
             document.getElementById('host-panel').classList.remove('slide-left');
             document.getElementById('join-panel').classList.remove('slide-right');
             document.getElementById('vs-waiting-text').innerText = "CONNECTING LOBBY...";
 
-            // Securely wipe the room if the host cancelled
             if (isHost && roomToDestroy) { 
                 try { await remove(roomToDestroy); } 
                 catch(e) { console.error("Failed to delete room:", e); }
@@ -654,7 +683,6 @@
                         renderRemoteShowcase(2, data.guestBuildImages, data.guestSpin, data.guestName);
                         triggerRollIn(2);
                         
-                        // FIX: Ensure Close Room button remains visible for the host
                         document.getElementById('vs-close-btn').style.display = 'block'; 
                         document.getElementById('vs-start-btn').style.display = data.guestReady ? 'block' : 'none';
                     } else {
@@ -694,7 +722,7 @@
             const roomId = currentRoomRef.key;
 
             const lobbySettings = {
-                hostUid: playerUid, hostName: playerName, hostGlow: Math.random() > 0.5 ? 'host-glow-blue' : 'host-glow-red', 
+                hostUid: playerUid, hostName: playerName, hostGlow: 'host-glow-red', 
                 hostBuildImages: { bb: buildData.bb, sg: buildData.sg, wd: buildData.wd, ar: buildData.ar, bc: buildData.bc },
                 hostSpin: buildData.spinDir, guestUid: null, guestName: null, guestReady: false,
                 settings: { roomName, stadiumId: stadium, isLocked, passcode: isLocked ? passcode : null },
@@ -781,7 +809,6 @@
             } catch (error) { console.error("Failed to join room:", error); }
         };
 
-        // --- PARTICLE ENGINE ---
         const divisions = 17;
         function spawnParticle() {
             if (!isVsActive) return; 
@@ -846,6 +873,7 @@
                         const imgs = room.hostBuildImages || {};
                         const fallbackIcon = !imgs.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
 
+                        // FIX: Added the Blue Guest name to the room card!
                         activeRoomsContainer.innerHTML += `
                             <div class="room-card ${cardDisabled}" onclick="${isFull ? '' : `promptJoin('${roomId}', ${room.settings.isLocked})`}">
                                 <div class="room-left-section">
@@ -859,7 +887,7 @@
                                     </div>
                                     <div class="room-info">
                                         <span class="room-name">${room.settings.roomName} <span class="player-count">${isFull ? '2/2' : '1/2'} Players</span></span>
-                                        <span class="room-host">Host: <span class="${room.hostGlow || 'host-glow-blue'}">${room.hostName}</span></span>
+                                        <span class="room-host">Host: <span class="host-glow-red">${room.hostName}</span> ${isFull ? ` <span style="color:#889;">vs</span> <span class="host-glow-blue">${room.guestName}</span>` : ''}</span>
                                     </div>
                                 </div>
                                 <div class="room-status ${statusClass}">${statusText}</div>
