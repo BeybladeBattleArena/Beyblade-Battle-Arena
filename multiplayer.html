@@ -1,4 +1,12 @@
 <style>
+        :root {
+            --p1-color: #e51c23; /* Deep Red */
+            --p2-color: #0c58e0; /* Deep Blue */
+            --mid-color: #b000ff; /* Vivid Purple */
+            --p1-glow: rgba(229, 28, 35, 0.8);
+            --p2-glow: rgba(12, 88, 224, 0.8);
+        }
+
         body {
             margin: 0; padding: 0; overflow: hidden; background-color: #0a0a12;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
@@ -21,16 +29,82 @@
             font-family: inherit; transition: 0.2s;
         }
         .back-btn:hover { background: #00aaff; color: #000; box-shadow: 0 0 10px #00aaff; }
-        
-        .currency-display {
-            background: rgba(0,0,0,0.6); border: 2px solid #ffaa00; border-radius: 8px;
-            padding: 5px 15px; font-size: 20px; font-weight: 900; color: #ffaa00; text-shadow: 1px 1px 0 #000;
+
+        /* --- VERSUS SCREEN LAYER (HIDDEN BY DEFAULT) --- */
+        #vs-arena {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to right, var(--p1-color) 0%, var(--p1-color) calc(50% - 6.5px), var(--mid-color) 50%, var(--p2-color) calc(50% + 6.5px), var(--p2-color) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 10; opacity: 0; pointer-events: none; transform: scale(1, 0.005); filter: brightness(3);
+            transition: opacity 0.3s ease-out; /* For fading out when closing */
         }
+
+        /* TV Turn-On Animation */
+        #vs-arena.active {
+            pointer-events: auto;
+            animation: tv-turn-on 0.4s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+            animation-delay: 0.2s; /* Waits for doors to open slightly */
+        }
+        @keyframes tv-turn-on {
+            0% { transform: scale(1, 0.005); opacity: 0; filter: brightness(4); }
+            50% { transform: scale(1, 0.005); opacity: 1; filter: brightness(2); }
+            100% { transform: scale(1, 1); opacity: 1; filter: brightness(1); }
+        }
+
+        .grid-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px);
+            background-size: calc(100% / 17) calc(100% / 17); z-index: 1;
+        }
+
+        .aura-clash {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 100%; z-index: 2; pointer-events: none;
+            animation: clash-pulse 4s infinite ease-in-out;
+        }
+        @keyframes clash-pulse {
+            0% { box-shadow: inset 40px 0 80px -20px var(--p1-color), inset -40px 0 80px -20px var(--p2-color); }
+            33% { box-shadow: inset 80px 0 100px -20px var(--p1-glow), inset -20px 0 50px -20px var(--p2-color); }
+            66% { box-shadow: inset 20px 0 50px -20px var(--p1-color), inset -80px 0 100px -20px var(--p2-glow); }
+            100% { box-shadow: inset 40px 0 80px -20px var(--p1-color), inset -40px 0 80px -20px var(--p2-color); }
+        }
+
+        .top-shadow {
+            position: absolute; top: 0; left: 0; width: 100%; height: 40%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, transparent 100%);
+            z-index: 3; pointer-events: none;
+        }
+
+        /* Particles */
+        .particle { position: absolute; z-index: 4; pointer-events: none; }
+        .particle-h { -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%); }
+        .particle-v { -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 60%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0%, black 40%, black 60%, transparent 100%); }
+        .particle-core { position: absolute; background-color: #ffffff; box-shadow: 0 0 12px 4px #ffffff; border-radius: 50%; }
+        .particle-h .particle-core { top: 0; left: 50%; width: 80px; height: 100%; transform: translateX(-50%); }
+        .particle-v .particle-core { left: 0; top: 50%; height: 80px; width: 100%; transform: translateY(-50%); }
+
+        /* VS Controls (Center Screen) */
+        #vs-controls { position: relative; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 20px; text-shadow: 2px 2px 5px #000; }
+        #vs-waiting-text { font-size: 32px; font-weight: 900; font-style: italic; color: #fff; letter-spacing: 2px; }
+        #vs-close-btn { background: rgba(0,0,0,0.7); font-size: 16px; padding: 10px 30px; display: none; } /* Revealed after 3s */
+
+        /* Nameplates */
+        .ui-layer { position: absolute; bottom: 50px; width: 100%; display: flex; z-index: 10; }
+        .ui-half { width: 50%; display: flex; justify-content: center; }
+        .nameplate { display: flex; align-items: center; height: 45px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .plate-bg { flex-grow: 1; height: 100%; display: flex; align-items: center; padding: 0 20px; color: white; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
+        .p1-nameplate .plate-bg { background-color: #b01015; border: 2px solid #ff4d4d; border-right: none; }
+        .p2-nameplate .plate-bg { background-color: #0b3d99; border: 2px solid #4d88ff; border-left: none; justify-content: flex-end; }
+        .chevron { width: 40px; height: 55px; background: linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #9e9e9e 100%); border: 2px solid #555; }
+        .p1-nameplate .chevron { clip-path: polygon(0 0, 60% 50%, 0 100%, 40% 100%, 100% 50%, 40% 0); margin-left: -5px; }
+        .p2-nameplate .chevron { clip-path: polygon(100% 0, 40% 50%, 100% 100%, 60% 100%, 0 50%, 60% 0); margin-right: -5px; }
+
 
         /* --- LOBBY LAYOUT --- */
         #lobby-wrapper {
             position: absolute; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
             display: flex; justify-content: center; align-items: stretch; padding: 20px; box-sizing: border-box; gap: 40px;
+            z-index: 20; /* Sits above the VS screen initially */
         }
 
         .panel {
@@ -38,17 +112,17 @@
             width: 45%; max-width: 500px; display: flex; flex-direction: column;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
             overflow: hidden; pointer-events: auto;
+            transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.6s ease;
         }
 
-        .panel-header {
-            background: linear-gradient(90deg, #112, #224); padding: 20px;
-            border-bottom: 2px solid #556; text-align: center;
-        }
+        /* Sliding Doors Effect Classes */
+        .slide-left { transform: translateX(-150vw) !important; opacity: 0; pointer-events: none; }
+        .slide-right { transform: translateX(150vw) !important; opacity: 0; pointer-events: none; }
+
+        .panel-header { background: linear-gradient(90deg, #112, #224); padding: 20px; border-bottom: 2px solid #556; text-align: center; }
         .panel-header h2 { margin: 0; font-size: 28px; color: #fff; font-style: italic; letter-spacing: 2px; }
-        
         .host-header { border-bottom-color: #00aaff; }
         .host-header h2 { color: #00ffff; text-shadow: 0 0 10px #00aaff; }
-        
         .join-header { border-bottom-color: #ffaa00; }
         .join-header h2 { color: #ffcc00; text-shadow: 0 0 10px #ffaa00; }
 
@@ -65,7 +139,6 @@
         select:focus, input:focus { border-color: #00aaff; box-shadow: 0 0 10px rgba(0, 170, 255, 0.3); }
         option { background: #112; }
 
-        /* --- THE TOGGLE SWITCH --- */
         .toggle-row { display: flex; justify-content: space-between; align-items: center; background: #0a0a12; padding: 12px; border-radius: 6px; border: 1px solid #445; }
         .toggle-label { font-weight: bold; color: #ddd; }
         
@@ -86,37 +159,28 @@
         }
         .host-btn { border-color: #00aaff; color: #00ffff; }
         .host-btn:hover { background: #00aaff; color: #000; box-shadow: 0 0 20px rgba(0, 170, 255, 0.6); }
-        
         .join-btn { border-color: #ffaa00; color: #ffcc00; }
         .join-btn:hover { background: #ffaa00; color: #000; box-shadow: 0 0 20px rgba(255, 170, 0, 0.6); }
 
         /* --- ROOM LIST UI & NEW ANIMATIONS --- */
         .room-list { display: flex; flex-direction: column; gap: 10px; }
-        .room-card {
-            background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;
-        }
+        .room-card { background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
         .room-card:hover { border-color: #ffaa00; background: #1a1a24; }
-        
         .room-left-section { display: flex; align-items: center; gap: 15px; }
         .room-info { display: flex; flex-direction: column; gap: 5px; }
         .room-name { font-weight: bold; font-size: 16px; color: #fff; }
         .room-host { font-size: 12px; color: #889; }
-        
         .host-glow-blue { color: #00ffff; text-shadow: 0 0 8px #00aaff; font-weight: bold; }
         .host-glow-red { color: #ff4444; text-shadow: 0 0 8px #ff0000; font-weight: bold; }
-
         .room-status { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         .status-open { color: #00ff00; }
         .status-locked { color: #ff4444; }
 
-        /* The Spinning active builds */
         @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-left { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
         .bey-spin-right { animation: spin-right 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
         .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
-		
-		.lobby-bey-stack { position: relative; width: 55px; height: 55px; }
+        .lobby-bey-stack { position: relative; width: 55px; height: 55px; flex-shrink: 0; }
         .lobby-bey-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 
     </style>
@@ -125,14 +189,39 @@
         <button class="back-btn" onclick="leaveLobby()">◀ Back</button>
     </div>
 
+    <div id="vs-arena">
+        <div class="top-shadow"></div>
+        <div class="grid-overlay"></div>
+        <div class="aura-clash"></div>
+
+        <div id="vs-controls">
+            <div id="vs-waiting-text">CONNECTING LOBBY...</div>
+            <button class="action-btn join-btn" id="vs-close-btn" onclick="cancelLobby()">CLOSE ROOM</button>
+        </div>
+
+        <div class="ui-layer">
+            <div class="ui-half">
+                <div class="nameplate p1-nameplate">
+                    <div class="plate-bg" id="vs-p1-name">PLAYER 1</div>
+                    <div class="chevron"></div>
+                </div>
+            </div>
+            
+            <div class="ui-half">
+                <div class="nameplate p2-nameplate" style="opacity: 0.5;">
+                    <div class="chevron"></div>
+                    <div class="plate-bg" id="vs-p2-name">SEARCHING...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="lobby-wrapper">
-        
-        <div class="panel">
+        <div class="panel" id="host-panel">
             <div class="panel-header host-header">
                 <h2>HOST MATCH</h2>
             </div>
             <div class="panel-content">
-                
                 <div class="form-group">
                     <label>Lobby Name</label>
                     <select id="host-room-name">
@@ -145,7 +234,6 @@
                         <option value="Short On Time">Short On Time</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Stadium / Map</label>
                     <select id="host-stadium">
@@ -154,7 +242,6 @@
                         <option value="street_alley">Back-Alley Concrete</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label>Battle BGM</label>
                     <select id="host-music">
@@ -163,7 +250,6 @@
                         <option value="track_electronic">Electronic Surge</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
                     <label>Lobby BGM</label>
                     <select id="host-lobbymusic">
@@ -172,7 +258,6 @@
                         <option value="track_electronic">EDM Hype</option>
                     </select>
                 </div>
-
                 <div class="toggle-row">
                     <div class="toggle-label">Private Match (Requires Code)</div>
                     <label class="switch">
@@ -180,87 +265,147 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-
                 <div class="form-group" id="passcode-container">
                     <label>4-Digit Passcode</label>
                     <input type="password" id="host-passcode" maxlength="4" placeholder="0000" pattern="\d{4}" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
                 </div>
-
-                <button class="action-btn join-btn" id="close-room-btn" style="display:none; padding: 10px; font-size: 16px; margin-bottom: 10px; margin-top: auto;" onclick="cancelLobby()">CLOSE ROOM</button>
-                <button class="action-btn host-btn" id="create-lobby-btn" style="margin-top: 0;" onclick="initializeHost()">CREATE LOBBY</button>
+                <button class="action-btn host-btn" id="create-lobby-btn" style="margin-top: auto;" onclick="initializeHost()">CREATE LOBBY</button>
             </div>
         </div>
 
-        <div class="panel">
+        <div class="panel" id="join-panel">
             <div class="panel-header join-header">
                 <h2>JOIN MATCH</h2>
             </div>
             <div class="panel-content">
-                
-                <div class="room-list" id="active-rooms-container">
-                    </div>
-
+                <div class="room-list" id="active-rooms-container"></div>
                 <div style="text-align: center; color: #667; font-size: 14px; margin-top: 20px; font-style: italic;">
                     Scanning network for challengers...
                 </div>
-
                 <button class="action-btn join-btn" onclick="refreshRoomList()" style="margin-top: auto;">REFRESH LIST</button>
             </div>
         </div>
-
     </div>
 
     <script type="module">
         import { rtdb } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        
         let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
-        
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
 
         let currentRoomRef = null;
         let countdownInterval = null;
-		
-				let saves = window.PlayerData.saves || new Array(10).fill(null);
-				let activeSaveIndex = window.PlayerData.featuredBuildIndex || 0;
-		        let currentSave = saves[activeSaveIndex];
+        let isVsActive = false; // Controls particle spawning
 
+        // --- THE VS PARTICLE ENGINE ---
+        const divisions = 17;
+        function spawnParticle() {
+            if (!isVsActive) return; // Only spawn if screen is on!
+            const vsArena = document.getElementById('vs-arena');
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            const gridWidth = screenWidth / divisions;
+            const gridHeight = screenHeight / divisions;
+
+            const particle = document.createElement('div');
+            const core = document.createElement('div');
+            core.classList.add('particle-core');
+            particle.appendChild(core);
+            
+            const isHorizontal = Math.random() < 0.5;
+            const redState = { backgroundColor: '#ff4d4d', boxShadow: '0 0 25px 8px #ff4d4d' };
+            const purpleState = { backgroundColor: '#d633ff', boxShadow: '0 0 30px 10px #d633ff' };
+            const blueState = { backgroundColor: '#4d88ff', boxShadow: '0 0 25px 8px #4d88ff' };
+            const speed = 800 + Math.random() * 700; 
+
+            if (isHorizontal) {
+                particle.classList.add('particle', 'particle-h');
+                const startY = (Math.floor(Math.random() * (divisions - 2)) + 1) * gridHeight;
+                particle.style.height = '4px'; particle.style.width = '600px'; 
+                particle.style.marginLeft = '-300px'; particle.style.marginTop = '-2px'; 
+                particle.style.top = `${startY}px`;
+                
+                const isLeftToRight = Math.random() < 0.5;
+                const startX = isLeftToRight ? -400 : screenWidth + 400;
+                const endX = isLeftToRight ? screenWidth + 400 : -400;
+
+                const keyframes = isLeftToRight ? [
+                    { left: `${startX}px`, opacity: 0, ...redState },
+                    { left: `${startX + 300}px`, opacity: 1, offset: 0.1, ...redState },
+                    { left: `${screenWidth/2 - 60}px`, offset: 0.45, ...redState },
+                    { left: `${screenWidth/2}px`, offset: 0.5, ...purpleState }, 
+                    { left: `${screenWidth/2 + 60}px`, offset: 0.55, ...blueState },
+                    { left: `${endX - 300}px`, opacity: 1, offset: 0.9, ...blueState },
+                    { left: `${endX}px`, opacity: 0, ...blueState }
+                ] : [
+                    { left: `${startX}px`, opacity: 0, ...blueState },
+                    { left: `${startX - 300}px`, opacity: 1, offset: 0.1, ...blueState },
+                    { left: `${screenWidth/2 + 60}px`, offset: 0.45, ...blueState },
+                    { left: `${screenWidth/2}px`, offset: 0.5, ...purpleState }, 
+                    { left: `${screenWidth/2 - 60}px`, offset: 0.55, ...redState },
+                    { left: `${endX + 300}px`, opacity: 1, offset: 0.9, ...redState },
+                    { left: `${endX}px`, opacity: 0, ...redState }
+                ];
+                particle.animate(keyframes, { duration: speed, easing: 'linear' }).onfinish = () => particle.remove();
+
+            } else {
+                particle.classList.add('particle', 'particle-v');
+                const startX = (Math.floor(Math.random() * (divisions - 2)) + 1) * gridWidth;
+                particle.style.width = '4px'; particle.style.height = '600px';
+                particle.style.marginTop = '-300px'; particle.style.marginLeft = '-2px'; 
+                particle.style.left = `${startX}px`;
+
+                let staticState = startX < (screenWidth / 2) - 10 ? redState : (startX > (screenWidth / 2) + 10 ? blueState : purpleState);
+                const isTopToBottom = Math.random() < 0.5;
+                const startY = isTopToBottom ? -400 : screenHeight + 400;
+                const endY = isTopToBottom ? screenHeight + 400 : -400;
+
+                particle.animate([
+                    { top: `${startY}px`, opacity: 0, ...staticState },
+                    { top: `${startY + (isTopToBottom ? 300 : -300)}px`, opacity: 1, offset: 0.1, ...staticState },
+                    { top: `${endY - (isTopToBottom ? 300 : -300)}px`, opacity: 1, offset: 0.9, ...staticState },
+                    { top: `${endY}px`, opacity: 0, ...staticState }
+                ], { duration: speed, easing: 'linear' }).onfinish = () => particle.remove();
+            }
+            vsArena.appendChild(particle);
+        }
+
+        function startParticleSystem() {
+            if (!isVsActive) return;
+            spawnParticle();
+            setTimeout(startParticleSystem, 400 + (Math.random() * 1000));
+        }
+
+        // --- NAVIGATION & CLEANUP ---
         window.leaveLobby = function() {
-            window.cancelLobby(); // Re-use the new cancel logic!
+            window.cancelLobby(); 
             window.navigateTo('home-menu.html');
         };
 
-        // --- NEW: CANCEL HOSTING / CLOSE ROOM ---
         window.cancelLobby = function() {
-            if (currentRoomRef) {
-                remove(currentRoomRef);
-                currentRoomRef = null;
-            }
+            if (currentRoomRef) { remove(currentRoomRef); currentRoomRef = null; }
             if (countdownInterval) clearInterval(countdownInterval);
             
-            const hostBtn = document.getElementById('create-lobby-btn');
-            hostBtn.innerText = "CREATE LOBBY";
-            hostBtn.style.background = "";
-            hostBtn.style.color = "";
-            hostBtn.style.pointerEvents = "auto";
-            
-            document.getElementById('close-room-btn').style.display = 'none';
+            // Turn OFF VS Screen & Particle Engine
+            isVsActive = false;
+            document.getElementById('vs-arena').classList.remove('active');
+            document.getElementById('vs-close-btn').style.display = 'none';
+
+            // Close the Sliding Doors (Bring panels back)
+            document.getElementById('host-panel').classList.remove('slide-left');
+            document.getElementById('join-panel').classList.remove('slide-right');
         };
 
         window.togglePasscodeField = function() {
             const isPrivate = document.getElementById('host-private-toggle').checked;
             const container = document.getElementById('passcode-container');
             const input = document.getElementById('host-passcode');
-            if (isPrivate) {
-                container.style.display = 'flex';
-                input.value = ''; input.focus();
-            } else {
-                container.style.display = 'none';
-            }
+            if (isPrivate) { container.style.display = 'flex'; input.value = ''; input.focus(); } 
+            else { container.style.display = 'none'; }
         };
 
-		window.initializeHost = async function() {
+        window.initializeHost = async function() {
             if (currentRoomRef) return; 
 
             const roomName = document.getElementById('host-room-name').value;
@@ -271,31 +416,24 @@
             const passcode = document.getElementById('host-passcode').value;
 
             if (isLocked && passcode.length !== 4) {
-                alert("Please enter a valid 4-digit passcode for your private room.");
-                return;
+                alert("Please enter a valid 4-digit passcode for your private room."); return;
             }
 
-            // Bulletproof SafeImage Extractor
             function getSafeImage(partData, category, isTopDown = false) {
                 if (!partData) return '';
-                
-                // If the save file only holds the string ID, look up the real object in equipmentDB
                 let partObj = partData;
                 if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
                     partObj = window.equipmentDB[category].find(p => p.id === partData) || partData;
                 }
-
                 let key = isTopDown ? 'topDownImage' : 'image';
                 if (partObj.activeStyle && partObj.activeStyle[key]) return partObj.activeStyle[key];
                 if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0][key]) return partObj.styles[0][key];
                 return partObj.fallbackImage || partObj[key] || '';
             }
 
-            // --- THE FIX: We declare the variables BEFORE trying to use them! ---
             let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
             let activeSpin = 'Right';
 
-            // Refresh currentSave right when they click host to ensure it's up to date
             let freshSaves = window.PlayerData?.saves || new Array(10).fill(null);
             let freshActiveSaveIndex = window.PlayerData?.featuredBuildIndex || 0;
             let freshCurrentSave = window.ActiveBey || freshSaves[freshActiveSaveIndex];
@@ -306,7 +444,6 @@
                 activeBuildImages.wd = getSafeImage(freshCurrentSave.parts.weightDisk, 'weightDisks', true);
                 activeBuildImages.ar = getSafeImage(freshCurrentSave.parts.attackRing, 'attackRings', true);
                 activeBuildImages.bc = getSafeImage(freshCurrentSave.parts.bitChip, 'bitChips', true);
-
                 if (freshCurrentSave.parts.spinGear && freshCurrentSave.parts.spinGear.spinDirection) {
                     activeSpin = freshCurrentSave.parts.spinGear.spinDirection;
                 }
@@ -315,18 +452,11 @@
             const roomsRef = ref(rtdb, 'rooms');
             currentRoomRef = push(roomsRef); 
             const roomId = currentRoomRef.key;
-
-            // Give the host a random glow color for the UI
             const hostGlowColor = Math.random() > 0.5 ? 'host-glow-blue' : 'host-glow-red';
 
             const lobbySettings = {
-                hostUid: playerUid,
-                hostName: playerName,
-                hostGlow: hostGlowColor,
-                hostBuildImages: activeBuildImages,
-                hostSpin: activeSpin,
-                guestUid: null,
-                guestName: null,
+                hostUid: playerUid, hostName: playerName, hostGlow: hostGlowColor, hostBuildImages: activeBuildImages,
+                hostSpin: activeSpin, guestUid: null, guestName: null,
                 settings: { roomName, stadiumId: stadium, battleMusic, lobbyMusic, isLocked, passcode: isLocked ? passcode : null },
                 status: "WAITING_FOR_CHALLENGER"
             };
@@ -335,24 +465,31 @@
                 await set(currentRoomRef, lobbySettings);
                 onDisconnect(currentRoomRef).remove();
 
-                const hostBtn = document.getElementById('create-lobby-btn');
-                hostBtn.style.background = "#00aaff";
-                hostBtn.style.color = "#000";
-                hostBtn.style.pointerEvents = "none";
+                // --- NEW: TRIGGER THE SLIDING DOORS & VS SCREEN ---
+                document.getElementById('host-panel').classList.add('slide-left');
+                document.getElementById('join-panel').classList.add('slide-right');
                 
-                // Implement the 3-2-1 Countdown
+                const vsArena = document.getElementById('vs-arena');
+                document.getElementById('vs-p1-name').innerText = playerName;
+                vsArena.classList.add('active');
+                
+                isVsActive = true;
+                startParticleSystem();
+                setTimeout(spawnParticle, 500); 
+                setTimeout(spawnParticle, 1000); 
+
+                const waitingText = document.getElementById('vs-waiting-text');
                 let countdown = 3;
-                hostBtn.innerText = `WAITING FOR PLAYER... (${countdown})`;
+                waitingText.innerText = `WAITING FOR CHALLENGER... (${countdown})`;
                 
                 countdownInterval = setInterval(() => {
                     countdown--;
                     if (countdown > 0) {
-                        hostBtn.innerText = `WAITING FOR PLAYER... (${countdown})`;
+                        waitingText.innerText = `WAITING FOR CHALLENGER... (${countdown})`;
                     } else {
                         clearInterval(countdownInterval);
-                        hostBtn.innerText = `WAITING FOR PLAYER...`;
-                        // Reveal the close button after the 3 seconds!
-                        document.getElementById('close-room-btn').style.display = 'block';
+                        waitingText.innerText = `WAITING FOR CHALLENGER...`;
+                        document.getElementById('vs-close-btn').style.display = 'block';
                     }
                 }, 1000);
 
@@ -360,12 +497,17 @@
                     const data = snapshot.val();
                     if (data && data.guestUid) {
                         window.ActiveMatch = { roomId: roomId, role: 'HOST', data: data };
-                        alert(`Challenger ${data.guestName} has joined! Transitioning to Arena...`);
                         
-                        if (countdownInterval) clearInterval(countdownInterval);
-                        onDisconnect(currentRoomRef).cancel(); 
-                        
-                        window.navigateTo('arena.html'); 
+                        document.getElementById('vs-p2-name').innerText = data.guestName;
+                        document.querySelector('.p2-nameplate').style.opacity = '1';
+                        waitingText.innerText = `CHALLENGER FOUND!`;
+                        document.getElementById('vs-close-btn').style.display = 'none';
+
+                        setTimeout(() => {
+                            if (countdownInterval) clearInterval(countdownInterval);
+                            onDisconnect(currentRoomRef).cancel(); 
+                            window.navigateTo('arena.html'); 
+                        }, 2000); // 2 second dramatic pause before jumping to arena
                     }
                 });
 
@@ -376,54 +518,49 @@
             }
         };
 
-        // --- JOIN LOGIC ---
         window.promptJoin = async function(roomId, isLocked) {
-            if (currentRoomRef) {
-                alert("You cannot join a room while you are hosting one! Please close your room first.");
-                return;
-            }
-
+            if (currentRoomRef) { alert("You cannot join a room while you are hosting one! Please close your room first."); return; }
             const specificRoomRef = ref(rtdb, `rooms/${roomId}`);
             
             try {
                 const snapshot = await get(specificRoomRef);
-                if (!snapshot.exists()) {
-                    alert("This room no longer exists.");
-                    return;
-                }
-                
+                if (!snapshot.exists()) { alert("This room no longer exists."); return; }
                 const roomData = snapshot.val();
                 
                 if (isLocked) {
                     const code = prompt("This room is locked. Enter the 4-digit passcode:");
                     if (code === null) return; 
-                    if (code !== roomData.settings.passcode) {
-                        alert("Incorrect passcode!");
-                        return;
-                    }
+                    if (code !== roomData.settings.passcode) { alert("Incorrect passcode!"); return; }
                 }
+                if (roomData.guestUid) { alert("Room is already full!"); return; }
 
-                if (roomData.guestUid) {
-                    alert("Room is already full!");
-                    return;
-                }
+                await update(specificRoomRef, { guestUid: playerUid, guestName: playerName, status: "STARTING" });
 
-                await update(specificRoomRef, {
-                    guestUid: playerUid,
-                    guestName: playerName,
-                    status: "STARTING"
-                });
-
+                // --- SLIDE DOORS AND SHOW VS SCREEN FOR GUEST! ---
+                document.getElementById('host-panel').classList.add('slide-left');
+                document.getElementById('join-panel').classList.add('slide-right');
+                
+                const vsArena = document.getElementById('vs-arena');
+                document.getElementById('vs-p1-name').innerText = roomData.hostName;
+                document.getElementById('vs-p2-name').innerText = playerName;
+                document.querySelector('.p2-nameplate').style.opacity = '1';
+                
+                document.getElementById('vs-waiting-text').innerText = "LINK ESTABLISHED!";
+                document.getElementById('vs-close-btn').style.display = 'none'; // Guests can't cancel the lobby once joined
+                
+                vsArena.classList.add('active');
+                isVsActive = true;
+                startParticleSystem();
+                
                 window.ActiveMatch = { roomId: roomId, role: 'GUEST', data: roomData };
-                alert(`Joined ${roomData.hostName}'s room! Transitioning to Arena...`);
-                window.navigateTo('arena.html');
+                
+                setTimeout(() => {
+                    window.navigateTo('arena.html');
+                }, 2000); // 2 second dramatic pause before jump
 
-            } catch (error) {
-                console.error("Failed to join room:", error);
-            }
+            } catch (error) { console.error("Failed to join room:", error); }
         };
 
-		// --- LIVE ROOM LISTENER ---
         function startRoomListener() {
             const activeRoomsContainer = document.getElementById('active-rooms-container');
             const roomsRef = ref(rtdb, 'rooms');
@@ -439,22 +576,18 @@
 
                 Object.keys(rooms).forEach(roomId => {
                     const room = rooms[roomId];
-                    
                     if (room.status === "WAITING_FOR_CHALLENGER") {
                         const statusClass = room.settings.isLocked ? "status-locked" : "status-open";
                         const statusText = room.settings.isLocked ? "🔒 LOCKED" : "🟢 OPEN";
-                        
                         const spinClass = room.hostSpin === 'Left' ? 'bey-spin-left' : 'bey-spin-right';
                         const glowClass = room.hostGlow || 'host-glow-blue'; 
                         
-                        // --- THE FIX: Extract the 5 saved images and layer them! ---
                         const imgs = room.hostBuildImages || {};
                         const fallbackIcon = !imgs.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
 
                         const cardHTML = `
                             <div class="room-card" onclick="promptJoin('${roomId}', ${room.settings.isLocked})">
                                 <div class="room-left-section">
-                                    
                                     <div class="lobby-bey-stack ${spinClass}">
                                         ${imgs.bb ? `<img src="${imgs.bb}" class="lobby-bey-part" style="z-index: 1;">` : ''}
                                         ${imgs.sg ? `<img src="${imgs.sg}" class="lobby-bey-part" style="z-index: 2;">` : ''}
@@ -463,7 +596,6 @@
                                         ${imgs.bc ? `<img src="${imgs.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
                                         ${fallbackIcon}
                                     </div>
-
                                     <div class="room-info">
                                         <span class="room-name">${room.settings.roomName}</span>
                                         <span class="room-host">Host: <span class="${glowClass}">${room.hostName}</span></span>
@@ -478,7 +610,6 @@
             });
         }
 
-        // --- INIT ---
         window.refreshRoomList = startRoomListener; 
         startRoomListener(); 
     </script>
