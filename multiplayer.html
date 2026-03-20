@@ -7,7 +7,6 @@
             --p2-glow: rgba(12, 88, 224, 0.8);
         }
 
-        /* --- THE FIX: Block scrollbars at the absolute highest level --- */
         html, body {
             margin: 0; padding: 0; 
             width: 100%; height: 100%;
@@ -34,20 +33,19 @@
         }
         .back-btn:hover { background: #00aaff; color: #000; box-shadow: 0 0 10px #00aaff; }
 
-        /* --- VERSUS SCREEN LAYER (HIDDEN BY DEFAULT) --- */
+        /* --- VERSUS SCREEN LAYER --- */
         #vs-arena {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: linear-gradient(to right, var(--p1-color) 0%, var(--p1-color) calc(50% - 6.5px), var(--mid-color) 50%, var(--p2-color) calc(50% + 6.5px), var(--p2-color) 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 10; opacity: 0; pointer-events: none; transform: scale(1, 0.005); filter: brightness(3);
-            transition: opacity 0.3s ease-out; /* For fading out when closing */
+            transition: opacity 0.3s ease-out; 
         }
 
-        /* TV Turn-On Animation */
         #vs-arena.active {
             pointer-events: auto;
             animation: tv-turn-on 0.4s cubic-bezier(0.8, 0, 0.2, 1) forwards;
-            animation-delay: 0.2s; /* Waits for doors to open slightly */
+            animation-delay: 0.2s; 
         }
         @keyframes tv-turn-on {
             0% { transform: scale(1, 0.005); opacity: 0; filter: brightness(4); }
@@ -79,6 +77,53 @@
             z-index: 3; pointer-events: none;
         }
 
+        /* --- NEW: VS BEYBLADE SHOWCASE --- */
+        #vs-p1-showcase {
+            position: absolute; left: 25%; top: 40%; transform: translate(-50%, -50%);
+            display: flex; flex-direction: column; align-items: center; z-index: 15;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        #vs-p1-showcase.active { opacity: 1; pointer-events: auto; }
+
+        /* The Outer Wrapper handles the translation */
+        #vs-p1-bey-wrapper {
+            width: 200px; height: 200px; position: relative;
+            transform: translateX(-50vw); /* Start way off screen */
+        }
+        
+        .roll-in-anim { animation: roll-in-overshoot 1s cubic-bezier(0.25, 1, 0.5, 1.2) forwards; }
+        @keyframes roll-in-overshoot {
+            0% { transform: translateX(-50vw); }
+            70% { transform: translateX(20px); } /* Slight overshoot */
+            100% { transform: translateX(0); } /* Settle in center */
+        }
+
+        /* The Inner Stack handles the spinning */
+        #vs-p1-bey-stack { width: 100%; height: 100%; filter: drop-shadow(0 20px 20px rgba(0,0,0,0.8)); }
+
+        #vs-p1-build-name {
+            margin-top: 15px; font-size: 20px; font-weight: 900; color: #ffaa00;
+            text-shadow: 2px 2px 0px #000; text-transform: uppercase; letter-spacing: 2px; text-align: center;
+        }
+
+        .cycle-btn {
+            margin-top: 10px; background: rgba(0,0,0,0.7); border: 1px solid #00ffff; color: #00ffff;
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;
+        }
+        .cycle-btn:hover { background: #00ffff; color: #000; transform: scale(1.05); box-shadow: 0 0 15px #00ffff; }
+
+        /* Spark Effect */
+        .spark-effect {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(0,255,255,0.8) 15%, transparent 60%);
+            opacity: 0; pointer-events: none; z-index: 20; mix-blend-mode: screen;
+        }
+        .spark-anim { animation: spark-flash 0.5s ease-out forwards; }
+        @keyframes spark-flash {
+            0% { transform: translate(-50%, -50%) scale(0.2) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5) rotate(45deg); opacity: 0; }
+        }
+
         /* Particles */
         .particle { position: absolute; z-index: 4; pointer-events: none; }
         .particle-h { -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%); mask-image: linear-gradient(to right, transparent 0%, black 40%, black 60%, transparent 100%); }
@@ -90,11 +135,7 @@
         /* VS Controls (Center Screen) */
         #vs-controls { position: relative; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 20px; text-shadow: 2px 2px 5px #000; }
         #vs-waiting-text { font-size: 32px; font-weight: 900; font-style: italic; color: #fff; letter-spacing: 2px; }
-        
-        #vs-close-btn { 
-            background: rgba(0,0,0,0.7); font-size: 16px; padding: 10px 30px; 
-            display: none; transition: 0.3s;
-        }
+        #vs-close-btn { background: rgba(0,0,0,0.7); font-size: 16px; padding: 10px 30px; display: none; transition: 0.3s; }
 
         /* Nameplates */
         .ui-layer { position: absolute; bottom: 50px; width: 100%; display: flex; z-index: 10; pointer-events: none; }
@@ -107,29 +148,21 @@
         .p1-nameplate .chevron { clip-path: polygon(0 0, 60% 50%, 0 100%, 40% 100%, 100% 50%, 40% 0); margin-left: -5px; }
         .p2-nameplate .chevron { clip-path: polygon(100% 0, 40% 50%, 100% 100%, 60% 100%, 0 50%, 60% 0); margin-right: -5px; }
 
-
         /* --- LOBBY LAYOUT --- */
         #lobby-wrapper {
             position: absolute; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
             display: flex; justify-content: center; align-items: stretch; padding: 20px; box-sizing: border-box; gap: 40px;
-            z-index: 20; 
-            
-            /* THE FIX: Stop the wrapper from intercepting clicks! */
-            pointer-events: none; 
+            z-index: 20; pointer-events: none; 
         }
 
         .panel {
             background: rgba(15, 20, 30, 0.85); border: 2px solid #334; border-radius: 12px;
             width: 45%; max-width: 500px; display: flex; flex-direction: column;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            
-            /* Panels accept clicks, but the wrapper doesn't */
-            pointer-events: auto; 
-            overflow: hidden; 
+            pointer-events: auto; overflow: hidden; 
             transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.6s ease;
         }
 
-        /* Sliding Doors Effect Classes */
         .slide-left { transform: translateX(-150vw) !important; opacity: 0; pointer-events: none; }
         .slide-right { transform: translateX(150vw) !important; opacity: 0; pointer-events: none; }
 
@@ -145,7 +178,6 @@
         /* --- FORM ELEMENTS --- */
         .form-group { display: flex; flex-direction: column; gap: 8px; }
         .form-group label { font-size: 14px; color: #aaa; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-        
         select, input[type="text"], input[type="password"] {
             background: #0a0a12; color: #fff; border: 1px solid #445; padding: 12px;
             border-radius: 6px; font-size: 16px; font-family: inherit; outline: none; transition: 0.2s;
@@ -155,7 +187,6 @@
 
         .toggle-row { display: flex; justify-content: space-between; align-items: center; background: #0a0a12; padding: 12px; border-radius: 6px; border: 1px solid #445; }
         .toggle-label { font-weight: bold; color: #ddd; }
-        
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334; transition: .4s; border-radius: 26px; }
@@ -166,7 +197,6 @@
         #passcode-container { display: none; animation: slideDown 0.3s ease-out forwards; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- BUTTONS --- */
         .action-btn {
             background: #223; color: #fff; border: 2px solid; padding: 15px; font-size: 20px; font-weight: 900;
             border-radius: 8px; cursor: pointer; transition: 0.2s; letter-spacing: 1px; margin-top: auto; font-family: inherit;
@@ -192,8 +222,8 @@
 
         @keyframes spin-right { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes spin-left { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
-        .bey-spin-right { animation: spin-right 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
-        .bey-spin-left { animation: spin-left 1.5s linear infinite; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8)); }
+        .bey-spin-right { animation: spin-right 1.0s linear infinite; }
+        .bey-spin-left { animation: spin-left 1.0s linear infinite; }
         .lobby-bey-stack { position: relative; width: 55px; height: 55px; flex-shrink: 0; }
         .lobby-bey-part { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
 
@@ -207,6 +237,18 @@
         <div class="top-shadow"></div>
         <div class="grid-overlay"></div>
         <div class="aura-clash"></div>
+
+        <div id="vs-p1-showcase">
+            <div id="vs-p1-spark" class="spark-effect"></div>
+            
+            <div id="vs-p1-bey-wrapper">
+                <div id="vs-p1-bey-stack" class="lobby-bey-stack" style="width:100%; height:100%;">
+                    </div>
+            </div>
+            
+            <div id="vs-p1-build-name">LOADING...</div>
+            <button class="cycle-btn" onclick="cycleVsLoadout()">⟳ CYCLE LOADOUT</button>
+        </div>
 
         <div id="vs-controls">
             <div id="vs-waiting-text">CONNECTING LOBBY...</div>
@@ -302,15 +344,109 @@
     </div>
 
     <script type="module">
-        import { rtdb } from './firebase-config.js';
+        import { rtdb, db } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
 
         let currentRoomRef = null;
         let countdownInterval = null;
-        let isVsActive = false; // Controls particle spawning
+        let isVsActive = false;
+
+        // --- GLOBAL HELPER FOR IMAGE EXTRACTION ---
+        function getSafeImage(partData, category, isTopDown = false) {
+            if (!partData) return '';
+            let partObj = partData;
+            if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
+                partObj = window.equipmentDB[category].find(p => p.id === partData) || partData;
+            }
+            let key = isTopDown ? 'topDownImage' : 'image';
+            if (partObj.activeStyle && partObj.activeStyle[key]) return partObj.activeStyle[key];
+            if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0][key]) return partObj.styles[0][key];
+            return partObj.fallbackImage || partObj[key] || '';
+        }
+
+        // --- RENDER VS BEYBLADE LOGIC ---
+        function renderVsShowcase() {
+            let saves = window.PlayerData?.saves || [];
+            let saveIndex = window.PlayerData?.featuredBuildIndex || 0;
+            let currentSave = window.ActiveBey || saves[saveIndex];
+
+            let buildData = { bb: '', sg: '', wd: '', ar: '', bc: '', spinDir: 'Right', name: 'CUSTOM BUILD' };
+
+            if (currentSave && currentSave.parts) {
+                buildData.bb = getSafeImage(currentSave.parts.bladeBase, 'bladeBases', true);
+                buildData.sg = getSafeImage(currentSave.parts.spinGear, 'spinGears', true);
+                buildData.wd = getSafeImage(currentSave.parts.weightDisk, 'weightDisks', true);
+                buildData.ar = getSafeImage(currentSave.parts.attackRing, 'attackRings', true);
+                buildData.bc = getSafeImage(currentSave.parts.bitChip, 'bitChips', true);
+                buildData.name = currentSave.name || "CUSTOM BUILD";
+                if (currentSave.parts.spinGear && currentSave.parts.spinGear.spinDirection) {
+                    buildData.spinDir = currentSave.parts.spinGear.spinDirection;
+                }
+            }
+
+            document.getElementById('vs-p1-build-name').innerText = buildData.name;
+            const stack = document.getElementById('vs-p1-bey-stack');
+            
+            const fallbackIcon = !buildData.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
+            stack.innerHTML = `
+                ${buildData.bb ? `<img src="${buildData.bb}" class="lobby-bey-part" style="z-index: 1;">` : ''}
+                ${buildData.sg ? `<img src="${buildData.sg}" class="lobby-bey-part" style="z-index: 2;">` : ''}
+                ${buildData.wd ? `<img src="${buildData.wd}" class="lobby-bey-part" style="z-index: 3;">` : ''}
+                ${buildData.ar ? `<img src="${buildData.ar}" class="lobby-bey-part" style="z-index: 4;">` : ''}
+                ${buildData.bc ? `<img src="${buildData.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
+                ${fallbackIcon}
+            `;
+            
+            stack.className = 'lobby-bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
+            return buildData;
+        }
+
+        // --- DYNAMIC CYCLE LOADOUT LOGIC ---
+        window.cycleVsLoadout = async function() {
+            let saves = window.PlayerData?.saves || [];
+            if (!saves.some(s => s && s.parts)) return;
+
+            let startingIndex = window.PlayerData.featuredBuildIndex || 0;
+            let activeSaveIndex = startingIndex;
+            do {
+                activeSaveIndex++;
+                if (activeSaveIndex >= 10) activeSaveIndex = 0;
+                if (activeSaveIndex === startingIndex) break; 
+            } while (!saves[activeSaveIndex] || !saves[activeSaveIndex].parts);
+            
+            window.PlayerData.featuredBuildIndex = activeSaveIndex;
+            window.ActiveBey = saves[activeSaveIndex]; // Update global ActiveBey
+            
+            // 1. Update UI Locally
+            let buildData = renderVsShowcase();
+            document.getElementById('vs-p1-bey-stack').style.animation = 'none'; // Keep it static since it's already centered
+            
+            // Re-trigger spark effect
+            const spark = document.getElementById('vs-p1-spark');
+            spark.classList.remove('spark-anim');
+            void spark.offsetWidth; // Reflow
+            spark.classList.add('spark-anim');
+
+            // 2. Update Firestore Permanently
+            if (window.CurrentUser && window.CurrentUser.uid) {
+                const userRef = doc(db, "users", window.CurrentUser.uid);
+                updateDoc(userRef, { featuredBuildIndex: activeSaveIndex }).catch(e => console.error("Save error:", e));
+            }
+
+            // 3. Update RTDB Room so public lobby changes instantly
+            if (currentRoomRef) {
+                try {
+                    await update(currentRoomRef, {
+                        hostBuildImages: { bb: buildData.bb, sg: buildData.sg, wd: buildData.wd, ar: buildData.ar, bc: buildData.bc },
+                        hostSpin: buildData.spinDir
+                    });
+                } catch (error) { console.error("Failed to update public lobby build:", error); }
+            }
+        };
 
         // --- THE VS PARTICLE ENGINE ---
         const divisions = 17;
@@ -404,13 +540,14 @@
             // Reset VS Screen State
             isVsActive = false;
             document.getElementById('vs-arena').classList.remove('active');
+            document.getElementById('vs-p1-showcase').classList.remove('active');
             
             const vsCloseBtn = document.getElementById('vs-close-btn');
             vsCloseBtn.style.display = 'none';
             vsCloseBtn.style.opacity = '1';
             vsCloseBtn.style.pointerEvents = 'auto';
 
-            // Clean up the Guest Nameplate just in case
+            // Clean up UI Layers
             document.getElementById('vs-p2-name').innerText = 'SEARCHING...';
             document.querySelector('.p2-nameplate').style.opacity = '0.5';
 
@@ -427,6 +564,7 @@
             else { container.style.display = 'none'; }
         };
 
+        // --- HOST MATCH LOGIC ---
         window.initializeHost = async function() {
             if (currentRoomRef) return; 
 
@@ -441,35 +579,17 @@
                 alert("Please enter a valid 4-digit passcode for your private room."); return;
             }
 
-            function getSafeImage(partData, category, isTopDown = false) {
-                if (!partData) return '';
-                let partObj = partData;
-                if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
-                    partObj = window.equipmentDB[category].find(p => p.id === partData) || partData;
-                }
-                let key = isTopDown ? 'topDownImage' : 'image';
-                if (partObj.activeStyle && partObj.activeStyle[key]) return partObj.activeStyle[key];
-                if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0][key]) return partObj.styles[0][key];
-                return partObj.fallbackImage || partObj[key] || '';
-            }
-
-            let activeBuildImages = { bb: '', sg: '', wd: '', ar: '', bc: '' };
-            let activeSpin = 'Right';
-
-            let freshSaves = window.PlayerData?.saves || new Array(10).fill(null);
-            let freshActiveSaveIndex = window.PlayerData?.featuredBuildIndex || 0;
-            let freshCurrentSave = window.ActiveBey || freshSaves[freshActiveSaveIndex];
-
-            if (freshCurrentSave && freshCurrentSave.parts) {
-                activeBuildImages.bb = getSafeImage(freshCurrentSave.parts.bladeBase, 'bladeBases', true);
-                activeBuildImages.sg = getSafeImage(freshCurrentSave.parts.spinGear, 'spinGears', true);
-                activeBuildImages.wd = getSafeImage(freshCurrentSave.parts.weightDisk, 'weightDisks', true);
-                activeBuildImages.ar = getSafeImage(freshCurrentSave.parts.attackRing, 'attackRings', true);
-                activeBuildImages.bc = getSafeImage(freshCurrentSave.parts.bitChip, 'bitChips', true);
-                if (freshCurrentSave.parts.spinGear && freshCurrentSave.parts.spinGear.spinDirection) {
-                    activeSpin = freshCurrentSave.parts.spinGear.spinDirection;
-                }
-            }
+            // Generate initial UI and get data
+            let buildData = renderVsShowcase();
+            
+            // Reset wrapper animation state for a fresh roll-in
+            const beyWrapper = document.getElementById('vs-p1-bey-wrapper');
+            const beyStack = document.getElementById('vs-p1-bey-stack');
+            const spark = document.getElementById('vs-p1-spark');
+            
+            beyWrapper.classList.remove('roll-in-anim');
+            spark.classList.remove('spark-anim');
+            beyStack.style.animation = ''; // Turn spinning back on
 
             const roomsRef = ref(rtdb, 'rooms');
             currentRoomRef = push(roomsRef); 
@@ -477,8 +597,9 @@
             const hostGlowColor = Math.random() > 0.5 ? 'host-glow-blue' : 'host-glow-red';
 
             const lobbySettings = {
-                hostUid: playerUid, hostName: playerName, hostGlow: hostGlowColor, hostBuildImages: activeBuildImages,
-                hostSpin: activeSpin, guestUid: null, guestName: null,
+                hostUid: playerUid, hostName: playerName, hostGlow: hostGlowColor, 
+                hostBuildImages: { bb: buildData.bb, sg: buildData.sg, wd: buildData.wd, ar: buildData.ar, bc: buildData.bc },
+                hostSpin: buildData.spinDir, guestUid: null, guestName: null,
                 settings: { roomName, stadiumId: stadium, battleMusic, lobbyMusic, isLocked, passcode: isLocked ? passcode : null },
                 status: "WAITING_FOR_CHALLENGER"
             };
@@ -487,27 +608,41 @@
                 await set(currentRoomRef, lobbySettings);
                 onDisconnect(currentRoomRef).remove();
 
-                // --- TRIGGER THE SLIDING DOORS & VS SCREEN ---
+                // TRIGGER THE SLIDING DOORS & VS SCREEN
                 document.getElementById('host-panel').classList.add('slide-left');
                 document.getElementById('join-panel').classList.add('slide-right');
                 
                 const vsArena = document.getElementById('vs-arena');
+                const showcase = document.getElementById('vs-p1-showcase');
                 document.getElementById('vs-p1-name').innerText = playerName;
+                
                 vsArena.classList.add('active');
+                showcase.classList.add('active');
                 
                 isVsActive = true;
                 startParticleSystem();
                 setTimeout(spawnParticle, 500); 
                 setTimeout(spawnParticle, 1000); 
 
+                // Execute the 1.5 second delayed Roll-In!
+                setTimeout(() => {
+                    beyWrapper.classList.add('roll-in-anim');
+                    
+                    // When the roll-in finishes, stop the spin and spark!
+                    beyWrapper.addEventListener('animationend', () => {
+                        beyStack.style.animation = 'none'; // Stop spinning
+                        spark.classList.add('spark-anim'); // BOOM
+                    }, { once: true });
+                    
+                }, 1500);
+
                 const waitingText = document.getElementById('vs-waiting-text');
                 waitingText.innerText = `WAITING FOR CHALLENGER...`;
 
-                // --- FIX: Countdown shifted to the Close Room Button ---
                 const vsCloseBtn = document.getElementById('vs-close-btn');
                 vsCloseBtn.style.display = 'block';
-                vsCloseBtn.style.opacity = '0.4'; // Dimmed out
-                vsCloseBtn.style.pointerEvents = 'none'; // Unclickable
+                vsCloseBtn.style.opacity = '0.4'; 
+                vsCloseBtn.style.pointerEvents = 'none'; 
 
                 let countdown = 3;
                 vsCloseBtn.innerText = `CLOSE ROOM (${countdown})`;
@@ -519,8 +654,8 @@
                     } else {
                         clearInterval(countdownInterval);
                         vsCloseBtn.innerText = `CLOSE ROOM`;
-                        vsCloseBtn.style.opacity = '1'; // Full color
-                        vsCloseBtn.style.pointerEvents = 'auto'; // Clickable!
+                        vsCloseBtn.style.opacity = '1'; 
+                        vsCloseBtn.style.pointerEvents = 'auto'; 
                     }
                 }, 1000);
 
@@ -532,8 +667,6 @@
                         document.getElementById('vs-p2-name').innerText = data.guestName;
                         document.querySelector('.p2-nameplate').style.opacity = '1';
                         waitingText.innerText = `CHALLENGER FOUND!`;
-                        
-                        // Hide the close button instantly so host can't run away during connection
                         document.getElementById('vs-close-btn').style.display = 'none';
 
                         setTimeout(() => {
@@ -551,6 +684,7 @@
             }
         };
 
+        // --- JOIN MATCH LOGIC ---
         window.promptJoin = async function(roomId, isLocked) {
             if (currentRoomRef) { alert("You cannot join a room while you are hosting one! Please close your room first."); return; }
             const specificRoomRef = ref(rtdb, `rooms/${roomId}`);
@@ -569,7 +703,6 @@
 
                 await update(specificRoomRef, { guestUid: playerUid, guestName: playerName, status: "STARTING" });
 
-                // --- SLIDE DOORS AND SHOW VS SCREEN FOR GUEST! ---
                 document.getElementById('host-panel').classList.add('slide-left');
                 document.getElementById('join-panel').classList.add('slide-right');
                 
@@ -579,7 +712,7 @@
                 document.querySelector('.p2-nameplate').style.opacity = '1';
                 
                 document.getElementById('vs-waiting-text').innerText = "LINK ESTABLISHED!";
-                document.getElementById('vs-close-btn').style.display = 'none'; // Guests can't cancel the lobby once joined
+                document.getElementById('vs-close-btn').style.display = 'none'; 
                 
                 vsArena.classList.add('active');
                 isVsActive = true;
