@@ -407,6 +407,7 @@
         import { rtdb, db } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+		import { rtcManager } from './webrtc-manager.js';
 
         let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
@@ -667,9 +668,16 @@
                     ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
                         document.getElementById(id).style.display = 'none';
                     });
+                    
                     console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
+                    
+                    // --- NEW: FIRE UP THE WEBRTC MANAGER! ---
+                    // This triggers the handshake, and webrtc-manager will automatically 
+                    // route us to arena.html the exact millisecond the connection succeeds.
+                    rtcManager.initConnection(roomId, window.ActiveMatch.role);
+                    
                     return; 
-                }
+                }}
 
                 document.getElementById('vs-p1-name').innerText = data.hostName;
                 if (data.guestName) {

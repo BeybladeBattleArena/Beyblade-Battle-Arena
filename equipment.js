@@ -83,7 +83,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Dragoon", "Cross", "Spike", "Dragon", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossDragon.png", 
-            stats: { attack: 34, defense: 9, recoil: 25, weight: 9, recoilReduction: 2 },
+            stats: { attack: 34, defense: 9, recoil: 25, weight: 10, recoilReduction: 2 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 			
@@ -451,7 +451,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Cross", "Fox", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossFox.png",  
-            stats: { attack: 30, defense: 6, recoil: 20, balance: 1, weight: 11, stamina: 1, recoilReduction: 1 },
+            stats: { attack: 30, defense: 6, recoil: 20, balance: 1, weight: 12, stamina: 1, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 			
@@ -473,7 +473,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["As", "Survivor", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
-            stats: { attack: 24, hp: 10, defense: 8, recoil: 3, balance: 1, weight: 14, mobility: 1, recoilReduction: 1 },
+            stats: { attack: 24, hp: 10, defense: 8, recoil: 3, balance: 1, weight: 15, mobility: 1, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
@@ -517,7 +517,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Burst", "Ox", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/BurstOx.png",  
-            stats: { attack: 20, hp: 15, defense: 3, endurance: 2, balance: 2, weight: 15, speed: -2, mobility: -1, recoilReduction: 3 },
+            stats: { attack: 20, hp: 15, defense: 3, endurance: 2, balance: 2, weight: 17, speed: -2, mobility: -1, recoilReduction: 3 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
@@ -530,6 +530,28 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/AR/BurstOx.png", 
                     topDownImage: "./images/beyblade_parts/AR/BurstOx.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_19", // Generalized ID
+            name: "Chainblade Wyvern", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Chainblade", "Wyvern", "Spike Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/ChainbladeWyvern.png",  
+            stats: { attack: 27, stamina: 4, balance: 1, weight: 14, mobility: 1, recoil: 19, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Spike Attack", cd: 4 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "chainblade_wyvern",
+                    styleName: "Chainblade Wyvern", 
+                    styleColorSample: "#912e2e", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/ChainbladeWyvern.png", 
+                    topDownImage: "./images/beyblade_parts/AR/ChainbladeWyvern.png" 
                 },
             ]
 },
