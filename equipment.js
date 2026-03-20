@@ -1696,6 +1696,30 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "bb_15", // Generalized ID
+            name: "Thorn Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Semi-Flat",
+            tags: ["Thorn", "Semi-Flat", "Tip", "Metal" ], 
+			fallbackImage: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png",  
+            stats: {  rpm: 100, speed: 8, defense: 1, attack: 9, grip: 21, balance: 15, mobility: 11, recoil: 1, weight: 13  },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "thornbase_red",
+                    styleName: "Thorn Base Red", 
+                    styleColorSample: "#912e2e", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/ThornBase_Red_topdown.png" 
+                },
+            ]
+},
     ],
 	launchers: [
         { 
