@@ -388,6 +388,7 @@
         
         window.AudioManager.playBGM('./audio/music/BounceAround_ForVersusLobby.wav', 6.455);
 
+        // --- GLOBAL HELPER FOR IMAGE EXTRACTION ---
         function getSafeImage(partData, category, isTopDown = false) {
             if (!partData) return '';
             let partObj = partData;
@@ -400,6 +401,7 @@
             return partObj.fallbackImage || partObj[key] || '';
         }
 
+        // --- RENDER VS BEYBLADE LOGIC ---
         function getLocalBuildData() {
             let saves = window.PlayerData?.saves || [];
             let saveIndex = window.PlayerData?.featuredBuildIndex || 0;
@@ -432,7 +434,6 @@
                 ${buildData.bc ? `<img src="${buildData.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
                 ${fallbackIcon}
             `;
-            // FIX: Changed from 'lobby-bey-stack' to 'bey-stack' to allow the 400px wrapper to properly size it!
             stack.className = 'bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
             stack.style.animation = ''; 
         }
@@ -507,9 +508,8 @@
             }
         };
 
-        // --- NEW: WEBRTC PREP - INTERCEPTING START ---
+        // --- WEBRTC PREP - INTERCEPTING START ---
         window.startMatch = async function() {
-            // Instead of jumping to the arena, we signal the WebRTC Handshake to begin!
             if (currentRoomRef) await update(currentRoomRef, { status: "ESTABLISHING_LINK" });
         };
 
@@ -523,7 +523,6 @@
             btn.style.background = isReady ? "rgba(255,170,0,0.5)" : "rgba(0,0,0,0.7)";
             document.getElementById('vs-p2-cycle-btn').style.display = isReady ? 'none' : 'block';
             
-            // FIX: Dim and disable the LEAVE ROOM button when ready!
             let leaveBtn = document.getElementById('vs-leave-btn');
             leaveBtn.style.opacity = isReady ? '0.4' : '1';
             leaveBtn.style.pointerEvents = isReady ? 'none' : 'auto';
@@ -531,7 +530,11 @@
             await update(currentRoomRef, { guestReady: isReady });
         };
 
-		window.leaveLobby = async function() {
+
+        // --- FIX: ASYNC NAVIGATION & CLEANUP ---
+        
+        // Ensure leaving waits for database updates before the browser destroys the page
+        window.leaveLobby = async function() {
             if (window.ActiveMatch?.role === 'GUEST') {
                 await window.leaveGuestLobby();
             } else {
@@ -540,45 +543,41 @@
             window.navigateTo('home-menu.html');
         };
 
-		window.leaveGuestLobby = async function() {
-            if (currentRoomRef) {
+        window.leaveGuestLobby = async function() {
+            // 1. Capture the room reference before we wipe the UI
+            const roomToLeave = currentRoomRef;
+            const disconnectRef = guestDisconnectRef;
+
+            // 2. Shut the visual doors instantly so the user doesn't feel lag
+            window.cancelLobby(); 
+            
+            // 3. Tell Firebase to safely delete the guest data in the background
+            if (roomToLeave) {
                 try {
-                    // Cancel the automatic disconnect safety net since we are leaving gracefully
-                    if (guestDisconnectRef) { 
-                        onDisconnect(guestDisconnectRef).cancel(); 
-                        guestDisconnectRef = null; 
-                    }
-                    // Tell Firebase we left
-                    await update(currentRoomRef, { 
-                        guestUid: null, 
-                        guestName: null, 
-                        guestBuildImages: null, 
-                        guestSpin: null, 
-                        guestReady: false 
+                    if (disconnectRef) { onDisconnect(disconnectRef).cancel().catch(e=>e); }
+                    await update(roomToLeave, { 
+                        guestUid: null, guestName: null, guestBuildImages: null, guestSpin: null, guestReady: null 
                     });
-                } catch(e) { 
-                    console.error("Error leaving room:", e); 
-                }
-                currentRoomRef = null;
+                } catch(e) { console.error("Error leaving room:", e); }
             }
-            window.cancelLobby(); // Now that the database is clear, run visual cleanup
         };
 
-			window.cancelLobby = async function() {
+        window.cancelLobby = async function() {
+            // Detach listeners safely
             if (roomListenerUnsubscribe) { roomListenerUnsubscribe(); roomListenerUnsubscribe = null; }
-            if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
+            if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel().catch(e=>e); guestDisconnectRef = null; }
             
-            // Await the removal so the Host doesn't leave a ghost room behind
-            if (window.ActiveMatch?.role === 'HOST' && currentRoomRef) { 
-                await remove(currentRoomRef); 
-                currentRoomRef = null; 
-            }
+            // Capture host room to delete
+            const roomToDestroy = currentRoomRef;
+            const isHost = window.ActiveMatch?.role === 'HOST';
+
+            // Reset Global Variables
+            isVsActive = false; window.ActiveMatch = null; currentRoomRef = null;
             if (countdownInterval) clearInterval(countdownInterval);
             
-            isVsActive = false; window.ActiveMatch = null;
+            // UI Reset
             document.getElementById('vs-arena').classList.remove('active');
             
-            // Total Visual Reset
             hasRolledIn = { 1: false, 2: false };
             [1, 2].forEach(p => {
                 document.getElementById(`vs-p${p}-showcase`).classList.remove('active');
@@ -601,6 +600,12 @@
             document.getElementById('host-panel').classList.remove('slide-left');
             document.getElementById('join-panel').classList.remove('slide-right');
             document.getElementById('vs-waiting-text').innerText = "CONNECTING LOBBY...";
+
+            // Securely wipe the room if the host cancelled
+            if (isHost && roomToDestroy) { 
+                try { await remove(roomToDestroy); } 
+                catch(e) { console.error("Failed to delete room:", e); }
+            }
         };
 
         window.togglePasscodeField = function() {
@@ -609,26 +614,24 @@
             if (isPrivate) { document.getElementById('host-passcode').value = ''; document.getElementById('host-passcode').focus(); } 
         };
 
+        // --- ROOM NETWORKING ---
         function attachRoomListener(roomId) {
             if (roomListenerUnsubscribe) roomListenerUnsubscribe(); 
             
             roomListenerUnsubscribe = onValue(currentRoomRef, (snapshot) => {
                 const data = snapshot.val();
                 if (!data) {
-                    if (window.ActiveMatch?.role === 'GUEST') { alert("The host closed the room."); window.cancelLobby(); }
+                    if (window.ActiveMatch?.role === 'GUEST') { alert("The host closed the room."); window.leaveLobby(); }
                     return;
                 }
 
-                // --- NEW: WEBRTC PREP CATCH ---
                 if (data.status === "ESTABLISHING_LINK") {
                     if (countdownInterval) clearInterval(countdownInterval);
                     document.getElementById('vs-waiting-text').innerText = "ESTABLISHING PEER CONNECTION...";
                     ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
                         document.getElementById(id).style.display = 'none';
                     });
-                    
                     console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
-                    // WE STOP HERE! The transition to arena.html will occur after the handshake completes.
                     return; 
                 }
 
@@ -645,14 +648,16 @@
 
                 document.getElementById('p2-ready').style.opacity = data.guestReady ? '1' : '0';
 
+                // Sync Host UI
                 if (window.ActiveMatch?.role === 'HOST') {
                     if (data.guestUid) {
                         renderRemoteShowcase(2, data.guestBuildImages, data.guestSpin, data.guestName);
                         triggerRollIn(2);
+                        
+                        // FIX: Ensure Close Room button remains visible for the host
                         document.getElementById('vs-close-btn').style.display = 'block'; 
                         document.getElementById('vs-start-btn').style.display = data.guestReady ? 'block' : 'none';
                     } else {
-                        // Clean up P2 if they leave gracefully
                         document.getElementById('vs-p2-showcase').classList.remove('active');
                         document.getElementById('vs-p2-bey-wrapper').classList.remove('roll-in-anim-p2');
                         document.getElementById('vs-p2-spark').classList.remove('spark-anim');
@@ -661,7 +666,9 @@
                         document.getElementById('vs-close-btn').style.display = 'block';
                         document.getElementById('vs-start-btn').style.display = 'none';
                     }
-                } else if (window.ActiveMatch?.role === 'GUEST') {
+                } 
+                // Sync Guest UI
+                else if (window.ActiveMatch?.role === 'GUEST') {
                     renderRemoteShowcase(1, data.hostBuildImages, data.hostSpin, data.hostName);
                     triggerRollIn(1);
                     triggerRollIn(2);
@@ -774,6 +781,7 @@
             } catch (error) { console.error("Failed to join room:", error); }
         };
 
+        // --- PARTICLE ENGINE ---
         const divisions = 17;
         function spawnParticle() {
             if (!isVsActive) return; 
@@ -819,6 +827,7 @@
             if (!isVsActive) return; spawnParticle(); setTimeout(startParticleSystem, 400 + (Math.random() * 1000));
         }
 
+        // --- PUBLIC LOBBY LIST ---
         function startRoomListener() {
             const activeRoomsContainer = document.getElementById('active-rooms-container');
             onValue(ref(rtdb, 'rooms'), (snapshot) => {
