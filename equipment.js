@@ -511,6 +511,28 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_18", // Generalized ID
+            name: "Burst Ox", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Burst", "Ox", "Heavy Ram"], 
+			fallbackImage: "./images/beyblade_parts/AR/BurstOx.png",  
+            stats: { attack: 20, hp: 15, defense: 3, endurance: 2, balance: 2, weight: 15, speed: -2, mobility: -1, recoilReduction: 3 },
+			passives: [], 
+			attacks: [{ name: "Heavy Ram", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "burst_ox",
+                    styleName: "Burst Ox", 
+                    styleColorSample: "#244875", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/BurstOx.png", 
+                    topDownImage: "./images/beyblade_parts/AR/BurstOx.png" 
+                },
+            ]
+},
     ],
 	
 	
@@ -678,6 +700,14 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/WD/EightWide_SoftEdgeMold.png", 
                     topDownImage: "./images/beyblade_parts/WD/EightWide_SoftEdgeMold.png" 
+                },
+				{ 
+                    styleId: "eight_wide_softedge_blue",
+                    styleName: "Eight Wide (Soft Edge Mold) Blue", 
+                    styleColorSample: "#244875", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/WD/EightWide_SoftEdgeMold_Blue.png", 
+                    topDownImage: "./images/beyblade_parts/WD/EightWide_SoftEdgeMold_Blue.png" 
                 },
             ]
 },
@@ -1167,6 +1197,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/SG/DualAxisSG_Left_Black_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/DualAxisSG_Left_Black_topdown.png" 
                 },
+				                { 
+                    styleId: "dualaxis_heavystampede_blue",
+                    styleName: "Dual Axis Spin Gear Blue (Heavy Stampede)", 
+                    styleColorSample: "#244875", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SG/DualAxisSG_Left_Black_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/DualAxisSG_Left_Black_topdown.png" 
+                },
             ]
 }, 
 { 
@@ -1426,6 +1464,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/BB/HeavyOrbitBase_Green_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/HeavyOrbitBase_Green_topdown.png" 
                 },
+				                { 
+                    styleId: "heavy_orbit_heavystampede_blue",
+                    styleName: "Heavy Orbit Blue (Heavy Stampede)", 
+                    styleColorSample: "#244875", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/BB/HeavyOrbitBase_HeavyStampedeBlue_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/HeavyOrbitBase_HeavyStampedeBlue_topdown.png" 
+                },
             ]
 },
 { 
@@ -1600,7 +1646,7 @@ window.equipmentDB = {
                     styleColorSample: "#299032", 
                     styleRarity: 5,
                     image: "./images/beyblade_parts/BB/PulseCore_Emerald_PhototonicCrystalversion_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/BB/PulseCore_Emerald_PhototonicCrystalversion__topdown.png" 
+                    topDownImage: "./images/beyblade_parts/BB/PulseCore_Emerald_PhototonicCrystalversion_topdown.png" 
                 },
             ]
 },
