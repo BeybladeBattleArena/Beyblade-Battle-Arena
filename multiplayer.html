@@ -403,11 +403,11 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { rtdb, db } from './firebase-config.js';
         import { ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
         import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-		import { rtcManager } from './webrtc-manager.js';
+        import { rtcManager } from './webrtc-manager.js';
 
         let playerName = window.PlayerData?.accountName || window.PlayerData?.displayName || window.CurrentUser?.displayName || "Anonymous Blader";
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
@@ -469,7 +469,6 @@
             
             stack.className = 'bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
             
-            // FIX: Prevent spin reset if it has already rolled in
             if (hasRolledIn[playerNum]) {
                 stack.style.animation = 'none'; 
             } else {
@@ -561,7 +560,6 @@
             btn.innerText = isReady ? "CANCEL READY" : "READY";
             btn.style.background = isReady ? "rgba(255,170,0,0.5)" : "rgba(0,0,0,0.7)";
             
-            // FIX: Gray out cycle button instead of hiding it
             let cycleBtn = document.getElementById('vs-p2-cycle-btn');
             cycleBtn.style.opacity = isReady ? '0.3' : '1';
             cycleBtn.style.pointerEvents = isReady ? 'none' : 'auto';
@@ -631,7 +629,6 @@
             let readyBtn = document.getElementById('vs-ready-btn');
             readyBtn.innerText = "READY"; readyBtn.style.background = "rgba(0,0,0,0.7)";
             
-            // Clean up cycle button opacity state
             let cycleBtn = document.getElementById('vs-p2-cycle-btn');
             cycleBtn.style.opacity = '1'; cycleBtn.style.pointerEvents = 'auto';
 
@@ -668,16 +665,13 @@
                     ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
                         document.getElementById(id).style.display = 'none';
                     });
-                    
                     console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
                     
-                    // --- NEW: FIRE UP THE WEBRTC MANAGER! ---
-                    // This triggers the handshake, and webrtc-manager will automatically 
-                    // route us to arena.html the exact millisecond the connection succeeds.
+                    // --- FIRE UP THE WEBRTC MANAGER! ---
                     rtcManager.initConnection(roomId, window.ActiveMatch.role);
                     
                     return; 
-                }
+                } 
 
                 document.getElementById('vs-p1-name').innerText = data.hostName;
                 if (data.guestName) {
@@ -869,9 +863,11 @@
             if (!isVsActive) return; spawnParticle(); setTimeout(startParticleSystem, 400 + (Math.random() * 1000));
         }
 
-        // --- PUBLIC LOBBY LIST ---
+        // --- PUBLIC LOBBY LIST (SAFE STRING CONCATENATION) ---
         function startRoomListener() {
+            window.refreshRoomList = startRoomListener; // Keep reference for the button
             const activeRoomsContainer = document.getElementById('active-rooms-container');
+            
             onValue(ref(rtdb, 'rooms'), (snapshot) => {
                 activeRoomsContainer.innerHTML = ''; 
                 const rooms = snapshot.val();
@@ -886,11 +882,15 @@
                         const cardDisabled = isFull ? 'disabled' : '';
                         
                         const imgs = room.hostBuildImages || {};
-                        const fallbackIcon = !imgs.ar ? `<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">` : '';
+                        const fallbackIcon = !imgs.ar ? '<img src="./images/menu_icons/AR_icon.png" class="lobby-bey-part" style="opacity: 0.5;">' : '';
 
-                        // FIX: Added the Blue Guest name to the room card!
+                        // THE FIX: Safely construct the click string without nested backticks!
+                        const clickHandler = isFull ? "" : "promptJoin('" + roomId + "', " + room.settings.isLocked + ")";
+                        const hostNameDisplay = "<span class='host-glow-red'>" + room.hostName + "</span>";
+                        const vsDisplay = isFull ? " <span style='color:#889;'>vs</span> <span class='host-glow-blue'>" + room.guestName + "</span>" : "";
+
                         activeRoomsContainer.innerHTML += `
-                            <div class="room-card ${cardDisabled}" onclick="${isFull ? '' : `promptJoin('${roomId}', ${room.settings.isLocked})`}">
+                            <div class="room-card ${cardDisabled}" onclick="${clickHandler}">
                                 <div class="room-left-section">
                                     <div class="lobby-bey-stack ${room.hostSpin === 'Left' ? 'bey-spin-left' : 'bey-spin-right'}">
                                         ${imgs.bb ? `<img src="${imgs.bb}" class="lobby-bey-part" style="z-index: 1;">` : ''}
@@ -902,7 +902,7 @@
                                     </div>
                                     <div class="room-info">
                                         <span class="room-name">${room.settings.roomName} <span class="player-count">${isFull ? '2/2' : '1/2'} Players</span></span>
-                                        <span class="room-host">Host: <span class="host-glow-red">${room.hostName}</span> ${isFull ? ` <span style="color:#889;">vs</span> <span class="host-glow-blue">${room.guestName}</span>` : ''}</span>
+                                        <span class="room-host">Host: ${hostNameDisplay}${vsDisplay}</span>
                                     </div>
                                 </div>
                                 <div class="room-status ${statusClass}">${statusText}</div>
@@ -912,5 +912,5 @@
                 });
             });
         }
-        window.refreshRoomList = startRoomListener; startRoomListener(); 
+        startRoomListener(); 
     </script>
