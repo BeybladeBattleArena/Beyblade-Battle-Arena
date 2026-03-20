@@ -531,34 +531,54 @@
             await update(currentRoomRef, { guestReady: isReady });
         };
 
-        window.leaveLobby = function() {
-            if (window.ActiveMatch?.role === 'GUEST') window.leaveGuestLobby();
-            else window.cancelLobby(); 
+		window.leaveLobby = async function() {
+            if (window.ActiveMatch?.role === 'GUEST') {
+                await window.leaveGuestLobby();
+            } else {
+                await window.cancelLobby(); 
+            }
             window.navigateTo('home-menu.html');
         };
 
-        window.leaveGuestLobby = async function() {
-            let roomToLeave = currentRoomRef;
-            window.cancelLobby(); // FIX: Call this first so the visual cleanup feels instant!
-            
-            if (roomToLeave) {
+		window.leaveGuestLobby = async function() {
+            if (currentRoomRef) {
                 try {
-                    if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
-                    await update(roomToLeave, { guestUid: null, guestName: null, guestBuildImages: null, guestSpin: null, guestReady: false });
-                } catch(e) { console.error("Error leaving room:", e); }
+                    // Cancel the automatic disconnect safety net since we are leaving gracefully
+                    if (guestDisconnectRef) { 
+                        onDisconnect(guestDisconnectRef).cancel(); 
+                        guestDisconnectRef = null; 
+                    }
+                    // Tell Firebase we left
+                    await update(currentRoomRef, { 
+                        guestUid: null, 
+                        guestName: null, 
+                        guestBuildImages: null, 
+                        guestSpin: null, 
+                        guestReady: false 
+                    });
+                } catch(e) { 
+                    console.error("Error leaving room:", e); 
+                }
+                currentRoomRef = null;
             }
+            window.cancelLobby(); // Now that the database is clear, run visual cleanup
         };
 
-        window.cancelLobby = function() {
+			window.cancelLobby = async function() {
             if (roomListenerUnsubscribe) { roomListenerUnsubscribe(); roomListenerUnsubscribe = null; }
             if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
             
-            if (window.ActiveMatch?.role === 'HOST' && currentRoomRef) { remove(currentRoomRef); currentRoomRef = null; }
+            // Await the removal so the Host doesn't leave a ghost room behind
+            if (window.ActiveMatch?.role === 'HOST' && currentRoomRef) { 
+                await remove(currentRoomRef); 
+                currentRoomRef = null; 
+            }
             if (countdownInterval) clearInterval(countdownInterval);
             
             isVsActive = false; window.ActiveMatch = null;
             document.getElementById('vs-arena').classList.remove('active');
             
+            // Total Visual Reset
             hasRolledIn = { 1: false, 2: false };
             [1, 2].forEach(p => {
                 document.getElementById(`vs-p${p}-showcase`).classList.remove('active');
