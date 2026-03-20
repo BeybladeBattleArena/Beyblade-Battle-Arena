@@ -7,8 +7,12 @@
             --p2-glow: rgba(12, 88, 224, 0.8);
         }
 
-        body {
-            margin: 0; padding: 0; overflow: hidden; background-color: #0a0a12;
+        /* --- THE FIX: Block scrollbars at the absolute highest level --- */
+        html, body {
+            margin: 0; padding: 0; 
+            width: 100%; height: 100%;
+            overflow: hidden !important; 
+            background-color: #0a0a12;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
             user-select: none; -webkit-user-select: none;
             background-image: 
@@ -54,7 +58,7 @@
         .grid-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             background-image: linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px);
-            background-size: calc(100% / 17) calc(100% / 17); z-index: 1;
+            background-size: calc(100% / 17) calc(100% / 17); z-index: 1; pointer-events: none;
         }
 
         .aura-clash {
@@ -86,10 +90,14 @@
         /* VS Controls (Center Screen) */
         #vs-controls { position: relative; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 20px; text-shadow: 2px 2px 5px #000; }
         #vs-waiting-text { font-size: 32px; font-weight: 900; font-style: italic; color: #fff; letter-spacing: 2px; }
-        #vs-close-btn { background: rgba(0,0,0,0.7); font-size: 16px; padding: 10px 30px; display: none; } /* Revealed after 3s */
+        
+        #vs-close-btn { 
+            background: rgba(0,0,0,0.7); font-size: 16px; padding: 10px 30px; 
+            display: none; transition: 0.3s;
+        }
 
         /* Nameplates */
-        .ui-layer { position: absolute; bottom: 50px; width: 100%; display: flex; z-index: 10; }
+        .ui-layer { position: absolute; bottom: 50px; width: 100%; display: flex; z-index: 10; pointer-events: none; }
         .ui-half { width: 50%; display: flex; justify-content: center; }
         .nameplate { display: flex; align-items: center; height: 45px; width: 350px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .plate-bg { flex-grow: 1; height: 100%; display: flex; align-items: center; padding: 0 20px; color: white; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
@@ -104,14 +112,20 @@
         #lobby-wrapper {
             position: absolute; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
             display: flex; justify-content: center; align-items: stretch; padding: 20px; box-sizing: border-box; gap: 40px;
-            z-index: 20; /* Sits above the VS screen initially */
+            z-index: 20; 
+            
+            /* THE FIX: Stop the wrapper from intercepting clicks! */
+            pointer-events: none; 
         }
 
         .panel {
             background: rgba(15, 20, 30, 0.85); border: 2px solid #334; border-radius: 12px;
             width: 45%; max-width: 500px; display: flex; flex-direction: column;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            overflow: hidden; pointer-events: auto;
+            
+            /* Panels accept clicks, but the wrapper doesn't */
+            pointer-events: auto; 
+            overflow: hidden; 
             transition: transform 0.6s cubic-bezier(0.8, 0, 0.2, 1), opacity 0.6s ease;
         }
 
@@ -164,7 +178,7 @@
 
         /* --- ROOM LIST UI & NEW ANIMATIONS --- */
         .room-list { display: flex; flex-direction: column; gap: 10px; }
-        .room-card { background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .room-card { background: #0a0a12; border: 1px solid #445; border-radius: 8px; padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; pointer-events: auto; }
         .room-card:hover { border-color: #ffaa00; background: #1a1a24; }
         .room-left-section { display: flex; align-items: center; gap: 15px; }
         .room-info { display: flex; flex-direction: column; gap: 5px; }
@@ -301,7 +315,7 @@
         // --- THE VS PARTICLE ENGINE ---
         const divisions = 17;
         function spawnParticle() {
-            if (!isVsActive) return; // Only spawn if screen is on!
+            if (!isVsActive) return; 
             const vsArena = document.getElementById('vs-arena');
             const screenWidth = window.innerWidth;
             const screenHeight = window.innerHeight;
@@ -387,10 +401,18 @@
             if (currentRoomRef) { remove(currentRoomRef); currentRoomRef = null; }
             if (countdownInterval) clearInterval(countdownInterval);
             
-            // Turn OFF VS Screen & Particle Engine
+            // Reset VS Screen State
             isVsActive = false;
             document.getElementById('vs-arena').classList.remove('active');
-            document.getElementById('vs-close-btn').style.display = 'none';
+            
+            const vsCloseBtn = document.getElementById('vs-close-btn');
+            vsCloseBtn.style.display = 'none';
+            vsCloseBtn.style.opacity = '1';
+            vsCloseBtn.style.pointerEvents = 'auto';
+
+            // Clean up the Guest Nameplate just in case
+            document.getElementById('vs-p2-name').innerText = 'SEARCHING...';
+            document.querySelector('.p2-nameplate').style.opacity = '0.5';
 
             // Close the Sliding Doors (Bring panels back)
             document.getElementById('host-panel').classList.remove('slide-left');
@@ -465,7 +487,7 @@
                 await set(currentRoomRef, lobbySettings);
                 onDisconnect(currentRoomRef).remove();
 
-                // --- NEW: TRIGGER THE SLIDING DOORS & VS SCREEN ---
+                // --- TRIGGER THE SLIDING DOORS & VS SCREEN ---
                 document.getElementById('host-panel').classList.add('slide-left');
                 document.getElementById('join-panel').classList.add('slide-right');
                 
@@ -479,17 +501,26 @@
                 setTimeout(spawnParticle, 1000); 
 
                 const waitingText = document.getElementById('vs-waiting-text');
+                waitingText.innerText = `WAITING FOR CHALLENGER...`;
+
+                // --- FIX: Countdown shifted to the Close Room Button ---
+                const vsCloseBtn = document.getElementById('vs-close-btn');
+                vsCloseBtn.style.display = 'block';
+                vsCloseBtn.style.opacity = '0.4'; // Dimmed out
+                vsCloseBtn.style.pointerEvents = 'none'; // Unclickable
+
                 let countdown = 3;
-                waitingText.innerText = `WAITING FOR CHALLENGER... (${countdown})`;
+                vsCloseBtn.innerText = `CLOSE ROOM (${countdown})`;
                 
                 countdownInterval = setInterval(() => {
                     countdown--;
                     if (countdown > 0) {
-                        waitingText.innerText = `WAITING FOR CHALLENGER... (${countdown})`;
+                        vsCloseBtn.innerText = `CLOSE ROOM (${countdown})`;
                     } else {
                         clearInterval(countdownInterval);
-                        waitingText.innerText = `WAITING FOR CHALLENGER...`;
-                        document.getElementById('vs-close-btn').style.display = 'block';
+                        vsCloseBtn.innerText = `CLOSE ROOM`;
+                        vsCloseBtn.style.opacity = '1'; // Full color
+                        vsCloseBtn.style.pointerEvents = 'auto'; // Clickable!
                     }
                 }, 1000);
 
@@ -501,13 +532,15 @@
                         document.getElementById('vs-p2-name').innerText = data.guestName;
                         document.querySelector('.p2-nameplate').style.opacity = '1';
                         waitingText.innerText = `CHALLENGER FOUND!`;
+                        
+                        // Hide the close button instantly so host can't run away during connection
                         document.getElementById('vs-close-btn').style.display = 'none';
 
                         setTimeout(() => {
                             if (countdownInterval) clearInterval(countdownInterval);
                             onDisconnect(currentRoomRef).cancel(); 
                             window.navigateTo('arena.html'); 
-                        }, 2000); // 2 second dramatic pause before jumping to arena
+                        }, 2000); 
                     }
                 });
 
@@ -556,7 +589,7 @@
                 
                 setTimeout(() => {
                     window.navigateTo('arena.html');
-                }, 2000); // 2 second dramatic pause before jump
+                }, 2000); 
 
             } catch (error) { console.error("Failed to join room:", error); }
         };
