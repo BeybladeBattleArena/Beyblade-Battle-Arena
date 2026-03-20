@@ -281,8 +281,9 @@
 </div>
 
 <script type="module">
-    import { db } from './firebase-config.js';
+    import { db, rtdb } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { rtcManager } from './webrtc-manager.js'; // --- WEBRTC PHASE 1 ---
 
     function safeNum(val, fallback) {
@@ -311,11 +312,22 @@
     let remoteStartRpmMod = 0.8;
 
     const playerBuild = window.ActiveBey || JSON.parse(localStorage.getItem('activeBey'));
-    let savedCpuData;
-
+    
+    // --- THE FIX: FETCH MISSING DATA ---
+    let matchData = null;
     if (isMultiplayer) {
+        matchData = window.ActiveMatch.data;
+        if (!matchData && window.ActiveMatch.roomId) {
+            // If data didn't pass through the window, fetch it directly from Firebase!
+            const snap = await get(ref(rtdb, `rooms/${window.ActiveMatch.roomId}`));
+            matchData = snap.val();
+            window.ActiveMatch.data = matchData;
+        }
+    }
+
+    let savedCpuData;
+    if (isMultiplayer && matchData) {
         // Construct a mock opponent object from the RTDB Lobby Data
-        const matchData = window.ActiveMatch.data;
         savedCpuData = {
             id: "remote_player",
             name: isHost ? matchData.guestName : matchData.hostName,
@@ -374,13 +386,13 @@
 
     let keys = { w: false, a: false, s: false, d: false, arrowup: false, arrowdown: false, arrowleft: false, arrowright: false };
     let joyX = 0, joyY = 0; let isJoystickActive = false; let mouseTarget = null;
-	let remoteJoyX = 0; let remoteJoyY = 0;
+    let remoteJoyX = 0; let remoteJoyY = 0;
 
     let activeBalloons = [];
     let balloonImg = new Image(); balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
 
-	// --- WEBRTC PHASE 2: REAL-TIME DATA SYNC ---
+    // --- WEBRTC PHASE 2: REAL-TIME DATA SYNC ---
     if (isMultiplayer && rtcManager.dataChannel) {
         rtcManager.dataChannel.onmessage = (event) => {
             let data = JSON.parse(event.data);
@@ -389,14 +401,10 @@
                 remoteLaunchReady = true; remoteLaunchData = data; remoteStartRpmMod = data.rpmMod; checkBothReady();
             }
             else if (data.type === "GUEST_INPUT" && isHost) {
-                // Host receives the Guest's joystick movements
                 remoteJoyX = data.joyX;
                 remoteJoyY = data.joyY;
             }
             else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
-                // Guest receives absolute physical truth from the Host!
-                // NOTE: To the Guest, the Host is cpuBey (P1), and the Guest is playerBey (P2).
-                
                 cpuBey.x = data.p1.x; cpuBey.y = data.p1.y; cpuBey.z = data.p1.z;
                 cpuBey.currentHp = data.p1.hp; cpuBey.currentRpm = data.p1.rpm;
                 cpuBey.rotation = data.p1.rot;
@@ -705,7 +713,7 @@
         document.getElementById('countdown-text').innerText = '';
         
         let instruction = document.getElementById('instruction-text');
-        instruction.innerText = "Tap the arena on your side to choose your launch site!";
+        instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
         instruction.style.color = "#00ffff"; instruction.style.display = "block";
         
         setupLaunchMinigame(); drawArena(); 
@@ -819,13 +827,8 @@
         currentNativePixel = ripcordData.launcherLoadTo; 
         document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
 
-        // --- WEBRTC PHASE 1: ROLE-BASED INSTRUCTIONS ---
         const instruction = document.getElementById('instruction-text');
-        if (isHost || !isMultiplayer) {
-            instruction.innerText = "Tap the arena on your side (Left 42.5%) to choose your launch site!";
-        } else if (isGuest) {
-            instruction.innerText = "Tap the arena on your side (Right 42.5%) to choose your launch site!";
-        }
+        instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
 
         if (TutorialManager.isActive && TutorialManager.phase === 0) {
             if (window.AudioManager) window.AudioManager.playBGM('./audio/music/How_To_Go_Pro_ForTutorial.wav', 5.32, 0.4); 
@@ -856,7 +859,6 @@
 
         if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") {
             
-            // Highlight the correct side of the arena
             if (!isMultiplayer || isHost) {
                 ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(0, 0, width * 0.425, height); 
             } else if (isGuest) {
@@ -864,8 +866,7 @@
             }
             
             if (!cpuLaunchSite && !TutorialManager.isActive && !isMultiplayer) {
-                let r = Math.random() * (maxRadius * 0.5); 
-                let theta = (Math.random() - 0.5) * Math.PI; 
+                let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
                 cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
             }
 
@@ -905,14 +906,13 @@
                 instruction.style.color = "#ff4444";
                 setTimeout(() => { 
                     if (gameState === "SELECT_LAUNCH") {
-                        instruction.innerText = isGuest ? "Tap the arena on your side (Right 42.5%) to choose your launch site!" : "Tap the arena on your side (Left 42.5%) to choose your launch site!"; 
+                        instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
                         instruction.style.color = "#00ffff"; 
                     }
                 }, 1500);
                 return;
             }
 
-            // --- WEBRTC PHASE 1: LAUNCH ZONE ENFORCEMENT ---
             let isLeftSide = safeX <= width * 0.425;
             let isRightSide = safeX >= width * 0.575;
             
@@ -929,11 +929,11 @@
                 instruction.style.color = "#00ffff";
                 startCountdown();
             } else {
-                instruction.innerText = `You must launch on YOUR side of the arena (${sideMessage})!`;
+                instruction.innerText = `You must launch on YOUR side of the arena!`;
                 instruction.style.color = "#ff4444";
                 setTimeout(() => { 
                     if (gameState === "SELECT_LAUNCH") {
-                        instruction.innerText = `Tap the arena on your side (${sideMessage}) to choose your launch site!`; 
+                        instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
                         instruction.style.color = "#00ffff"; 
                     }
                 }, 1500);
@@ -988,7 +988,7 @@
     function resetRoundTutorial() {
         document.getElementById('launcher-container').style.display = 'none';
         document.getElementById('countdown-text').innerText = '';
-        instruction.innerText = "Tap the arena on your side to choose your launch site!";
+        instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
         instruction.style.color = "#00ffff";
         setupLaunchMinigame(); 
         playerLaunchSite = null; cpuLaunchSite = null; 
@@ -1044,7 +1044,6 @@
             return;
         }
 
-        // --- WEBRTC PHASE 1: THE SYNC BARRIER ---
         localLaunchReady = true;
 
         if (isMultiplayer) {
@@ -1052,7 +1051,6 @@
             countText.innerText = "WAITING FOR OPPONENT...";
             countText.style.color = "#ffaa00";
 
-            // Tell the opponent we are ready to drop in!
             rtcManager.sendData({
                 type: "LAUNCH_READY",
                 rpmMod: playerStartRpmMod,
@@ -1062,7 +1060,6 @@
 
             checkBothReady();
         } else {
-            // Single Player Fallback
             setTimeout(() => {
                 overlay.style.display = 'none';
                 document.getElementById('ui-layer').style.display = 'block';
@@ -1199,7 +1196,6 @@
             
             let startRpmMod = safeNum(playerStartRpmMod, 0.8);
 
-            // --- WEBRTC PHASE 1: INJECTING OPPONENT LAUNCH DATA ---
             if (isMultiplayer && remoteLaunchData) {
                 cpuLaunchSite = { x: remoteLaunchData.x, y: remoteLaunchData.y };
             } else if (!cpuLaunchSite && !TutorialManager.isActive) {
@@ -1288,7 +1284,6 @@
                 };
             }
 
-            // In Multiplayer, assign the images directly from ActiveMatch
             if (isMultiplayer) {
                 cpuBey.images = {};
                 if (cpuData.images) {
@@ -1334,40 +1329,73 @@
     function updateDropIn(dt) {
         function dropBey(bey) {
             if (!bey || bey.isGhost || bey.isLanded) return;
-            bey.vz -= 0.05 * dt; bey.z += bey.vz * (dt * 0.05);
+            
+            bey.vz -= 0.05 * dt; 
+            bey.z += bey.vz * (dt * 0.05);
 
             let spinSpeed = (bey.currentRpm * dt) / 25000; 
+            
             if (spinSpeed > 0.8) spinSpeed = 0.8 + (spinSpeed * 0.01);
             bey.rotation += spinSpeed * bey.spinDir;
 
             if (bey.z <= 0) {
+                
                 let rawMaterial = (bey.tipType || "plastic").toLowerCase();
                 let safeMaterial = "plastic"; 
+                
                 if (rawMaterial.includes("rubber")) safeMaterial = "rubber";
                 else if (rawMaterial.includes("metal")) safeMaterial = "metal";
                 else if (rawMaterial.includes("ball") || rawMaterial.includes("bearing")) safeMaterial = "ballbearing";
                 else if (rawMaterial.includes("plastic")) safeMaterial = "plastic";
 
                 let snd = new Audio(`./audio/sounds/bounce_landing_${safeMaterial}.wav`);
+                
                 snd.volume = Math.max(0.02, 0.4 * Math.pow(0.5, bey.bounceCount)); 
-                let w = parseFloat(bey.stats.weight) || 35; let rate = 1.0;
-                if (w <= 55) rate = 1.02; else if (w <= 62) rate = 1.01; else if (w <= 69) rate = 1.0; else if (w <= 75) rate = 0.99; else rate = 0.98;
-                snd.preservesPitch = false; snd.mozPreservesPitch = false; snd.playbackRate = rate; snd.play().catch(e => {});
+                
+                let w = parseFloat(bey.stats.weight) || 35; 
+                let rate = 1.0;
+                if (w <= 55) rate = 1.02;
+                else if (w <= 62) rate = 1.01;
+                else if (w <= 69) rate = 1.0;
+                else if (w <= 75) rate = 0.99;
+                else rate = 0.98;
+
+                snd.preservesPitch = false; 
+                snd.mozPreservesPitch = false;
+                snd.playbackRate = rate;
+                snd.play().catch(e => {});
 
                 let bm = 0.4; 
-                if (safeMaterial === "rubber") bm = 0.60; else if (safeMaterial === "plastic") bm = 0.40; else if (safeMaterial === "metal" || safeMaterial === "ballbearing") bm = 0.30; 
-                if (bey.tipShape === "Flat") bm *= 0.85; if (bey.tipShape === "Sharp") bm *= 1.15; 
-                let weightFactor = Math.max(0.5, 1 - ((w - 30) / 100)); bm *= weightFactor;
+                if (safeMaterial === "rubber") bm = 0.60; 
+                else if (safeMaterial === "plastic") bm = 0.40; 
+                else if (safeMaterial === "metal" || safeMaterial === "ballbearing") bm = 0.30; 
+                
+                if (bey.tipShape === "Flat") bm *= 0.85; 
+                if (bey.tipShape === "Sharp") bm *= 1.15; 
 
-                bey.vz = Math.abs(bey.vz) * bm; bey.bounceCount++;
-                if (bey.vz < 2.0) { bey.isLanded = true; bey.z = 0; bey.vz = 0; bey.x = bey.targetX; bey.y = bey.targetY; }
+                let weightFactor = Math.max(0.5, 1 - ((w - 30) / 100)); 
+                bm *= weightFactor;
+
+                bey.vz = Math.abs(bey.vz) * bm;
+                bey.bounceCount++;
+
+                if (bey.vz < 2.0) {
+                    bey.isLanded = true;
+                    bey.z = 0;
+                    bey.vz = 0;
+                    bey.x = bey.targetX; 
+                    bey.y = bey.targetY;
+                }
             }
         }
         
-        dropBey(playerBey); dropBey(cpuBey);
+        dropBey(playerBey);
+        dropBey(cpuBey);
         
         if ((!playerBey || playerBey.isLanded) && (!cpuBey || cpuBey.isLanded)) {
-            gameState = "BATTLE"; battleStartTime = Date.now();
+            gameState = "BATTLE";
+            battleStartTime = Date.now();
+            
             if (playerBey && !playerBey.isGhost) initSpin(playerBey);
             if (cpuBey && !cpuBey.isGhost) initSpin(cpuBey);
         }
@@ -1375,11 +1403,18 @@
 
     function useSkill(index) {
         if (roundConcluding) return; 
-        let skill = activeSkills[index]; if (!skill) return;
-        if (playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance") { window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); return; }
+        let skill = activeSkills[index];
+        if (!skill) return;
+        
+        if (playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance") {
+            window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
+            return; 
+        }
         if (skill.currentCd <= 0 && window.SkillEngine) {
             window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
-            let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100); skill.currentCd = skill.baseCd * cdrMod;
+            let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100);
+            skill.currentCd = skill.baseCd * cdrMod;
+            
             playerBey.tutorialSpecialUsed = true;
         }
     }
@@ -1389,7 +1424,8 @@
         if (p1Spirit >= 100 && playerUltimate && window.SkillsDB) {
             if (window.SkillsDB.ultimates[playerUltimate.name] && window.SkillsDB.ultimates[playerUltimate.name].execute) {
                 window.SkillsDB.ultimates[playerUltimate.name].execute(playerBey, cpuBey);
-                p1Spirit = 0; playerBey.tutorialSpecialUsed = true;
+                p1Spirit = 0; 
+                playerBey.tutorialSpecialUsed = true;
             }
         }
     }
@@ -1403,51 +1439,89 @@
         document.getElementById('spirit-fill').style.width = p1Spirit + "%";
         
         const ultBtn = document.getElementById('ultimate-btn');
-        if (ultBtn) { if (p1Spirit >= 100) ultBtn.classList.add('ready'); else ultBtn.classList.remove('ready'); }
+        if (ultBtn) {
+            if (p1Spirit >= 100) ultBtn.classList.add('ready'); 
+            else ultBtn.classList.remove('ready');
+        }
 
         activeSkills.forEach((skill, i) => {
-            let btn = document.getElementById(`skill-btn-${i}`); let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
+            let btn = document.getElementById(`skill-btn-${i}`);
+            let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
             if (skill.currentCd > 0) {
                 skill.currentCd -= dt; btn.classList.add('cooldown');
                 btn.innerHTML = `${hotkeyLabel} ${skill.name}<br><span style="font-size:12px; color:#ffaa00;">${Math.ceil(skill.currentCd / 1000)}s</span>`;
-            } else { btn.classList.remove('cooldown'); btn.innerHTML = `${hotkeyLabel} ${skill.name}`; }
+            } else {
+                btn.classList.remove('cooldown'); btn.innerHTML = `${hotkeyLabel} ${skill.name}`;
+            }
         });
         
         function updateRadialHUD(bey, prefix, segments) {
             if (!bey || bey.isGhost) return;
-            const hpEl = document.getElementById(`${prefix}-hp-current`); hpEl.innerText = Math.max(0, Math.floor(bey.currentHp));
+            const hpEl = document.getElementById(`${prefix}-hp-current`);
+            hpEl.innerText = Math.max(0, Math.floor(bey.currentHp));
+            
             const hpRatio = bey.currentHp / bey.maxHp;
-            if (hpRatio <= 0.33) hpEl.style.color = '#ff4444'; else if (hpRatio <= 0.50) hpEl.style.color = '#ffaa00'; else hpEl.style.color = '#ffffff';
+            if (hpRatio <= 0.33) hpEl.style.color = '#ff4444';
+            else if (hpRatio <= 0.50) hpEl.style.color = '#ffaa00';
+            else hpEl.style.color = '#ffffff';
 
             const rpmRatio = Math.max(0, Math.min(1, bey.currentRpm / bey.maxRpm));
+            
             segments.forEach(seg => {
-                if (rpmRatio >= seg.threshold - (1/NUM_HUD_SEGMENTS/2)) { seg.element.style.opacity = '1'; seg.element.style.filter = 'drop-shadow(0 0 3px currentColor)'; } 
-                else { seg.element.style.opacity = '0.15'; seg.element.style.filter = 'none'; }
+                if (rpmRatio >= seg.threshold - (1/NUM_HUD_SEGMENTS/2)) {
+                    seg.element.style.opacity = '1';
+                    seg.element.style.filter = 'drop-shadow(0 0 3px currentColor)';
+                } else {
+                    seg.element.style.opacity = '0.15';
+                    seg.element.style.filter = 'none';
+                }
             });
 
-            const rpmTextEl = document.getElementById(`${prefix}-rpm-text`); const rpmWrapperEl = document.getElementById(`${prefix}-rpm-wrapper`);
+            const rpmTextEl = document.getElementById(`${prefix}-rpm-text`);
+            const rpmWrapperEl = document.getElementById(`${prefix}-rpm-wrapper`);
             rpmTextEl.innerText = Math.max(0, Math.floor(bey.currentRpm));
-            const currentHue = rpmRatio * 120; const currentColor = `hsl(${currentHue}, 100%, 50%)`;
-            rpmWrapperEl.style.color = currentColor; rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
+            
+            const currentHue = rpmRatio * 120;
+            const currentColor = `hsl(${currentHue}, 100%, 50%)`;
+            rpmWrapperEl.style.color = currentColor;
+            rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
         }
-        updateRadialHUD(playerBey, 'p1', p1Segments); updateRadialHUD(cpuBey, 'cpu', cpuSegments);
+
+        updateRadialHUD(playerBey, 'p1', p1Segments);
+        updateRadialHUD(cpuBey, 'cpu', cpuSegments);
     }
     
     function triggerBurst(bey, impactSpeed, dirX, dirY) {
-        bey.isBursted = true; const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
+        bey.isBursted = true;
+        const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
         partsList.forEach(partKey => {
             if (bey.images && bey.images[partKey]) {
-                let spread = (Math.random() - 0.5) * 1.5; let angle = Math.atan2(dirY, dirX) + spread; let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
-                burstParticles.push({ img: bey.images[partKey], x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: bey.rotation, rotSpeed: (Math.random() - 0.5) * 0.4, size: bey.radius * 6.5, friction: 0.92 });
+                let spread = (Math.random() - 0.5) * 1.5; 
+                let angle = Math.atan2(dirY, dirX) + spread;
+                let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
+                burstParticles.push({
+                    img: bey.images[partKey],
+                    x: bey.x, y: bey.y,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    rotation: bey.rotation,
+                    rotSpeed: (Math.random() - 0.5) * 0.4,
+                    size: bey.radius * 6.5, 
+                    friction: 0.92 
+                });
             }
         });
+        
         for(let i=0; i<30; i++) {
-            let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 8 + 4;
-            particles.push({ x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, decay: Math.random() * 0.04 + 0.02, color: '#ffffff', size: Math.random() * 4 + 2 });
+            let angle = Math.random() * Math.PI * 2;
+            let speed = Math.random() * 8 + 4;
+            particles.push({
+                x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                life: 1.0, decay: Math.random() * 0.04 + 0.02, color: '#ffffff', size: Math.random() * 4 + 2
+            });
         }
     }
 
-	function updatePhysics(dt) {
+    function updatePhysics(dt) {
         let inputX = 0; let inputY = 0;
         if (roundConcluding) { joyX = 0; joyY = 0; } else {
             if (keys.a || keys.arrowleft) inputX -= 1; if (keys.d || keys.arrowright) inputX += 1;
@@ -1461,21 +1535,16 @@
             } else if (!isJoystickActive) { joyX = 0; joyY = 0; }
         }
 
-        // --- WEBRTC PHASE 2: GUEST BAILOUT ---
-        // If you are the Guest, you do NOT calculate physics! You just send your joystick data to the Host and stop.
         if (isGuest) {
             rtcManager.sendData({ type: "GUEST_INPUT", joyX: joyX, joyY: joyY });
             return; 
         }
-
-        // --- FROM HERE DOWN, ONLY THE HOST (OR SINGLE PLAYER) RUNS THIS CODE ---
 
         if (window.SkillEngine) window.SkillEngine.update(dt, playerBey, cpuBey, joyX, joyY);
         if (cpuBey && cpuBey.activeAttacks) cpuBey.activeAttacks.forEach(atk => { if (atk.currentCd > 0) atk.currentCd -= dt; });
         if (cpuBey && matchTimerMs <= 60000) { cpuBey.spirit += (0.002 * dt) * (1 + ((cpuBey.stats.spiritCharge||0)/100)); }
         if (cpuBey) cpuBey.spirit = Math.min(100, cpuBey.spirit);
 
-        // Turn off AI if we are hosting a real human player!
         if (!isMultiplayer && cpuData.aiScript && window.SkillEngine && cpuBey && !cpuBey.isBursted && !roundConcluding && !cpuBey.isGhost) { 
             if (window.ActiveTutorial === "combat") {
                 const cx = width / 2; const cy = height / 2;
@@ -1546,14 +1615,11 @@
 
             if (bey.currentRpm > 0) {
                 
-                // --- THE MULTIPLAYER CONTROL ROUTER ---
                 let controlX = 0; let controlY = 0; let hasInput = false;
 
                 if (isPlayer) {
-                    // This is the Host controlling P1 (or Single Player P1)
                     controlX = joyX; controlY = joyY; hasInput = (joyX !== 0 || joyY !== 0);
                 } else if (isHost) {
-                    // This is the Host applying the Guest's networked joystick to P2
                     controlX = remoteJoyX; controlY = remoteJoyY; hasInput = (remoteJoyX !== 0 || remoteJoyY !== 0);
                 }
 
@@ -1568,7 +1634,6 @@
                     let finalDist = Math.max(0.01, Math.sqrt(finalDirX**2 + finalDirY**2));
                     accelX = (finalDirX / finalDist) * moveSpeed; accelY = (finalDirY / finalDist) * moveSpeed;
                 } else {
-                    // Fallback to Single Player AI if we are NOT in multiplayer
                     let dx = playerBey.x - bey.x; let dy = playerBey.y - bey.y; let d = Math.max(1, Math.sqrt(dx*dx + dy*dy)); accelX = (dx / d) * moveSpeed; accelY = (dy / d) * moveSpeed;
                 }
                 
@@ -1673,7 +1738,6 @@
             if (cpuBey && !cpuBey.ringOut) { cpuBey.currentHp = cpuBey.maxHp; cpuBey.currentRpm = cpuBey.maxRpm; }
         }
 
-        // --- WEBRTC PHASE 2: HOST BROADCASTS THE ABSOLUTE TRUTH TO THE GUEST ---
         if (isHost && gameState === "BATTLE") {
             rtcManager.sendData({
                 type: "STATE_SYNC",
@@ -1865,8 +1929,7 @@
         let instruction = document.getElementById('instruction-text');
         
         // --- WEBRTC PHASE 1: ROUND RESET FIX ---
-        if (isHost || !isMultiplayer) { instruction.innerText = "Tap the arena on your side (Left 42.5%) to choose your launch site!"; } 
-        else { instruction.innerText = "Tap the arena on your side (Right 42.5%) to choose your launch site!"; }
+        instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
         
         setupLaunchMinigame(); playerLaunchSite = null; cpuLaunchSite = null; gameState = "SELECT_LAUNCH";
         
