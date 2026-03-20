@@ -311,7 +311,9 @@
     let remoteLaunchData = null;
     let remoteStartRpmMod = 0.8;
 
-    const playerBuild = window.ActiveBey || JSON.parse(localStorage.getItem('activeBey'));
+    let _saves = window.PlayerData?.saves || [];
+    let _saveIndex = window.PlayerData?.featuredBuildIndex || 0;
+    const playerBuild = window.ActiveBey || _saves[_saveIndex] || JSON.parse(localStorage.getItem('activeBey'));
     
     // --- THE FIX: FETCH MISSING DATA ---
     let matchData = null;

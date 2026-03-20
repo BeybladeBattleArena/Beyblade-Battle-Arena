@@ -826,6 +826,7 @@
         function spawnParticle() {
             if (!isVsActive) return; 
             const vsArena = document.getElementById('vs-arena');
+			if (!vsArena) { isVsActive = false; return; } 
             const particle = document.createElement('div');
             const core = document.createElement('div'); core.classList.add('particle-core'); particle.appendChild(core);
             
