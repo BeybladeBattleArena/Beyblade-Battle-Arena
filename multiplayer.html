@@ -356,6 +356,10 @@
         let currentRoomRef = null;
         let countdownInterval = null;
         let isVsActive = false;
+		
+		// --- BGM AUDIO SETUP ---
+		// Cue the shell's audio manager to play the song and loop it at 6 seconds!
+		window.AudioManager.playBGM('./audio/music/BounceAround_ForVersusLobby.wav', 6.455);
 
         // --- GLOBAL HELPER FOR IMAGE EXTRACTION ---
         function getSafeImage(partData, category, isTopDown = false) {

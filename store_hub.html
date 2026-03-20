@@ -196,6 +196,11 @@
     </div>
 
     <script type="module">
+	
+	// --- BGM AUDIO SETUP ---
+    // Cue the shell's audio manager to play the song and loop it at 8 seconds!
+    window.AudioManager.playBGM('./audio/music/BillionsAndBillions_ForShops.wav', 8.561);
+	
         // Basic initialization to grab the player's currency
         function initExchange() {
             let playerBP = 0;
