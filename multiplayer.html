@@ -35,7 +35,8 @@
 
         /* --- VERSUS SCREEN LAYER --- */
         #vs-arena {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            /* THE FIX: Changed to 100% and added overflow: hidden to clip the particle lasers! */
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden;
             background: linear-gradient(to right, var(--p1-color) 0%, var(--p1-color) calc(50% - 6.5px), var(--mid-color) 50%, var(--p2-color) calc(50% + 6.5px), var(--p2-color) 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 10; opacity: 0; pointer-events: none; transform: scale(1, 0.005); filter: brightness(3);
@@ -87,15 +88,15 @@
 
         /* The Outer Wrapper handles the translation */
         #vs-p1-bey-wrapper {
-            width: 200px; height: 200px; position: relative;
-            transform: translateX(-50vw); /* Start way off screen */
+            width: 400px; height: 400px; position: relative;
+            transform: translateX(-50vw); 
         }
         
         .roll-in-anim { animation: roll-in-overshoot 1s cubic-bezier(0.25, 1, 0.5, 1.2) forwards; }
         @keyframes roll-in-overshoot {
             0% { transform: translateX(-50vw); }
-            70% { transform: translateX(20px); } /* Slight overshoot */
-            100% { transform: translateX(0); } /* Settle in center */
+            70% { transform: translateX(20px); } 
+            100% { transform: translateX(0); } 
         }
 
         /* The Inner Stack handles the spinning */
@@ -115,7 +116,7 @@
         /* Spark Effect */
         .spark-effect {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(0,255,255,0.8) 15%, transparent 60%);
+            width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(0,255,255,0.8) 15%, transparent 60%);
             opacity: 0; pointer-events: none; z-index: 20; mix-blend-mode: screen;
         }
         .spark-anim { animation: spark-flash 0.5s ease-out forwards; }
@@ -150,9 +151,10 @@
 
         /* --- LOBBY LAYOUT --- */
         #lobby-wrapper {
+            /* THE FIX: Added overflow: hidden to cleanly snip off the sliding panels */
             position: absolute; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
             display: flex; justify-content: center; align-items: stretch; padding: 20px; box-sizing: border-box; gap: 40px;
-            z-index: 20; pointer-events: none; 
+            z-index: 20; pointer-events: none; overflow: hidden;
         }
 
         .panel {
