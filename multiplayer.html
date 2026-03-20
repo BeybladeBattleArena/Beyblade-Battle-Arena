@@ -381,15 +381,13 @@
         let playerUid = window.CurrentUser?.uid || Math.random().toString(36).substring(2, 9);
 
         let currentRoomRef = null;
-        let guestDisconnectRef = null; // NEW: Safely handles guest network drops
-        let roomListenerUnsubscribe = null; // NEW: Cleans up the listener when leaving
+        let guestDisconnectRef = null;
+        let roomListenerUnsubscribe = null;
         let countdownInterval = null;
         let isVsActive = false;
         
-        // --- BGM AUDIO SETUP ---
         window.AudioManager.playBGM('./audio/music/BounceAround_ForVersusLobby.wav', 6.455);
 
-        // --- GLOBAL HELPER FOR IMAGE EXTRACTION ---
         function getSafeImage(partData, category, isTopDown = false) {
             if (!partData) return '';
             let partObj = partData;
@@ -402,7 +400,6 @@
             return partObj.fallbackImage || partObj[key] || '';
         }
 
-        // --- RENDER VS BEYBLADE LOGIC ---
         function getLocalBuildData() {
             let saves = window.PlayerData?.saves || [];
             let saveIndex = window.PlayerData?.featuredBuildIndex || 0;
@@ -435,8 +432,9 @@
                 ${buildData.bc ? `<img src="${buildData.bc}" class="lobby-bey-part" style="z-index: 5;">` : ''}
                 ${fallbackIcon}
             `;
-            stack.className = 'lobby-bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
-            stack.style.animation = ''; // Ensure spinning is active
+            // FIX: Changed from 'lobby-bey-stack' to 'bey-stack' to allow the 400px wrapper to properly size it!
+            stack.className = 'bey-stack ' + (buildData.spinDir === 'Left' ? 'bey-spin-left' : 'bey-spin-right');
+            stack.style.animation = ''; 
         }
 
         function renderLocalShowcase(playerNum) {
@@ -450,7 +448,6 @@
             applyShowcaseUI(playerNum, buildData);
         }
 
-        // The Cinematic Roll-in
         let hasRolledIn = { 1: false, 2: false };
         function triggerRollIn(playerNum) {
             if (hasRolledIn[playerNum]) return;
@@ -466,15 +463,14 @@
                 wrapper.classList.add(playerNum === 1 ? 'roll-in-anim' : 'roll-in-anim-p2');
                 
                 wrapper.addEventListener('animationend', () => {
-                    stack.style.animation = 'none'; // Stop spinning
-                    spark.classList.add('spark-anim'); // Spark!
+                    stack.style.animation = 'none'; 
+                    spark.classList.add('spark-anim'); 
                 }, { once: true });
             }, 1500);
         }
 
-        // --- CYCLE LOADOUT ---
         window.cycleVsLoadout = async function() {
-            if (window.ActiveMatch?.guestReady) return; // Locked out if ready!
+            if (window.ActiveMatch?.guestReady) return; 
 
             let saves = window.PlayerData?.saves || [];
             if (!saves.some(s => s && s.parts)) return;
@@ -488,9 +484,8 @@
             } while (!saves[activeSaveIndex] || !saves[activeSaveIndex].parts);
             
             window.PlayerData.featuredBuildIndex = activeSaveIndex;
-            window.ActiveBey = saves[activeSaveIndex]; // Update global ActiveBey
+            window.ActiveBey = saves[activeSaveIndex]; 
             
-            // Render locally instantly
             let playerNum = window.ActiveMatch?.role === 'GUEST' ? 2 : 1;
             let buildData = renderLocalShowcase(playerNum);
             
@@ -512,25 +507,30 @@
             }
         };
 
-        // --- VS SCREEN BUTTON LOGIC ---
+        // --- NEW: WEBRTC PREP - INTERCEPTING START ---
         window.startMatch = async function() {
-            if (currentRoomRef) await update(currentRoomRef, { status: "STARTING" });
+            // Instead of jumping to the arena, we signal the WebRTC Handshake to begin!
+            if (currentRoomRef) await update(currentRoomRef, { status: "ESTABLISHING_LINK" });
         };
 
         window.toggleReady = async function() {
             if (!currentRoomRef) return;
             let isReady = !window.ActiveMatch.guestReady;
-            window.ActiveMatch.guestReady = isReady; // Local toggle
+            window.ActiveMatch.guestReady = isReady; 
 
             let btn = document.getElementById('vs-ready-btn');
             btn.innerText = isReady ? "CANCEL READY" : "READY";
             btn.style.background = isReady ? "rgba(255,170,0,0.5)" : "rgba(0,0,0,0.7)";
             document.getElementById('vs-p2-cycle-btn').style.display = isReady ? 'none' : 'block';
             
+            // FIX: Dim and disable the LEAVE ROOM button when ready!
+            let leaveBtn = document.getElementById('vs-leave-btn');
+            leaveBtn.style.opacity = isReady ? '0.4' : '1';
+            leaveBtn.style.pointerEvents = isReady ? 'none' : 'auto';
+
             await update(currentRoomRef, { guestReady: isReady });
         };
 
-        // --- NAVIGATION & CLEANUP ---
         window.leaveLobby = function() {
             if (window.ActiveMatch?.role === 'GUEST') window.leaveGuestLobby();
             else window.cancelLobby(); 
@@ -538,17 +538,18 @@
         };
 
         window.leaveGuestLobby = async function() {
-            if (currentRoomRef) {
-                // Safely kill the automatic disconnect handler since we are manually leaving
-                if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
-                await update(currentRoomRef, { guestUid: null, guestName: null, guestBuildImages: null, guestSpin: null, guestReady: false });
-                currentRoomRef = null;
+            let roomToLeave = currentRoomRef;
+            window.cancelLobby(); // FIX: Call this first so the visual cleanup feels instant!
+            
+            if (roomToLeave) {
+                try {
+                    if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
+                    await update(roomToLeave, { guestUid: null, guestName: null, guestBuildImages: null, guestSpin: null, guestReady: false });
+                } catch(e) { console.error("Error leaving room:", e); }
             }
-            window.cancelLobby(); // Visual cleanup
-        }
+        };
 
         window.cancelLobby = function() {
-            // Unsubscribe from database updates to prevent ghost interactions
             if (roomListenerUnsubscribe) { roomListenerUnsubscribe(); roomListenerUnsubscribe = null; }
             if (guestDisconnectRef) { onDisconnect(guestDisconnectRef).cancel(); guestDisconnectRef = null; }
             
@@ -558,7 +559,6 @@
             isVsActive = false; window.ActiveMatch = null;
             document.getElementById('vs-arena').classList.remove('active');
             
-            // Total Visual Reset
             hasRolledIn = { 1: false, 2: false };
             [1, 2].forEach(p => {
                 document.getElementById(`vs-p${p}-showcase`).classList.remove('active');
@@ -566,14 +566,21 @@
                 document.getElementById(`vs-p${p}-spark`).classList.remove('spark-anim');
             });
             
-            ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => document.getElementById(id).style.display = 'none');
+            ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
+                let el = document.getElementById(id);
+                el.style.display = 'none'; el.style.opacity = '1'; el.style.pointerEvents = 'auto';
+            });
 
             document.getElementById('vs-p2-name').innerText = 'SEARCHING...';
             document.querySelector('.p2-nameplate').style.opacity = '0.5';
             document.getElementById('p2-ready').style.opacity = '0';
+            
+            let readyBtn = document.getElementById('vs-ready-btn');
+            readyBtn.innerText = "READY"; readyBtn.style.background = "rgba(0,0,0,0.7)";
 
             document.getElementById('host-panel').classList.remove('slide-left');
             document.getElementById('join-panel').classList.remove('slide-right');
+            document.getElementById('vs-waiting-text').innerText = "CONNECTING LOBBY...";
         };
 
         window.togglePasscodeField = function() {
@@ -582,9 +589,8 @@
             if (isPrivate) { document.getElementById('host-passcode').value = ''; document.getElementById('host-passcode').focus(); } 
         };
 
-        // --- ROOM NETWORKING ---
         function attachRoomListener(roomId) {
-            if (roomListenerUnsubscribe) roomListenerUnsubscribe(); // Clean up just in case
+            if (roomListenerUnsubscribe) roomListenerUnsubscribe(); 
             
             roomListenerUnsubscribe = onValue(currentRoomRef, (snapshot) => {
                 const data = snapshot.val();
@@ -593,48 +599,49 @@
                     return;
                 }
 
-                // Both players jump to arena if host clicks start
-                if (data.status === "STARTING") {
+                // --- NEW: WEBRTC PREP CATCH ---
+                if (data.status === "ESTABLISHING_LINK") {
                     if (countdownInterval) clearInterval(countdownInterval);
-                    if (guestDisconnectRef) onDisconnect(guestDisconnectRef).cancel();
-                    if (window.ActiveMatch?.role === 'HOST') onDisconnect(currentRoomRef).cancel();
+                    document.getElementById('vs-waiting-text').innerText = "ESTABLISHING PEER CONNECTION...";
+                    ['vs-close-btn', 'vs-start-btn', 'vs-ready-btn', 'vs-leave-btn'].forEach(id => {
+                        document.getElementById(id).style.display = 'none';
+                    });
                     
-                    window.navigateTo('arena.html'); 
-                    return;
+                    console.log("READY FOR WEBRTC STUN/TURN HANDSHAKE!");
+                    // WE STOP HERE! The transition to arena.html will occur after the handshake completes.
+                    return; 
                 }
 
-                // Sync Nameplates
                 document.getElementById('vs-p1-name').innerText = data.hostName;
                 if (data.guestName) {
                     document.getElementById('vs-p2-name').innerText = data.guestName;
                     document.querySelector('.p2-nameplate').style.opacity = '1';
-                    document.getElementById('vs-waiting-text').innerText = "CHALLENGER FOUND!";
+                    document.getElementById('vs-waiting-text').innerText = data.guestReady ? "CHALLENGER READY!" : "CHALLENGER JOINED!";
                 } else {
                     document.getElementById('vs-p2-name').innerText = "SEARCHING...";
                     document.querySelector('.p2-nameplate').style.opacity = '0.5';
                     document.getElementById('vs-waiting-text').innerText = "WAITING FOR CHALLENGER...";
                 }
 
-                // Sync Ready Status
                 document.getElementById('p2-ready').style.opacity = data.guestReady ? '1' : '0';
 
-                // Sync Host UI
                 if (window.ActiveMatch?.role === 'HOST') {
                     if (data.guestUid) {
                         renderRemoteShowcase(2, data.guestBuildImages, data.guestSpin, data.guestName);
                         triggerRollIn(2);
-                        document.getElementById('vs-close-btn').style.display = 'block'; // FIX: Don't hide the close button!
+                        document.getElementById('vs-close-btn').style.display = 'block'; 
                         document.getElementById('vs-start-btn').style.display = data.guestReady ? 'block' : 'none';
                     } else {
-                        // Guest Left
+                        // Clean up P2 if they leave gracefully
                         document.getElementById('vs-p2-showcase').classList.remove('active');
+                        document.getElementById('vs-p2-bey-wrapper').classList.remove('roll-in-anim-p2');
+                        document.getElementById('vs-p2-spark').classList.remove('spark-anim');
                         hasRolledIn[2] = false;
+                        
                         document.getElementById('vs-close-btn').style.display = 'block';
                         document.getElementById('vs-start-btn').style.display = 'none';
                     }
-                } 
-                // Sync Guest UI
-                else if (window.ActiveMatch?.role === 'GUEST') {
+                } else if (window.ActiveMatch?.role === 'GUEST') {
                     renderRemoteShowcase(1, data.hostBuildImages, data.hostSpin, data.hostName);
                     triggerRollIn(1);
                     triggerRollIn(2);
@@ -642,7 +649,6 @@
             });
         }
 
-        // --- MATCH INITIALIZATION ---
         window.initializeHost = async function() {
             if (currentRoomRef) return; 
 
@@ -699,7 +705,7 @@
                     }
                 }, 1000);
 
-                attachRoomListener(roomId); // Only standard listener now!
+                attachRoomListener(roomId); 
             } catch (error) { console.error("Failed to host room:", error); currentRoomRef = null; }
         };
 
@@ -729,7 +735,7 @@
                 
                 currentRoomRef = specificRoomRef;
                 guestDisconnectRef = ref(rtdb, `rooms/${roomId}/guestUid`);
-                onDisconnect(guestDisconnectRef).set(null); // Clear slot if guest closes tab
+                onDisconnect(guestDisconnectRef).set(null); 
 
                 document.getElementById('host-panel').classList.add('slide-left');
                 document.getElementById('join-panel').classList.add('slide-right');
@@ -743,12 +749,11 @@
                 
                 isVsActive = true;
                 startParticleSystem();
-                attachRoomListener(roomId); // Only standard listener now!
+                attachRoomListener(roomId); 
 
             } catch (error) { console.error("Failed to join room:", error); }
         };
 
-        // --- PARTICLE ENGINE ---
         const divisions = 17;
         function spawnParticle() {
             if (!isVsActive) return; 
@@ -794,7 +799,6 @@
             if (!isVsActive) return; spawnParticle(); setTimeout(startParticleSystem, 400 + (Math.random() * 1000));
         }
 
-        // --- PUBLIC LOBBY LIST ---
         function startRoomListener() {
             const activeRoomsContainer = document.getElementById('active-rooms-container');
             onValue(ref(rtdb, 'rooms'), (snapshot) => {
