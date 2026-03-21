@@ -637,7 +637,6 @@
                     if (launchSyncInterval) clearInterval(launchSyncInterval);
                     gameState = "STARTING_MULTIPLAYER"; // Lock to prevent double triggering
                     
-                    const countText = document.getElementById('countdown-text');
                     countText.innerText = "LET IT RIP!";
                     countText.style.color = "#00ff00";
 
@@ -723,7 +722,6 @@
 
             function startCountdown() {
                 let count = 3; 
-                const countText = document.getElementById('countdown-text');
                 countText.innerText = "3...";
                 
                 let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
@@ -767,7 +765,6 @@
                     window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
                 }
 
-                const countText = document.getElementById('countdown-text');
 
                 if (missed) {
                     playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
