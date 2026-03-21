@@ -918,4 +918,24 @@
             });
         }
         startRoomListener(); 
+                
+                // --- THE POST-MATCH RETURN CATCHER ---
+                if (localStorage.getItem('returningToLobby') === 'true') {
+                    localStorage.removeItem('returningToLobby'); // Consume the flag
+                    if (window.ActiveMatch && window.ActiveMatch.roomId) {
+                        document.getElementById('host-panel').classList.add('slide-left');
+                        document.getElementById('join-panel').classList.add('slide-right');
+                        document.getElementById('vs-arena').classList.add('active');
+                        
+                        document.getElementById('vs-p1-showcase').classList.add('active');
+                        document.getElementById('vs-p2-showcase').classList.add('active');
+                        
+                        window.ActiveMatch.guestReady = false; 
+                        let readyBtn = document.getElementById('vs-ready-btn');
+                        if(readyBtn) {
+                            readyBtn.innerText = "READY"; 
+                            readyBtn.style.background = "rgba(0,0,0,0.7)";
+                        }
+                    }
+                } 
     </script>
