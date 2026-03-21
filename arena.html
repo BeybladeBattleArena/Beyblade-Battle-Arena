@@ -286,13 +286,17 @@
     import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { rtcManager } from './webrtc-manager.js';
 
+    // --- WRAP ENTIRE SCRIPT IN AN IIFE TO BYPASS SPA PARSING BUGS ---
     (async function() {
         try {
-            // ==========================================
-            // 1. GLOBAL VARIABLES & STATE
-            // ==========================================
+            function safeNum(val, fallback) {
+                let num = parseFloat(val);
+                return !isNaN(num) ? num : fallback;
+            }
+
             let matchStats = { playerScore: 0, cpuScore: 0, totalDamageDealt: 0, totalTimeElapsed: 0, roundsPlayed: 0, turnaboutsAchieved: 0, perfectRounds: 0, ultimateFinishes: 0 };
 
+            // --- MULTIPLAYER STATE SETUP ---
             let isMultiplayer = window.ActiveMatch !== undefined && window.ActiveMatch !== null;
             let isHost = isMultiplayer && window.ActiveMatch.role === 'HOST';
             let isGuest = isMultiplayer && window.ActiveMatch.role === 'GUEST';
@@ -313,12 +317,20 @@
             let cpuData = null;
             let arenaStyle = 1;
 
+            // --- LOCAL GLOBALS ---
             let playerBey = null; 
             let cpuBey = null; 
             let lastTime = null; 
-            let particles = []; let burstParticles = []; 
-            let p1Segments = []; let cpuSegments = [];
+            let particles = []; 
+            let burstParticles = []; 
+            let p1Segments = []; 
+            let cpuSegments = [];
             const NUM_HUD_SEGMENTS = 36; 
+
+            window.stopArenaAudio = function() {
+                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
+                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
+            };
 
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
@@ -354,71 +366,10 @@
             let activeBalloons = [];
             let balloonImg = new Image(); balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
-            const windSpriteSize = 300;
-            const windSprite = document.createElement('canvas'); windSprite.width = windSpriteSize; windSprite.height = windSpriteSize;
-            const wCtx = windSprite.getContext('2d'); const wCenter = windSpriteSize / 2; const wBaseRadius = 100;
-            const wSegments = 20; const wStep = (Math.PI * 1.5) / wSegments; 
-            for (let i = 0; i < wSegments; i++) {
-                let a1 = i * wStep; let a2 = (i + 1) * wStep + 0.1; let alpha = Math.sin((i / (wSegments - 1)) * Math.PI);
-                wCtx.beginPath(); wCtx.arc(wCenter, wCenter, wBaseRadius, a1, a2);
-                wCtx.strokeStyle = `rgba(210, 240, 255, ${alpha})`; wCtx.lineWidth = 2; wCtx.lineCap = "round";
-                wCtx.shadowBlur = 4; wCtx.shadowColor = "rgba(210, 240, 255, 0.8)"; wCtx.stroke();
-            }
-
-
             // ==========================================
-            // 2. CORE UTILITY FUNCTIONS
+            // TUTORIAL MANAGER 
             // ==========================================
-
-            function safeNum(val, fallback) {
-                let num = parseFloat(val);
-                return !isNaN(num) ? num : fallback;
-            }
-            
-            window.stopArenaAudio = function() {
-                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
-            };
-
-            function resolveImageUrl(partData, category) {
-                if (!partData) return '';
-                let partObj = partData;
-                if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
-                    partObj = window.equipmentDB[category].find(p => p.id === partData);
-                }
-                if (!partObj) return '';
-                if (partObj.activeStyle && partObj.activeStyle.topDownImage) return partObj.activeStyle.topDownImage;
-                if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0].topDownImage) return partObj.styles[0].topDownImage;
-                return partObj.topDownImage || partObj.fallbackImage || partObj.image || '';
-            }
-
-            function resolvePartImageObj(partData, category) {
-                let url = resolveImageUrl(partData, category);
-                if (url) { let img = new Image(); img.src = url; return img; }
-                return null;
-            }
-
-            function generateWindStreaks() {
-                let streaks = [];
-                for (let i = 0; i < 20; i++) {
-                    streaks.push({ radiusScale: (30 + Math.random() * 50) / wBaseRadius, angle: Math.random() * Math.PI * 2, speed: 0.12 + Math.random() * 0.15, maxAlpha: 0.05 + Math.random() * 0.07, wobbleSpeed: Math.random() * 0.1, wobbleOffset: Math.random() * Math.PI * 2 });
-                }
-                return streaks;
-            }
-            
-            function initSpin(bey) {
-                if (!bey || bey.isBursted || bey.isGhost || bey.spinSFX) return;
-                bey.spinSFX = new Audio('./audio/sounds/bey_spin.wav');
-                bey.spinSFX.volume = 0.15; 
-                bey.spinSFX.play().catch(e => console.log("Spin SFX blocked:", e));
-                bey.spinSFX.addEventListener('ended', () => { bey.spinSFX.currentTime = 0.20382; bey.spinSFX.play().catch(e => console.log(e)); });
-            }
-
-
-            // ==========================================
-            // 3. TUTORIAL MANAGER
-            // ==========================================
-            window.TutorialManager = {
+            const TutorialManager = {
                 isActive: window.ActiveTutorial === "basics" || window.ActiveTutorial === "combat",
                 tutorialType: window.ActiveTutorial,
                 phase: 0, launches: 0, accAngle: 0, lastAngle: null,
@@ -680,32 +631,10 @@
                 }
             };
             
-            // Expose globally for HTML onclick events
-            window.TutorialManager.advanceVN = function() { window.TutorialManager.advanceVN(); };
-
-            function triggerTutorialRelaunch() {
-                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
-
-                gameState = "SELECT_LAUNCH"; playerLaunchSite = null; burstParticles = [];
-                
-                playerBey.isLanded = false; playerBey.z = 300; playerBey.vz = 0;
-                playerBey.currentHp = playerBey.maxHp; playerBey.ringOut = false;
-
-                document.getElementById('ui-layer').style.display = 'none';
-                document.getElementById('minigame-overlay').style.display = 'flex';
-                document.getElementById('launcher-container').style.display = 'none';
-                document.getElementById('countdown-text').innerText = '';
-                
-                let instruction = document.getElementById('instruction-text');
-                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
-                instruction.style.color = "#00ffff"; instruction.style.display = "block";
-                
-                setupLaunchMinigame(); drawArena(); 
-            }
+            window.TutorialManager = TutorialManager; // Expose for HTML onclick
 
             // ==========================================
-            // 4. MAIN ENGINE LOGIC
+            // NETWORKING & SYNC
             // ==========================================
 
             function checkBothReady() {
@@ -793,11 +722,14 @@
                 }
             }
 
+            // ==========================================
+            // GLOBAL SKILL EXPOSURE FOR HTML BUTTONS
+            // ==========================================
             window.useSkill = function(index) {
                 if (roundConcluding) return; 
                 let skill = activeSkills[index]; if (!skill) return;
 
-                let isAerialCombo = (playerBey.skillState && playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance");
+                let isAerialCombo = (playerBey && playerBey.skillState && playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance");
 
                 if (isAerialCombo || skill.currentCd <= 0) {
                     if (!isAerialCombo) {
@@ -826,9 +758,134 @@
                 }
             };
 
+            // ==========================================
+            // INITIALIZATION LOGIC (MISSING IN PREVIOUS ITERATION)
+            // ==========================================
+            function finalizeArenaSetup() {
+                if (!playerBuild || !savedCpuData) {
+                    window.navigateTo('home-menu.html');
+                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
+                }
+
+                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+
+                document.getElementById('top-info-bar').style.display = 'none';
+
+                window.addEventListener('resize', () => {
+                    width = window.innerWidth; height = window.innerHeight;
+                    canvas.width = width; canvas.height = height;
+                    if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
+                });
+
+                setupLaunchMinigame();
+                drawArena();
+            }
+
+            // ==========================================
+            // EVENT LISTENERS
+            // ==========================================
+            const overlay = document.getElementById('minigame-overlay');
+            const instruction = document.getElementById('instruction-text');
+            const countText = document.getElementById('countdown-text');
+            const launcherUI = document.getElementById('launcher-container');
+
+            overlay.addEventListener('pointerdown', (e) => {
+                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
+
+                if (gameState === "SELECT_LAUNCH") {
+                    const cx = width / 2; const cy = height / 2;
+                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
+                    
+                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
+                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
+
+                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
+                    
+                    if (dist > maxRadius * 0.85) {
+                        instruction.innerText = "Aim closer to the inside of the stadium!";
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                        return;
+                    }
+
+                    let isLeftSide = safeX <= width * 0.425;
+                    let isRightSide = safeX >= width * 0.575;
+                    
+                    let validSide = false;
+                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
+                    else if (isGuest) { validSide = isRightSide; }
+
+                    if (validSide) {
+                        playerLaunchSite = { x: safeX, y: safeY };
+                        gameState = "COUNTDOWN";
+                        drawArena(); 
+                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
+                        instruction.style.color = "#00ffff";
+                        startCountdown();
+                    } else {
+                        instruction.innerText = `You must launch on YOUR side of the arena!`;
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                    }
+                } else if (gameState === "MINIGAME") {
+                    processLaunchTap();
+                }
+            });
+
+            window.addEventListener('keydown', e => { 
+                let k = e.key.toLowerCase(); 
+                if(keys.hasOwnProperty(k)) { keys[k] = true; } 
+                
+                if (gameState === "BATTLE" && !roundConcluding) {
+                    if (k === '1' && activeSkills.length > 0) window.useSkill(0);
+                    if (k === '2' && activeSkills.length > 1) window.useSkill(1);
+                    if (k === '3' && activeSkills.length > 2) window.useSkill(2);
+                    if (k === '4' && activeSkills.length > 3) window.useSkill(3);
+                }
+            });
+            
+            window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
+
+            const joyZone = document.getElementById('joystick-zone');
+            function handleTouchJoy(e) { 
+                e.preventDefault(); 
+                if(roundConcluding) return; 
+                
+                let touch = e.touches ? e.touches[0] : e; 
+                let rect = joyZone.getBoundingClientRect(); 
+                let dx = touch.clientX - (rect.left + rect.width/2); 
+                let dy = touch.clientY - (rect.top + rect.height/2); 
+                let maxDist = rect.width/2; 
+                let dist = Math.sqrt(dx*dx + dy*dy); 
+                if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; } 
+                joyX = dx/maxDist; joyY = dy/maxDist; 
+            }
+            joyZone.addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
+            joyZone.addEventListener('touchmove', handleTouchJoy, {passive: false});
+            joyZone.addEventListener('touchend', () => { isJoystickActive = false; });
+
+            canvas.addEventListener('mousedown', e => { if(e.button === 0 || e.button === 2) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            canvas.addEventListener('mousemove', e => { if(mouseTarget) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mouseup', () => { mouseTarget = null; });
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            // ==========================================
+            // THE REST OF THE ENGINE
+            // ==========================================
+
             function startCountdown() {
                 let count = 3; 
-                const countText = document.getElementById('countdown-text');
                 countText.innerText = "3...";
                 
                 let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
@@ -842,7 +899,7 @@
                         let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
                         countSFX.volume = 0.4; 
                         countSFX.play().catch(e => console.log("SFX blocked:", e));
-                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
+                        if (count === 1) launcherUI.style.display = 'block';
                     } else {
                         clearInterval(countInterval);
                         
@@ -926,14 +983,6 @@
 
                 currentNativePixel = ripcordData.launcherLoadTo; 
                 document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
-
-                const instruction = document.getElementById('instruction-text');
-                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
-
-                if (window.TutorialManager.isActive && window.TutorialManager.phase === 0) {
-                    if (window.AudioManager) window.AudioManager.playBGM('./audio/music/How_To_Go_Pro_ForTutorial.wav', 5.32, 0.4); 
-                    window.TutorialManager.start();
-                }
             }
 
             function drawArena() {
@@ -963,12 +1012,12 @@
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(width * 0.575, 0, width * 0.425, height); 
                     }
                     
-                    if (!cpuLaunchSite && !window.TutorialManager.isActive && !isMultiplayer) {
+                    if (!cpuLaunchSite && !TutorialManager.isActive && !isMultiplayer) {
                         let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
                         cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
                     }
 
-                    if (cpuLaunchSite && !window.TutorialManager.isActive) {
+                    if (cpuLaunchSite && !TutorialManager.isActive) {
                         ctx.beginPath(); ctx.ellipse(cpuLaunchSite.x, cpuLaunchSite.y, 25, 10, 0, 0, Math.PI * 2); 
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
                     }
@@ -1070,11 +1119,9 @@
                 gameState = "LAUNCHING"; 
                 cancelAnimationFrame(ripcordAnimation);
                 
-                if (window.AudioManager && currentRound === 1 && !window.TutorialManager.isActive) {
+                if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
                     window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
                 }
-
-                const countText = document.getElementById('countdown-text');
 
                 if (missed) {
                     playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
@@ -1098,11 +1145,11 @@
                     }
                 }
 
-                if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "basics" && window.TutorialManager.phase < 2) {
-                    window.TutorialManager.phase = 1; 
-                    setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
-                } else if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
-                    if (window.TutorialManager.combatPhase === 0) { setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
+                if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
+                    TutorialManager.phase = 1; 
+                    setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
+                } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                    if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
                     else {
                         setTimeout(() => {
                             document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
@@ -1155,6 +1202,195 @@
                         gameState = "DROP_IN";
                     }
                 }, 1500); 
+            }
+
+            function startBattleEngine() {
+                try {
+                    roundConcluding = false; roundConcludeTimer = 0;
+                    const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
+                    
+                    const pStats = calculateStats(playerBuild); 
+                    const cStats = isMultiplayer && remoteLaunchData && remoteLaunchData.stats ? remoteLaunchData.stats : calculateStats(cpuData);
+
+                    let pMaxHp = safeNum(pStats.hp, 0); if (pMaxHp <= 0) pMaxHp = 1000;
+                    let pMaxRpm = safeNum(pStats.rpm, safeNum(pStats.spin, 0)); if (pMaxRpm <= 0) pMaxRpm = 3000;
+                    let cMaxHp = safeNum(cStats.hp, 0); if (cMaxHp <= 0) cMaxHp = 1000;
+                    let cMaxRpm = safeNum(cStats.rpm, safeNum(cStats.spin, 0)); if (cMaxRpm <= 0) cMaxRpm = 3000;
+                    
+                    let startRpmMod = safeNum(playerStartRpmMod, 0.8);
+
+                    if (isMultiplayer && remoteLaunchData) {
+                        cpuLaunchSite = { x: remoteLaunchData.x, y: remoteLaunchData.y };
+                    } else if (!cpuLaunchSite && !TutorialManager.isActive) {
+                        let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
+                        cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
+                    }
+
+                    let pTargetX = cx - 100; let pTargetY = cy;
+                    if (playerLaunchSite && !isNaN(playerLaunchSite.x) && !isNaN(playerLaunchSite.y)) {
+                        pTargetX = playerLaunchSite.x + (Math.random() - 0.5) * 30; pTargetY = playerLaunchSite.y + (Math.random() - 0.5) * 30;
+                    }
+                    
+                    let cTargetX = cx + 100; let cTargetY = cy;
+                    if (cpuLaunchSite && !isNaN(cpuLaunchSite.x) && !isNaN(cpuLaunchSite.y)) {
+                        cTargetX = cpuLaunchSite.x + (Math.random() - 0.5) * 30; cTargetY = cpuLaunchSite.y + (Math.random() - 0.5) * 30;
+                    }
+
+                    function constrainTarget(tx, ty) {
+                        let dx = tx - cx; let dy = ty - cy; let d = Math.sqrt(dx*dx + dy*dy);
+                        if (d > maxRadius * 0.85) { tx = cx + (dx/d) * (maxRadius * 0.85); ty = cy + (dy/d) * (maxRadius * 0.85); }
+                        return { x: tx, y: ty };
+                    }
+                    
+                    let pT = constrainTarget(pTargetX, pTargetY); pTargetX = pT.x; pTargetY = pT.y;
+                    let cT = constrainTarget(cTargetX, cTargetY); cTargetX = cT.x; cTargetY = cT.y;
+
+                    playerBey = { 
+                        isBursted: false, x: pTargetX, y: pTargetY, z: 300, vz: 0, vx: 0, vy: 0, 
+                        targetX: pTargetX, targetY: pTargetY, isLanded: false, bounceCount: 0, radius: 15, color: '#00aaff', stats: pStats, 
+                        maxHp: pMaxHp, maxRpm: pMaxRpm, currentHp: pMaxHp, currentRpm: safeNum(pMaxRpm * startRpmMod, 3000),
+                        skillState: { actionState: 'IDLE' }
+                    };
+                    
+                    if (TutorialManager.isActive && TutorialManager.tutorialType === "basics") {
+                        cpuBey = { 
+                            isGhost: true, isBursted: false, isLanded: true, x: cx, y: cy, z: 0, vz: 0, vx: 0, vy: 0, radius: 0, 
+                            color: 'transparent', stats: cStats, maxHp: 9999, maxRpm: 9999, currentHp: 9999, currentRpm: 9999, activeAttacks: [], spirit: 0 
+                        };
+                        document.getElementById('cpu-hud-wrapper').style.display = 'none';
+                        document.getElementById('match-timer').style.display = 'none'; 
+                    } else {
+                        cpuBey = { 
+                            isBursted: false, x: cTargetX, y: cTargetY, z: 300, vz: 0, vx: 0, vy: 0, 
+                            targetX: cTargetX, targetY: cTargetY, isLanded: false, bounceCount: 0, radius: 15, color: '#ff4400', stats: cStats, 
+                            maxHp: cMaxHp, maxRpm: cMaxRpm, currentHp: cMaxHp, 
+                            currentRpm: isMultiplayer ? safeNum(cMaxRpm * remoteStartRpmMod, 3000) : cMaxRpm 
+                        };
+                        document.getElementById('cpu-hud-wrapper').style.display = 'flex';
+                        document.getElementById('match-timer').style.display = 'block'; 
+                    }
+
+                    generateRadialHUDs();
+                    document.getElementById('p1-hp-max').innerText = Math.floor(playerBey.maxHp);
+                    document.getElementById('cpu-hp-max').innerText = Math.floor(cpuBey.maxHp);
+
+                    playerBey.windStreaks = generateWindStreaks();
+                    cpuBey.windStreaks = generateWindStreaks();
+
+                    let pBbObj = null;
+                    if (playerBuild.parts && playerBuild.parts.bladeBase) pBbObj = playerBuild.parts.bladeBase;
+                    playerBey.tipShape = pBbObj ? pBbObj.contactTipShape || "Semi-Flat" : "Semi-Flat";
+                    playerBey.tipType = pBbObj ? pBbObj.contactTipType || "Plastic" : "Plastic"; 
+
+                    let cpuBbObj = null;
+                    if (!isMultiplayer && cpuData.bladeBase) {
+                        if (typeof cpuData.bladeBase === 'string') {
+                            if (window.equipmentDB && window.equipmentDB.bladeBases) {
+                                cpuBbObj = window.equipmentDB.bladeBases.find(b => b.id === cpuData.bladeBase);
+                            }
+                        } else { cpuBbObj = cpuData.bladeBase; }
+                    }
+                    cpuBey.tipShape = cpuBbObj ? cpuBbObj.contactTipShape || "Semi-Flat" : "Semi-Flat";
+                    cpuBey.tipType = cpuBbObj ? cpuBbObj.contactTipType || "Plastic" : "Plastic";
+
+                    playerBey.rotation = 0; playerBey.spinDir = (playerBuild.parts && playerBuild.parts.spinGear && playerBuild.parts.spinGear.spinDirection === 'Left') ? -1 : 1;
+                    cpuBey.rotation = 0; cpuBey.spinDir = cpuData.spinDirection === 'Left' ? -1 : 1; 
+
+                    if (playerBuild.parts) {
+                        playerBey.images = {
+                            bb: resolvePartImageObj(playerBuild.parts.bladeBase, 'bladeBases'),
+                            sg: resolvePartImageObj(playerBuild.parts.spinGear, 'spinGears'),
+                            wd: resolvePartImageObj(playerBuild.parts.weightDisk, 'weightDisks'),
+                            ar: resolvePartImageObj(playerBuild.parts.attackRing, 'attackRings'),
+                            sar: resolvePartImageObj(playerBuild.parts.subAttackRing, 'subAttackRings'),
+                            bc: resolvePartImageObj(playerBuild.parts.bitChip, 'bitChips')
+                        };
+                    }
+
+                    if (isMultiplayer) {
+                        cpuBey.images = {};
+                        if (cpuData.images) {
+                            if (cpuData.images.bb) { let img = new Image(); img.src = cpuData.images.bb; cpuBey.images.bb = img; }
+                            if (cpuData.images.sg) { let img = new Image(); img.src = cpuData.images.sg; cpuBey.images.sg = img; }
+                            if (cpuData.images.wd) { let img = new Image(); img.src = cpuData.images.wd; cpuBey.images.wd = img; }
+                            if (cpuData.images.ar) { let img = new Image(); img.src = cpuData.images.ar; cpuBey.images.ar = img; }
+                            if (cpuData.images.bc) { let img = new Image(); img.src = cpuData.images.bc; cpuBey.images.bc = img; }
+                        }
+                    } else if (cpuData.id === "opp_mirorbey") {
+                        cpuBey.images = playerBey.images; cpuBey.spinDir = playerBey.spinDir;
+                    } else {
+                        cpuBey.images = {
+                            bb: resolvePartImageObj(cpuData.bladeBase, 'bladeBases'),
+                            sg: resolvePartImageObj(cpuData.spinGear, 'spinGears'),
+                            wd: resolvePartImageObj(cpuData.weightDisk, 'weightDisks'),
+                            ar: resolvePartImageObj(cpuData.attackRing, 'attackRings'),
+                            sar: resolvePartImageObj(cpuData.subAttackRing, 'subAttackRings'), 
+                            bc: resolvePartImageObj(cpuData.bitChip, 'bitChips')
+                        };
+                    }
+
+                    cpuBey.activeAttacks = cpuData.attacks ? cpuData.attacks.map(a => ({ name: a.name, baseCd: a.cd * 1000, currentCd: 0 })) : [];
+                    cpuBey.ultimate = cpuData.ultimate || null; cpuBey.spirit = 0;
+                    
+                    burstParticles = [];
+
+                    if (window.SkillEngine) {
+                        window.SkillEngine.init(playerBey, cpuBey);
+                        if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
+                        if (!isMultiplayer && cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
+                    }
+
+                    extractBuildData(); buildSkillsUI();
+                    matchTimerMs = 120000; p1Spirit = 0;
+
+                    lastTime = null; 
+                    requestAnimationFrame(gameLoop);
+                    
+                } catch (e) { console.error("START BATTLE ENGINE CRASH:", e); }
+            }
+
+            function updateDropIn(dt) {
+                function dropBey(bey) {
+                    if (!bey || bey.isGhost || bey.isLanded) return;
+                    
+                    bey.vz -= 0.05 * dt; 
+                    bey.z += bey.vz * (dt * 0.05);
+
+                    let spinSpeed = (bey.currentRpm * dt) / 25000; 
+                    if (spinSpeed > 0.8) spinSpeed = 0.8 + (spinSpeed * 0.01);
+                    bey.rotation += spinSpeed * bey.spinDir;
+
+                    if (bey.z <= 0) {
+                        let rawMaterial = (bey.tipType || "plastic").toLowerCase();
+                        let safeMaterial = "plastic"; 
+                        if (rawMaterial.includes("rubber")) safeMaterial = "rubber";
+                        else if (rawMaterial.includes("metal")) safeMaterial = "metal";
+                        else if (rawMaterial.includes("ball") || rawMaterial.includes("bearing")) safeMaterial = "ballbearing";
+                        else if (rawMaterial.includes("plastic")) safeMaterial = "plastic";
+
+                        let snd = new Audio(`./audio/sounds/bounce_landing_${safeMaterial}.wav`);
+                        snd.volume = Math.max(0.02, 0.4 * Math.pow(0.5, bey.bounceCount)); 
+                        let w = parseFloat(bey.stats.weight) || 35; let rate = 1.0;
+                        if (w <= 55) rate = 1.02; else if (w <= 62) rate = 1.01; else if (w <= 69) rate = 1.0; else if (w <= 75) rate = 0.99; else rate = 0.98;
+                        snd.preservesPitch = false; snd.mozPreservesPitch = false; snd.playbackRate = rate; snd.play().catch(e => {});
+
+                        let bm = 0.4; 
+                        if (safeMaterial === "rubber") bm = 0.60; else if (safeMaterial === "plastic") bm = 0.40; else if (safeMaterial === "metal" || safeMaterial === "ballbearing") bm = 0.30; 
+                        if (bey.tipShape === "Flat") bm *= 0.85; if (bey.tipShape === "Sharp") bm *= 1.15; 
+                        let weightFactor = Math.max(0.5, 1 - ((w - 30) / 100)); bm *= weightFactor;
+
+                        bey.vz = Math.abs(bey.vz) * bm; bey.bounceCount++;
+                        if (bey.vz < 2.0) { bey.isLanded = true; bey.z = 0; bey.vz = 0; bey.x = bey.targetX; bey.y = bey.targetY; }
+                    }
+                }
+                
+                dropBey(playerBey); dropBey(cpuBey);
+                
+                if ((!playerBey || playerBey.isLanded) && (!cpuBey || cpuBey.isLanded)) {
+                    gameState = "BATTLE"; battleStartTime = Date.now();
+                    if (playerBey && !playerBey.isGhost) initSpin(playerBey);
+                    if (cpuBey && !cpuBey.isGhost) initSpin(cpuBey);
+                }
             }
 
             function updateUI(dt) {
@@ -1250,11 +1486,11 @@
                 if (cpuBey) cpuBey.spirit = Math.min(100, cpuBey.spirit);
 
                 if (!isMultiplayer && cpuData.aiScript && window.SkillEngine && cpuBey && !cpuBey.isBursted && !roundConcluding && !cpuBey.isGhost) { 
-                    if (window.ActiveTutorial === "combat") {
+                    if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
                         const cx = width / 2; const cy = height / 2;
-                        if (window.TutorialManager.combatPhase < 6) {
+                        if (TutorialManager.combatPhase < 6) {
                             let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; cpuBey.vx += cdx * 0.0015; cpuBey.vy += cdy * 0.0015;
-                        } else if (window.TutorialManager.combatPhase >= 7 && window.TutorialManager.combatPhase < 9) {
+                        } else if (TutorialManager.combatPhase >= 7 && TutorialManager.combatPhase < 9) {
                             let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; let angle = Math.atan2(cdy, cdx) + (Math.PI / 2); 
                             cpuBey.vx += Math.cos(angle) * 0.06; cpuBey.vy += Math.sin(angle) * 0.06; cpuBey.vx += cdx * 0.0005; cpuBey.vy += cdy * 0.0005; 
                         }
@@ -1264,20 +1500,20 @@
                 const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
                 const basinRadius = maxRadius * 0.3; const rampRadius = maxRadius * 0.65;
 
-                window.TutorialManager.update(dt, playerBey, cx, cy);
+                TutorialManager.update(dt, playerBey, cx, cy);
 
                 if (activeBalloons.length > 0 && playerBey.z <= 0 && !playerBey.isBursted) {
                     for (let i = activeBalloons.length - 1; i >= 0; i--) {
                         let b = activeBalloons[i]; let bDist = Math.sqrt((playerBey.x - b.x)**2 + (playerBey.y - b.y)**2);
                         if (bDist < playerBey.radius + 35) { 
-                            activeBalloons.splice(i, 1); window.TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${window.TutorialManager.balloonsPopped} / 15`;
+                            activeBalloons.splice(i, 1); TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${TutorialManager.balloonsPopped} / 15`;
                             let popSfx = new Audio('./audio/sounds/balloonpop.wav'); popSfx.volume = 0.5; popSfx.play().catch(e=>{});
                             let colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
                             for(let p=0; p<15; p++) {
                                 let ang = Math.random() * Math.PI*2; let spd = Math.random()*5+2;
                                 particles.push({x: b.x, y: b.y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, life: 1.0, decay: 0.05, color: colors[Math.floor(Math.random()*colors.length)], size: 3});
                             }
-                            window.TutorialManager.checkBalloons();
+                            TutorialManager.checkBalloons();
                         }
                     }
                 }
@@ -1358,10 +1594,10 @@
 
                         if (hitGap) {
                             bey.currentHp = 0; bey.ringOut = true;
-                            if (isPlayer && window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
-                                if (window.TutorialManager.combatPhase >= 10 && !window.TutorialManager.relaunching) {
-                                    window.TutorialManager.relaunching = true;
-                                    window.TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { window.TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
+                            if (isPlayer && TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                                if (TutorialManager.combatPhase >= 10 && !TutorialManager.relaunching) {
+                                    TutorialManager.relaunching = true;
+                                    TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
                                 }
                             }
                         } else {
@@ -1438,9 +1674,9 @@
 
                         p1Spirit += (impactSpeed * 0.2) * (1 + (safeNum(playerBey.stats.spiritCharge, 0)/100));
 
-                        if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
+                        if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
                             let usedSpecial = playerBey.tutorialSpecialUsed || false;
-                            window.TutorialManager.registerCollision(usedSpecial);
+                            TutorialManager.registerCollision(usedSpecial);
                             playerBey.tutorialSpecialUsed = false; 
                         }
                     }
@@ -1684,8 +1920,29 @@
             }
 
             // ==========================================
-            // EXECUTION TRIGGER (FIRING AFTER EVERYTHING IS BUILT)
+            // EXECUTION TRIGGER
             // ==========================================
+            function finalizeArenaSetup() {
+                if (!playerBuild || !savedCpuData) {
+                    window.navigateTo('home-menu.html');
+                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
+                }
+
+                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+
+                document.getElementById('top-info-bar').style.display = 'none';
+
+                window.addEventListener('resize', () => {
+                    width = window.innerWidth; height = window.innerHeight;
+                    canvas.width = width; canvas.height = height;
+                    if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
+                });
+
+                setupLaunchMinigame();
+                drawArena();
+            }
+
             if (isMultiplayer) {
                 matchData = window.ActiveMatch.data;
                 if (!matchData && activeRoomId) {
