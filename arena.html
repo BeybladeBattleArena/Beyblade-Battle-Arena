@@ -286,18 +286,22 @@
     import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { rtcManager } from './webrtc-manager.js';
 
+    // --- WRAP ENTIRE SCRIPT IN AN IIFE TO BYPASS SPA PARSING BUGS ---
     (async function() {
         try {
-            // ==========================================
-            // 1. STATE & VARIABLES
-            // ==========================================
             function safeNum(val, fallback) {
                 let num = parseFloat(val);
                 return !isNaN(num) ? num : fallback;
             }
             
+            window.stopArenaAudio = function() {
+                if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
+                if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
+            };
+
             let matchStats = { playerScore: 0, cpuScore: 0, totalDamageDealt: 0, totalTimeElapsed: 0, roundsPlayed: 0, turnaboutsAchieved: 0, perfectRounds: 0, ultimateFinishes: 0 };
 
+            // --- MULTIPLAYER STATE SETUP ---
             let isMultiplayer = window.ActiveMatch !== undefined && window.ActiveMatch !== null;
             let isHost = isMultiplayer && window.ActiveMatch.role === 'HOST';
             let isGuest = isMultiplayer && window.ActiveMatch.role === 'GUEST';
@@ -318,21 +322,17 @@
             let cpuData = null;
             let arenaStyle = 1;
 
-            let playerBey = null; 
-            let cpuBey = null; 
+            // GLOBALS FOR ARENA
+            window.playerBey = null; window.cpuBey = null; 
             let lastTime = null; 
-            let particles = []; 
-            let burstParticles = []; 
-            let p1Segments = []; 
-            let cpuSegments = [];
+            let particles = []; let burstParticles = []; 
+            let p1Segments = []; let cpuSegments = [];
             const NUM_HUD_SEGMENTS = 36; 
 
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
-            let width = window.innerWidth; 
-            let height = window.innerHeight;
-            canvas.width = width; 
-            canvas.height = height;
+            let width = window.innerWidth; let height = window.innerHeight;
+            canvas.width = width; canvas.height = height;
             
             let gameState = "SELECT_LAUNCH"; 
             let p1Score = 0; let cpuScore = 0; let currentRound = 1;
@@ -363,62 +363,11 @@
             let activeBalloons = [];
             let balloonImg = new Image(); balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
-            // ==========================================
-            // 2. HELPER FUNCTIONS & GRAPHICS
-            // ==========================================
-            window.stopArenaAudio = function() {
-                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
-            };
-
-            const windSpriteSize = 300;
-            const windSprite = document.createElement('canvas'); windSprite.width = windSpriteSize; windSprite.height = windSpriteSize;
-            const wCtx = windSprite.getContext('2d'); const wCenter = windSpriteSize / 2; const wBaseRadius = 100;
-            const wSegments = 20; const wStep = (Math.PI * 1.5) / wSegments; 
-            for (let i = 0; i < wSegments; i++) {
-                let a1 = i * wStep; let a2 = (i + 1) * wStep + 0.1; let alpha = Math.sin((i / (wSegments - 1)) * Math.PI);
-                wCtx.beginPath(); wCtx.arc(wCenter, wCenter, wBaseRadius, a1, a2);
-                wCtx.strokeStyle = `rgba(210, 240, 255, ${alpha})`; wCtx.lineWidth = 2; wCtx.lineCap = "round";
-                wCtx.shadowBlur = 4; wCtx.shadowColor = "rgba(210, 240, 255, 0.8)"; wCtx.stroke();
-            }
-
-            function generateWindStreaks() {
-                let streaks = [];
-                for (let i = 0; i < 20; i++) {
-                    streaks.push({ radiusScale: (30 + Math.random() * 50) / wBaseRadius, angle: Math.random() * Math.PI * 2, speed: 0.12 + Math.random() * 0.15, maxAlpha: 0.05 + Math.random() * 0.07, wobbleSpeed: Math.random() * 0.1, wobbleOffset: Math.random() * Math.PI * 2 });
-                }
-                return streaks;
-            }
-            
-            function initSpin(bey) {
-                if (!bey || bey.isBursted || bey.isGhost || bey.spinSFX) return;
-                bey.spinSFX = new Audio('./audio/sounds/bey_spin.wav');
-                bey.spinSFX.volume = 0.15; 
-                bey.spinSFX.play().catch(e => console.log("Spin SFX blocked:", e));
-                bey.spinSFX.addEventListener('ended', () => { bey.spinSFX.currentTime = 0.20382; bey.spinSFX.play().catch(e => console.log(e)); });
-            }
-
-            function resolveImageUrl(partData, category) {
-                if (!partData) return '';
-                let partObj = partData;
-                if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
-                    partObj = window.equipmentDB[category].find(p => p.id === partData);
-                }
-                if (!partObj) return '';
-                if (partObj.activeStyle && partObj.activeStyle.topDownImage) return partObj.activeStyle.topDownImage;
-                if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0].topDownImage) return partObj.styles[0].topDownImage;
-                return partObj.topDownImage || partObj.fallbackImage || partObj.image || '';
-            }
-
-            function resolvePartImageObj(partData, category) {
-                let url = resolveImageUrl(partData, category);
-                if (url) { let img = new Image(); img.src = url; return img; }
-                return null;
-            }
 
             // ==========================================
-            // 3. TUTORIAL MANAGER
+            // DEFINED AT TOP TO PREVENT "NOT DEFINED" ERRORS
             // ==========================================
+
             window.TutorialManager = {
                 isActive: window.ActiveTutorial === "basics" || window.ActiveTutorial === "combat",
                 tutorialType: window.ActiveTutorial,
@@ -446,7 +395,7 @@
                             "A match is divided into multiple rounds, and when a Blader scores a point, the round is over. Points are scored in a few ways!",
                             "First, there's bursting your opponent's build wide open by reducing its HP to zero from physical combat. That's called a Burst Finish.",
                             "Second, there's using the force of your hit to send the opponent outside the stadium, either through wall pockets or up and over the wall itself. This results in a Knockout Finish. Keep in mind, accidentally derping yourself outside the stadium counts as a Knockout Finish too, <player>.",
-                            "Third, and the most technical, if you ask me, is the Spin Finish! Outlast your opponent with sheer technical skill, mind games, and evasion until their Bey runs out of RPM and falls flat on its face.",
+                            "Third, and the most technical, if you ask me, is the Spin Finish! Outlast your opponent with sheer technical skill, mind games, and evasion until their Bey runs out of RPM and falls flat on face.",
                             "Now launch your Bey and use your fighting spirit to make it collide with mine!"
                         ], () => {
                             document.getElementById('instruction-text').innerText = "Launch your Beyblade into the stadium to face Toma!";
@@ -466,7 +415,7 @@
                     }
                     vnBox.style.display = 'block';
                     let line = this.vnQueue.shift();
-                    let coloredName = `<span style="color: #00aaff;">${window.PlayerData?.accountName || "Rookie"}</span>`;
+                    let coloredName = `<span style="color: #00aaff;">${window.PlayerData.accountName || "Rookie"}</span>`;
                     document.getElementById('arena-tut-text').innerHTML = line.replaceAll("<player>", coloredName);
                 },
 
@@ -540,7 +489,7 @@
                         this.collisionsDone++;
                         if (this.collisionsDone >= 3) {
                             this.combatPhase = 9;
-                            cpuBey.isGhost = true; cpuBey.x = -999;
+                            window.cpuBey.isGhost = true; window.cpuBey.x = -999;
                             this.showVN([
                                 "Hey, champ-in-the-making! You're getting pretty good at this.",
                                 "I've pumped up a few balloon targets for you to pop! Let's say... 15 balloons total. Go ahead and pop 'em.",
@@ -581,8 +530,8 @@
                         else if (this.balloonsPopped >= 15) {
                             this.combatPhase = 99; 
                             document.getElementById('ui-layer').style.pointerEvents = 'none'; 
-                            if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                            if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
+                            if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
+                            if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
                             setTimeout(() => { window.navigateTo('adventure.html'); }, 2000);
                         }
                     }
@@ -673,22 +622,224 @@
                             this.phase = 7;
                             this.showVN([ "Perfect control!", "Now you're ready to learn the specifics of battle!" ], () => {
                                 window.ActiveTutorial = null;
-                                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
+                                if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
                                 window.navigateTo('adventure.html');
                             });
                         }
                     }
                 }
             };
+            
+            window.TutorialManager.advanceVN = function() { window.TutorialManager.advanceVN(); };
+
+            function checkBothReady() {
+                if (localLaunchReady && remoteLaunchReady && gameState === "WAITING_FOR_OPPONENT") {
+                    if (launchSyncInterval) clearInterval(launchSyncInterval);
+                    gameState = "STARTING_MULTIPLAYER"; // Lock to prevent double triggering
+                    
+                    const countText = document.getElementById('countdown-text');
+                    countText.innerText = "LET IT RIP!";
+                    countText.style.color = "#00ff00";
+
+                    // --- THE FIX: PLAY THE AUDIO HERE FOR MULTIPLAYER! ---
+                    let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+                    letItRipSFX.volume = 0.45; 
+                    letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
+                    
+                    setTimeout(() => {
+                        document.getElementById('minigame-overlay').style.display = 'none';
+                        document.getElementById('ui-layer').style.display = 'block';
+                        startBattleEngine();
+                        gameState = "DROP_IN";
+                    }, 1000);
+                }
+            }
+
+            function handleNetworkMessage(event) {
+                let data = JSON.parse(event.data);
+                
+                if (data.type === "LAUNCH_READY") {
+                    remoteLaunchReady = true; 
+                    remoteLaunchData = data; 
+                    remoteStartRpmMod = data.rpmMod; 
+                    checkBothReady();
+                }
+                else if (data.type === "GUEST_INPUT" && isHost) {
+                    remoteJoyX = data.joyX; remoteJoyY = data.joyY;
+                }
+                else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
+                    if(window.cpuBey && window.playerBey) {
+                        window.cpuBey.x = data.p1.x; window.cpuBey.y = data.p1.y; window.cpuBey.z = data.p1.z;
+                        window.cpuBey.currentHp = data.p1.hp; window.cpuBey.currentRpm = data.p1.rpm;
+                        window.cpuBey.rotation = data.p1.rot;
+                        
+                        window.playerBey.x = data.p2.x; window.playerBey.y = data.p2.y; window.playerBey.z = data.p2.z;
+                        window.playerBey.currentHp = data.p2.hp; window.playerBey.currentRpm = data.p2.rpm;
+                        window.playerBey.rotation = data.p2.rot;
+                        
+                        matchTimerMs = data.timer;
+                        if (matchTimerMs < 0) matchTimerMs = 0; // Prevent negative timer
+
+                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
+                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
+                    }
+                }
+            }
+
+            function attachNetworkListeners() {
+                if (isMultiplayer) {
+                    if (rtcManager.dataChannel) {
+                        rtcManager.dataChannel.addEventListener('message', handleNetworkMessage);
+                    } else {
+                        setTimeout(attachNetworkListeners, 100); 
+                    }
+                }
+            }
+
+
+            // ==========================================
+            // MINIGAME LOGIC
+            // ==========================================
+
+            function startCountdown() {
+                let count = 3; 
+                const countText = document.getElementById('countdown-text');
+                countText.innerText = "3...";
+                
+                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
+                count3.volume = 0.4; 
+                count3.play().catch(e => console.log("SFX blocked by browser:", e));
+
+                const countInterval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countText.innerText = `${count}...`;
+                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
+                        countSFX.volume = 0.4; 
+                        countSFX.play().catch(e => console.log("SFX blocked by browser:", e));
+                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
+                    } else {
+                        clearInterval(countInterval);
+                        
+                        // --- THE FIX: NEW AUDIO/TEXT SEQUENCE ---
+                        if (isMultiplayer) {
+                            countText.innerText = "PREPARE YOUR LAUNCH!";
+                            countText.style.color = "#00ffff";
+                            // Audio will play inside checkBothReady()
+                        } else {
+                            countText.innerText = "LET IT RIP!";
+                            let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+                            letItRipSFX.volume = 0.45; 
+                            letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
+                        }
+
+                        gameState = "MINIGAME";
+                        startRipcordPull();
+                    }
+                }, 1000);
+            }
+
+            function processLaunchTap(missed = false) {
+                gameState = "LAUNCHING"; 
+                cancelAnimationFrame(ripcordAnimation);
+                
+                if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
+                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
+                }
+
+                const countText = document.getElementById('countdown-text');
+
+                if (missed) {
+                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
+                } else {
+                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
+                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
+                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
+                    
+                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
+
+                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
+                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
+                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
+                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
+                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
+                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
+                    } else if (hitTooth > gRange[1]) { 
+                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
+                    } else { 
+                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
+                    }
+                }
+
+                if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
+                    TutorialManager.phase = 1; 
+                    setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
+                } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                    if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
+                    else {
+                        setTimeout(() => {
+                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
+                            window.playerBey.currentRpm = window.playerBey.maxRpm * playerStartRpmMod;
+                            window.playerBey.x = playerLaunchSite.x; window.playerBey.y = playerLaunchSite.y;
+                            window.playerBey.targetX = playerLaunchSite.x; window.playerBey.targetY = playerLaunchSite.y;
+                            window.playerBey.z = 300; window.playerBey.vz = 0; window.playerBey.isLanded = false; window.playerBey.ringOut = false; 
+                            gameState = "DROP_IN";
+                        }, 1500);
+                    }
+                    return;
+                }
+
+                // --- THE FIX: DELAY BEFORE HITTING THE SYNC BARRIER ---
+                // Gives the player 1.5 seconds to see their "GREAT LAUNCH!" text before moving on.
+                setTimeout(() => {
+                    localLaunchReady = true;
+
+                    if (isMultiplayer) {
+                        gameState = "WAITING_FOR_OPPONENT";
+                        countText.innerHTML = "LAUNCH READY!<br><span style='font-size:24px; color:#ffaa00;'>Waiting for other player...</span>";
+                        
+                        let myTempStats = calculateStats(playerBuild);
+
+                        rtcManager.sendData({
+                            type: "LAUNCH_READY",
+                            rpmMod: playerStartRpmMod,
+                            x: playerLaunchSite.x,
+                            y: playerLaunchSite.y,
+                            stats: myTempStats 
+                        });
+
+                        launchSyncInterval = setInterval(() => {
+                            if (remoteLaunchReady) {
+                                clearInterval(launchSyncInterval);
+                            } else {
+                                rtcManager.sendData({
+                                    type: "LAUNCH_READY",
+                                    rpmMod: playerStartRpmMod,
+                                    x: playerLaunchSite.x,
+                                    y: playerLaunchSite.y,
+                                    stats: myTempStats 
+                                });
+                            }
+                        }, 250);
+
+                        checkBothReady();
+                    } else {
+                        document.getElementById('minigame-overlay').style.display = 'none';
+                        document.getElementById('ui-layer').style.display = 'block';
+                        startBattleEngine();
+                        gameState = "DROP_IN";
+                    }
+                }, 1500); 
+            }
 
             function triggerTutorialRelaunch() {
-                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
+                if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
+                if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
 
                 gameState = "SELECT_LAUNCH"; playerLaunchSite = null; burstParticles = [];
                 
-                playerBey.isLanded = false; playerBey.z = 300; playerBey.vz = 0;
-                playerBey.currentHp = playerBey.maxHp; playerBey.ringOut = false;
+                window.playerBey.isLanded = false; window.playerBey.z = 300; window.playerBey.vz = 0;
+                window.playerBey.currentHp = window.playerBey.maxHp; window.playerBey.ringOut = false;
 
                 document.getElementById('ui-layer').style.display = 'none';
                 document.getElementById('minigame-overlay').style.display = 'flex';
@@ -703,8 +854,194 @@
             }
 
             // ==========================================
-            // 4. PRE-BATTLE & MINIGAME
+            // EVENT LISTENERS
             // ==========================================
+
+            const overlay = document.getElementById('minigame-overlay');
+            const instruction = document.getElementById('instruction-text');
+            const countText = document.getElementById('countdown-text');
+            const launcherUI = document.getElementById('launcher-container');
+
+            overlay.addEventListener('pointerdown', (e) => {
+                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
+
+                if (gameState === "SELECT_LAUNCH") {
+                    const cx = width / 2; const cy = height / 2;
+                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
+                    
+                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
+                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
+
+                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
+                    
+                    if (dist > maxRadius * 0.85) {
+                        instruction.innerText = "Aim closer to the inside of the stadium!";
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                        return;
+                    }
+
+                    let isLeftSide = safeX <= width * 0.425;
+                    let isRightSide = safeX >= width * 0.575;
+                    
+                    let validSide = false;
+                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
+                    else if (isGuest) { validSide = isRightSide; }
+
+                    if (validSide) {
+                        playerLaunchSite = { x: safeX, y: safeY };
+                        gameState = "COUNTDOWN";
+                        drawArena(); 
+                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
+                        instruction.style.color = "#00ffff";
+                        startCountdown();
+                    } else {
+                        instruction.innerText = `You must launch on YOUR side of the arena!`;
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                    }
+                } else if (gameState === "MINIGAME") {
+                    processLaunchTap();
+                }
+            });
+
+            window.addEventListener('keydown', e => { 
+                let k = e.key.toLowerCase(); 
+                if(keys.hasOwnProperty(k)) { keys[k] = true; } 
+                
+                if (gameState === "BATTLE" && !roundConcluding) {
+                    if (k === '1' && activeSkills.length > 0) useSkill(0);
+                    if (k === '2' && activeSkills.length > 1) useSkill(1);
+                    if (k === '3' && activeSkills.length > 2) useSkill(2);
+                    if (k === '4' && activeSkills.length > 3) useSkill(3);
+                }
+            });
+            
+            window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
+
+            const joyZone = document.getElementById('joystick-zone');
+            function handleTouchJoy(e) { 
+                e.preventDefault(); 
+                if(roundConcluding) return; 
+                
+                let touch = e.touches ? e.touches[0] : e; 
+                let rect = joyZone.getBoundingClientRect(); 
+                let dx = touch.clientX - (rect.left + rect.width/2); 
+                let dy = touch.clientY - (rect.top + rect.height/2); 
+                let maxDist = rect.width/2; 
+                let dist = Math.sqrt(dx*dx + dy*dy); 
+                if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; } 
+                joyX = dx/maxDist; joyY = dy/maxDist; 
+            }
+            joyZone.addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
+            joyZone.addEventListener('touchmove', handleTouchJoy, {passive: false});
+            joyZone.addEventListener('touchend', () => { isJoystickActive = false; });
+
+            canvas.addEventListener('mousedown', e => { if(e.button === 0 || e.button === 2) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            canvas.addEventListener('mousemove', e => { if(mouseTarget) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mouseup', () => { mouseTarget = null; });
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+
+            // ==========================================
+            // DATA FETCH & INITIALIZATION
+            // ==========================================
+            
+            attachNetworkListeners(); 
+
+            function finalizeArenaSetup() {
+                if (!playerBuild || !savedCpuData) {
+                    window.navigateTo('home-menu.html');
+                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
+                }
+
+                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+
+                document.getElementById('top-info-bar').style.display = 'none';
+
+                setupLaunchMinigame();
+                drawArena();
+            }
+
+            if (isMultiplayer) {
+                matchData = window.ActiveMatch.data;
+                if (!matchData && activeRoomId) {
+                    get(ref(rtdb, `rooms/${activeRoomId}`)).then((snap) => {
+                        matchData = snap.val();
+                        window.ActiveMatch.data = matchData;
+                        
+                        savedCpuData = {
+                            id: "remote_player",
+                            name: isHost ? matchData.guestName : matchData.hostName,
+                            isRemote: true,
+                            stats: {}, 
+                            spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
+                            images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
+                        };
+                        finalizeArenaSetup();
+                    }).catch(e => console.error("Failed to fetch room data:", e));
+                } else if (matchData) {
+                    savedCpuData = {
+                        id: "remote_player",
+                        name: isHost ? matchData.guestName : matchData.hostName,
+                        isRemote: true,
+                        stats: {}, 
+                        spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
+                        images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
+                    };
+                    finalizeArenaSetup();
+                }
+            } else {
+                savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
+                finalizeArenaSetup();
+            }
+
+
+            // ==========================================
+            // THE REST OF THE ENGINE
+            // ==========================================
+
+            function startRipcordPull() {
+                let nativePullSpeed = 2.5; 
+                function animateRipcord() {
+                    if (gameState !== "MINIGAME") return; 
+                    currentNativePixel -= nativePullSpeed; 
+                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
+                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
+                    ripcordAnimation = requestAnimationFrame(animateRipcord);
+                }
+                animateRipcord();
+            }
+
+            function resolveImageUrl(partData, category) {
+                if (!partData) return '';
+                let partObj = partData;
+                if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
+                    partObj = window.equipmentDB[category].find(p => p.id === partData);
+                }
+                if (!partObj) return '';
+                if (partObj.activeStyle && partObj.activeStyle.topDownImage) return partObj.activeStyle.topDownImage;
+                if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0].topDownImage) return partObj.styles[0].topDownImage;
+                return partObj.topDownImage || partObj.fallbackImage || partObj.image || '';
+            }
+
+            function resolvePartImageObj(partData, category) {
+                let url = resolveImageUrl(partData, category);
+                if (url) { let img = new Image(); img.src = url; return img; }
+                return null;
+            }
+
             function setupLaunchMinigame() {
                 if (!playerBuild.parts) return;
                 
@@ -761,9 +1098,9 @@
                 const instruction = document.getElementById('instruction-text');
                 instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
 
-                if (window.TutorialManager.isActive && window.TutorialManager.phase === 0) {
+                if (TutorialManager.isActive && TutorialManager.phase === 0) {
                     if (window.AudioManager) window.AudioManager.playBGM('./audio/music/How_To_Go_Pro_ForTutorial.wav', 5.32, 0.4); 
-                    window.TutorialManager.start();
+                    TutorialManager.start();
                 }
             }
 
@@ -787,19 +1124,18 @@
                 }
 
                 if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") {
-                    
                     if (!isMultiplayer || isHost) {
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(0, 0, width * 0.425, height); 
                     } else if (isGuest) {
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(width * 0.575, 0, width * 0.425, height); 
                     }
                     
-                    if (!cpuLaunchSite && !window.TutorialManager.isActive && !isMultiplayer) {
+                    if (!cpuLaunchSite && !TutorialManager.isActive && !isMultiplayer) {
                         let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
                         cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
                     }
 
-                    if (cpuLaunchSite && !window.TutorialManager.isActive) {
+                    if (cpuLaunchSite && !TutorialManager.isActive) {
                         ctx.beginPath(); ctx.ellipse(cpuLaunchSite.x, cpuLaunchSite.y, 25, 10, 0, 0, Math.PI * 2); 
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
                     }
@@ -813,148 +1149,6 @@
                 }
             }
 
-            function startCountdown() {
-                let count = 3; 
-                const countText = document.getElementById('countdown-text');
-                countText.innerText = "3...";
-                
-                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
-                count3.volume = 0.4; 
-                count3.play().catch(e => console.log("SFX blocked:", e));
-
-                const countInterval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        countText.innerText = `${count}...`;
-                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
-                        countSFX.volume = 0.4; 
-                        countSFX.play().catch(e => console.log("SFX blocked:", e));
-                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
-                    } else {
-                        clearInterval(countInterval);
-                        
-                        if (isMultiplayer) {
-                            countText.innerText = "PREPARE YOUR LAUNCH!";
-                            countText.style.color = "#00ffff";
-                        } else {
-                            countText.innerText = "LET IT RIP!";
-                            let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
-                            letItRipSFX.volume = 0.45; 
-                            letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
-                        }
-
-                        gameState = "MINIGAME";
-                        startRipcordPull();
-                    }
-                }, 1000);
-            }
-
-            function startRipcordPull() {
-                let nativePullSpeed = 2.5; 
-                function animateRipcord() {
-                    if (gameState !== "MINIGAME") return; 
-                    currentNativePixel -= nativePullSpeed; 
-                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
-                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
-                    ripcordAnimation = requestAnimationFrame(animateRipcord);
-                }
-                animateRipcord();
-            }
-
-            function processLaunchTap(missed = false) {
-                gameState = "LAUNCHING"; 
-                cancelAnimationFrame(ripcordAnimation);
-                
-                if (window.AudioManager && currentRound === 1 && !window.TutorialManager.isActive) {
-                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
-                }
-
-                const countText = document.getElementById('countdown-text');
-
-                if (missed) {
-                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
-                } else {
-                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
-                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
-                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
-                    
-                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
-
-                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
-                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
-                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
-                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
-                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
-                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
-                    } else if (hitTooth > gRange[1]) { 
-                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
-                    } else { 
-                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
-                    }
-                }
-
-                if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "basics" && window.TutorialManager.phase < 2) {
-                    window.TutorialManager.phase = 1; 
-                    setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
-                } else if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
-                    if (window.TutorialManager.combatPhase === 0) { setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
-                    else {
-                        setTimeout(() => {
-                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
-                            playerBey.currentRpm = playerBey.maxRpm * playerStartRpmMod;
-                            playerBey.x = playerLaunchSite.x; playerBey.y = playerLaunchSite.y;
-                            playerBey.targetX = playerLaunchSite.x; playerBey.targetY = playerLaunchSite.y;
-                            playerBey.z = 300; playerBey.vz = 0; playerBey.isLanded = false; playerBey.ringOut = false; 
-                            gameState = "DROP_IN";
-                        }, 1500);
-                    }
-                    return;
-                }
-
-                setTimeout(() => {
-                    localLaunchReady = true;
-
-                    if (isMultiplayer) {
-                        gameState = "WAITING_FOR_OPPONENT";
-                        countText.innerHTML = "LAUNCH READY!<br><span style='font-size:24px; color:#ffaa00;'>Waiting for other player...</span>";
-                        
-                        let myTempStats = calculateStats(playerBuild);
-
-                        rtcManager.sendData({
-                            type: "LAUNCH_READY",
-                            rpmMod: playerStartRpmMod,
-                            x: playerLaunchSite.x,
-                            y: playerLaunchSite.y,
-                            stats: myTempStats 
-                        });
-
-                        launchSyncInterval = setInterval(() => {
-                            if (remoteLaunchReady) {
-                                clearInterval(launchSyncInterval);
-                            } else {
-                                rtcManager.sendData({
-                                    type: "LAUNCH_READY",
-                                    rpmMod: playerStartRpmMod,
-                                    x: playerLaunchSite.x,
-                                    y: playerLaunchSite.y,
-                                    stats: myTempStats 
-                                });
-                            }
-                        }, 250);
-
-                        checkBothReady();
-                    } else {
-                        document.getElementById('minigame-overlay').style.display = 'none';
-                        document.getElementById('ui-layer').style.display = 'block';
-                        startBattleEngine();
-                        gameState = "DROP_IN";
-                    }
-                }, 1500); 
-            }
-
-            // ==========================================
-            // 5. ENGINE FUNCTIONS
-            // ==========================================
             function calculateStats(build) {
                 let totals = { hp: 0, rpm: 0, attack: 0, defense: 0, stamina: 0, speed: 0, weight: 0, grip: 0, mobility: 0, recoil: 0, recoilReduction: 0, endurance: 0, balance: 0, spiritCharge: 0, cdr: 0 };
                 if (build && build.stats) {
@@ -1002,11 +1196,11 @@
                     let btn = document.createElement('div'); btn.className = 'skill-btn'; btn.id = `skill-btn-${i}`;
                     let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
                     btn.innerHTML = `${hotkeyLabel} ${skill.name}`;
-                    btn.onpointerdown = (e) => { e.preventDefault(); window.useSkill(i); }; menu.appendChild(btn);
+                    btn.onpointerdown = (e) => { e.preventDefault(); useSkill(i); }; menu.appendChild(btn);
                 });
                 if (playerUltimate) {
                     let ultBtn = document.createElement('div'); ultBtn.id = 'ultimate-btn'; ultBtn.innerText = playerUltimate.name;
-                    ultBtn.onpointerdown = (e) => { e.preventDefault(); window.useUltimate(); }; menu.appendChild(ultBtn);
+                    ultBtn.onpointerdown = (e) => { e.preventDefault(); useUltimate(); }; menu.appendChild(ultBtn);
                 }
             }
 
@@ -1039,58 +1233,176 @@
                 }
             }
 
-            // ==========================================
-            // 6. SKILL BINDINGS
-            // ==========================================
-            window.useSkill = function(index) {
-                if (roundConcluding) return; 
-                let skill = activeSkills[index]; if (!skill) return;
+            const windSpriteSize = 300;
+            const windSprite = document.createElement('canvas'); windSprite.width = windSpriteSize; windSprite.height = windSpriteSize;
+            const wCtx = windSprite.getContext('2d'); const wCenter = windSpriteSize / 2; const wBaseRadius = 100;
+            const wSegments = 20; const wStep = (Math.PI * 1.5) / wSegments; 
+            for (let i = 0; i < wSegments; i++) {
+                let a1 = i * wStep; let a2 = (i + 1) * wStep + 0.1; let alpha = Math.sin((i / (wSegments - 1)) * Math.PI);
+                wCtx.beginPath(); wCtx.arc(wCenter, wCenter, wBaseRadius, a1, a2);
+                wCtx.strokeStyle = `rgba(210, 240, 255, ${alpha})`; wCtx.lineWidth = 2; wCtx.lineCap = "round";
+                wCtx.shadowBlur = 4; wCtx.shadowColor = "rgba(210, 240, 255, 0.8)"; wCtx.stroke();
+            }
 
-                let isAerialCombo = (playerBey && playerBey.skillState && playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance");
-
-                if (isAerialCombo || skill.currentCd <= 0) {
-                    if (!isAerialCombo) {
-                        let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100); 
-                        skill.currentCd = skill.baseCd * cdrMod;
-                    }
-                    if (isGuest) {
-                        rtcManager.sendData({ type: "GUEST_SKILL", skillName: skill.name, joyX: joyX, joyY: joyY });
-                    } else if (window.SkillEngine && playerBey && cpuBey) {
-                        window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
-                        playerBey.tutorialSpecialUsed = true;
-                    }
+            function generateWindStreaks() {
+                let streaks = [];
+                for (let i = 0; i < 20; i++) {
+                    streaks.push({ radiusScale: (30 + Math.random() * 50) / wBaseRadius, angle: Math.random() * Math.PI * 2, speed: 0.12 + Math.random() * 0.15, maxAlpha: 0.05 + Math.random() * 0.07, wobbleSpeed: Math.random() * 0.1, wobbleOffset: Math.random() * Math.PI * 2 });
                 }
-            };
+                return streaks;
+            }
+            
+            function initSpin(bey) {
+                if (!bey || bey.isBursted || bey.isGhost || bey.spinSFX) return;
+                bey.spinSFX = new Audio('./audio/sounds/bey_spin.wav');
+                bey.spinSFX.volume = 0.15; 
+                bey.spinSFX.play().catch(e => console.log("Spin SFX blocked:", e));
+                bey.spinSFX.addEventListener('ended', () => { bey.spinSFX.currentTime = 0.20382; bey.spinSFX.play().catch(e => console.log(e)); });
+            }
 
-            window.useUltimate = function() {
-                if (roundConcluding) return;
-                if (p1Spirit >= 100 && playerUltimate) {
-                    p1Spirit = 0; 
-                    if (isGuest) {
-                        rtcManager.sendData({ type: "GUEST_ULTIMATE", skillName: playerUltimate.name });
-                    } else if (window.SkillsDB && window.SkillsDB.ultimates[playerUltimate.name] && playerBey && cpuBey) {
-                        window.SkillsDB.ultimates[playerUltimate.name].execute(playerBey, cpuBey);
-                        playerBey.tutorialSpecialUsed = true;
+            function startBattleEngine() {
+                try {
+                    roundConcluding = false; roundConcludeTimer = 0;
+                    const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
+                    
+                    const pStats = calculateStats(playerBuild); 
+                    const cStats = isMultiplayer && remoteLaunchData && remoteLaunchData.stats ? remoteLaunchData.stats : calculateStats(cpuData);
+
+                    let pMaxHp = safeNum(pStats.hp, 0); if (pMaxHp <= 0) pMaxHp = 1000;
+                    let pMaxRpm = safeNum(pStats.rpm, safeNum(pStats.spin, 0)); if (pMaxRpm <= 0) pMaxRpm = 3000;
+                    let cMaxHp = safeNum(cStats.hp, 0); if (cMaxHp <= 0) cMaxHp = 1000;
+                    let cMaxRpm = safeNum(cStats.rpm, safeNum(cStats.spin, 0)); if (cMaxRpm <= 0) cMaxRpm = 3000;
+                    
+                    let startRpmMod = safeNum(playerStartRpmMod, 0.8);
+
+                    if (isMultiplayer && remoteLaunchData) {
+                        cpuLaunchSite = { x: remoteLaunchData.x, y: remoteLaunchData.y };
+                    } else if (!cpuLaunchSite && !TutorialManager.isActive) {
+                        let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
+                        cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
                     }
-                }
-            };
 
-            // ==========================================
-            // 7. PHYSICS & RENDER LOOPS
-            // ==========================================
-
-            function triggerBurst(bey, impactSpeed, dirX, dirY) {
-                bey.isBursted = true; const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
-                partsList.forEach(partKey => {
-                    if (bey.images && bey.images[partKey]) {
-                        let spread = (Math.random() - 0.5) * 1.5; let angle = Math.atan2(dirY, dirX) + spread; let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
-                        burstParticles.push({ img: bey.images[partKey], x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: bey.rotation, rotSpeed: (Math.random() - 0.5) * 0.4, size: bey.radius * 6.5, friction: 0.92 });
+                    let pTargetX = cx - 100; let pTargetY = cy;
+                    if (playerLaunchSite && !isNaN(playerLaunchSite.x) && !isNaN(playerLaunchSite.y)) {
+                        pTargetX = playerLaunchSite.x + (Math.random() - 0.5) * 30; pTargetY = playerLaunchSite.y + (Math.random() - 0.5) * 30;
                     }
-                });
-                for(let i=0; i<30; i++) {
-                    let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 8 + 4;
-                    particles.push({ x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, decay: Math.random() * 0.04 + 0.02, color: '#ffffff', size: Math.random() * 4 + 2 });
-                }
+                    
+                    let cTargetX = cx + 100; let cTargetY = cy;
+                    if (cpuLaunchSite && !isNaN(cpuLaunchSite.x) && !isNaN(cpuLaunchSite.y)) {
+                        cTargetX = cpuLaunchSite.x + (Math.random() - 0.5) * 30; cTargetY = cpuLaunchSite.y + (Math.random() - 0.5) * 30;
+                    }
+
+                    function constrainTarget(tx, ty) {
+                        let dx = tx - cx; let dy = ty - cy; let d = Math.sqrt(dx*dx + dy*dy);
+                        if (d > maxRadius * 0.85) { tx = cx + (dx/d) * (maxRadius * 0.85); ty = cy + (dy/d) * (maxRadius * 0.85); }
+                        return { x: tx, y: ty };
+                    }
+                    
+                    let pT = constrainTarget(pTargetX, pTargetY); pTargetX = pT.x; pTargetY = pT.y;
+                    let cT = constrainTarget(cTargetX, cTargetY); cTargetX = cT.x; cTargetY = cT.y;
+
+                    window.playerBey = { 
+                        isBursted: false, x: pTargetX, y: pTargetY, z: 300, vz: 0, vx: 0, vy: 0, 
+                        targetX: pTargetX, targetY: pTargetY, isLanded: false, bounceCount: 0, radius: 15, color: '#00aaff', stats: pStats, 
+                        maxHp: pMaxHp, maxRpm: pMaxRpm, currentHp: pMaxHp, currentRpm: safeNum(pMaxRpm * startRpmMod, 3000),
+                        skillState: { actionState: 'IDLE' }
+                    };
+                    
+                    if (TutorialManager.isActive && TutorialManager.tutorialType === "basics") {
+                        window.cpuBey = { 
+                            isGhost: true, isBursted: false, isLanded: true, x: cx, y: cy, z: 0, vz: 0, vx: 0, vy: 0, radius: 0, 
+                            color: 'transparent', stats: cStats, maxHp: 9999, maxRpm: 9999, currentHp: 9999, currentRpm: 9999, activeAttacks: [], spirit: 0 
+                        };
+                        document.getElementById('cpu-hud-wrapper').style.display = 'none';
+                        document.getElementById('match-timer').style.display = 'none'; 
+                    } else {
+                        window.cpuBey = { 
+                            isBursted: false, x: cTargetX, y: cTargetY, z: 300, vz: 0, vx: 0, vy: 0, 
+                            targetX: cTargetX, targetY: cTargetY, isLanded: false, bounceCount: 0, radius: 15, color: '#ff4400', stats: cStats, 
+                            maxHp: cMaxHp, maxRpm: cMaxRpm, currentHp: cMaxHp, 
+                            currentRpm: isMultiplayer ? safeNum(cMaxRpm * remoteStartRpmMod, 3000) : cMaxRpm 
+                        };
+                        document.getElementById('cpu-hud-wrapper').style.display = 'flex';
+                        document.getElementById('match-timer').style.display = 'block'; 
+                    }
+
+                    generateRadialHUDs();
+                    document.getElementById('p1-hp-max').innerText = Math.floor(window.playerBey.maxHp);
+                    document.getElementById('cpu-hp-max').innerText = Math.floor(window.cpuBey.maxHp);
+
+                    window.playerBey.windStreaks = generateWindStreaks();
+                    window.cpuBey.windStreaks = generateWindStreaks();
+
+                    let pBbObj = null;
+                    if (playerBuild.parts && playerBuild.parts.bladeBase) pBbObj = playerBuild.parts.bladeBase;
+                    window.playerBey.tipShape = pBbObj ? pBbObj.contactTipShape || "Semi-Flat" : "Semi-Flat";
+                    window.playerBey.tipType = pBbObj ? pBbObj.contactTipType || "Plastic" : "Plastic"; 
+
+                    let cpuBbObj = null;
+                    if (!isMultiplayer && cpuData.bladeBase) {
+                        if (typeof cpuData.bladeBase === 'string') {
+                            if (window.equipmentDB && window.equipmentDB.bladeBases) {
+                                cpuBbObj = window.equipmentDB.bladeBases.find(b => b.id === cpuData.bladeBase);
+                            }
+                        } else { cpuBbObj = cpuData.bladeBase; }
+                    }
+                    window.cpuBey.tipShape = cpuBbObj ? cpuBbObj.contactTipShape || "Semi-Flat" : "Semi-Flat";
+                    window.cpuBey.tipType = cpuBbObj ? cpuBbObj.contactTipType || "Plastic" : "Plastic";
+
+                    window.playerBey.rotation = 0; window.playerBey.spinDir = (playerBuild.parts && playerBuild.parts.spinGear && playerBuild.parts.spinGear.spinDirection === 'Left') ? -1 : 1;
+                    window.cpuBey.rotation = 0; window.cpuBey.spinDir = cpuData.spinDirection === 'Left' ? -1 : 1; 
+
+                    if (playerBuild.parts) {
+                        window.playerBey.images = {
+                            bb: resolvePartImageObj(playerBuild.parts.bladeBase, 'bladeBases'),
+                            sg: resolvePartImageObj(playerBuild.parts.spinGear, 'spinGears'),
+                            wd: resolvePartImageObj(playerBuild.parts.weightDisk, 'weightDisks'),
+                            ar: resolvePartImageObj(playerBuild.parts.attackRing, 'attackRings'),
+                            sar: resolvePartImageObj(playerBuild.parts.subAttackRing, 'subAttackRings'),
+                            bc: resolvePartImageObj(playerBuild.parts.bitChip, 'bitChips')
+                        };
+                    }
+
+                    if (isMultiplayer) {
+                        window.cpuBey.images = {};
+                        if (cpuData.images) {
+                            if (cpuData.images.bb) { let img = new Image(); img.src = cpuData.images.bb; window.cpuBey.images.bb = img; }
+                            if (cpuData.images.sg) { let img = new Image(); img.src = cpuData.images.sg; window.cpuBey.images.sg = img; }
+                            if (cpuData.images.wd) { let img = new Image(); img.src = cpuData.images.wd; window.cpuBey.images.wd = img; }
+                            if (cpuData.images.ar) { let img = new Image(); img.src = cpuData.images.ar; window.cpuBey.images.ar = img; }
+                            if (cpuData.images.bc) { let img = new Image(); img.src = cpuData.images.bc; window.cpuBey.images.bc = img; }
+                        }
+                    } else if (cpuData.id === "opp_mirorbey") {
+                        window.cpuBey.images = window.playerBey.images; window.cpuBey.spinDir = window.playerBey.spinDir;
+                    } else {
+                        window.cpuBey.images = {
+                            bb: resolvePartImageObj(cpuData.bladeBase, 'bladeBases'),
+                            sg: resolvePartImageObj(cpuData.spinGear, 'spinGears'),
+                            wd: resolvePartImageObj(cpuData.weightDisk, 'weightDisks'),
+                            ar: resolvePartImageObj(cpuData.attackRing, 'attackRings'),
+                            sar: resolvePartImageObj(cpuData.subAttackRing, 'subAttackRings'), 
+                            bc: resolvePartImageObj(cpuData.bitChip, 'bitChips')
+                        };
+                    }
+
+                    window.cpuBey.activeAttacks = cpuData.attacks ? cpuData.attacks.map(a => ({ name: a.name, baseCd: a.cd * 1000, currentCd: 0 })) : [];
+                    window.cpuBey.ultimate = cpuData.ultimate || null; window.cpuBey.spirit = 0;
+                    
+                    burstParticles = [];
+
+                    if (window.SkillEngine) {
+                        window.SkillEngine.init(window.playerBey, window.cpuBey);
+                        if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(window.playerBey); }); });
+                        if (!isMultiplayer && cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(window.cpuBey); });
+                    }
+
+                    extractBuildData(); buildSkillsUI();
+                    matchTimerMs = 120000; p1Spirit = 0;
+
+                    lastTime = null; 
+                    requestAnimationFrame(gameLoop);
+                    
+                } catch (e) { console.error("START BATTLE ENGINE CRASH:", e); }
             }
 
             function updateDropIn(dt) {
@@ -1128,20 +1440,43 @@
                     }
                 }
                 
-                dropBey(playerBey); dropBey(cpuBey);
+                dropBey(window.playerBey); dropBey(window.cpuBey);
                 
-                if ((!playerBey || playerBey.isLanded) && (!cpuBey || cpuBey.isLanded)) {
+                if ((!window.playerBey || window.playerBey.isLanded) && (!window.cpuBey || window.cpuBey.isLanded)) {
                     gameState = "BATTLE"; battleStartTime = Date.now();
-                    if (playerBey && !playerBey.isGhost) initSpin(playerBey);
-                    if (cpuBey && !cpuBey.isGhost) initSpin(cpuBey);
+                    if (window.playerBey && !window.playerBey.isGhost) initSpin(window.playerBey);
+                    if (window.cpuBey && !window.cpuBey.isGhost) initSpin(window.cpuBey);
                 }
             }
+
+            function useSkill(index) {
+                if (roundConcluding) return; 
+                let skill = activeSkills[index]; if (!skill) return;
+                if (window.playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance") { window.SkillEngine.executeAttack(skill.name, window.playerBey, window.cpuBey, joyX, joyY); return; }
+                if (skill.currentCd <= 0 && window.SkillEngine) {
+                    window.SkillEngine.executeAttack(skill.name, window.playerBey, window.cpuBey, joyX, joyY); 
+                    let cdrMod = 1.0 - ((window.playerBey.stats.cdr || 0) / 100); skill.currentCd = skill.baseCd * cdrMod;
+                    window.playerBey.tutorialSpecialUsed = true;
+                }
+            }
+
+            function useUltimate() {
+                if (roundConcluding) return;
+                if (p1Spirit >= 100 && playerUltimate && window.SkillsDB) {
+                    if (window.SkillsDB.ultimates[playerUltimate.name] && window.SkillsDB.ultimates[playerUltimate.name].execute) {
+                        window.SkillsDB.ultimates[playerUltimate.name].execute(window.playerBey, window.cpuBey);
+                        p1Spirit = 0; window.playerBey.tutorialSpecialUsed = true;
+                    }
+                }
+            }
+
+            window.useSkill = useSkill; window.useUltimate = useUltimate;
 
             function updateUI(dt) {
                 let mins = Math.floor(matchTimerMs / 60000); let secs = Math.floor((matchTimerMs % 60000) / 1000);
                 document.getElementById('match-timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 
-                if (matchTimerMs <= 60000) p1Spirit += (0.002 * dt) * (1 + ((playerBey.stats.spiritCharge||0)/100));
+                if (matchTimerMs <= 60000) p1Spirit += (0.002 * dt) * (1 + ((window.playerBey.stats.spiritCharge||0)/100));
                 p1Spirit = Math.min(100, p1Spirit);
                 document.getElementById('spirit-fill').style.width = p1Spirit + "%";
                 
@@ -1174,7 +1509,21 @@
                     rpmWrapperEl.style.color = currentColor; rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
                 }
 
-                updateRadialHUD(playerBey, 'p1', p1Segments); updateRadialHUD(cpuBey, 'cpu', cpuSegments);
+                updateRadialHUD(window.playerBey, 'p1', p1Segments); updateRadialHUD(window.cpuBey, 'cpu', cpuSegments);
+            }
+            
+            function triggerBurst(bey, impactSpeed, dirX, dirY) {
+                bey.isBursted = true; const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
+                partsList.forEach(partKey => {
+                    if (bey.images && bey.images[partKey]) {
+                        let spread = (Math.random() - 0.5) * 1.5; let angle = Math.atan2(dirY, dirX) + spread; let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
+                        burstParticles.push({ img: bey.images[partKey], x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, rotation: bey.rotation, rotSpeed: (Math.random() - 0.5) * 0.4, size: bey.radius * 6.5, friction: 0.92 });
+                    }
+                });
+                for(let i=0; i<30; i++) {
+                    let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 8 + 4;
+                    particles.push({ x: bey.x, y: bey.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, decay: Math.random() * 0.04 + 0.02, color: '#ffffff', size: Math.random() * 4 + 2 });
+                }
             }
 
             function updatePhysics(dt) {
@@ -1186,64 +1535,50 @@
                     if (inputX !== 0 || inputY !== 0) {
                         let dist = Math.sqrt(inputX*inputX + inputY*inputY); joyX = inputX/dist; joyY = inputY/dist; 
                     } else if (mouseTarget && gameState === "BATTLE") {
-                        let dx = mouseTarget.x - playerBey.x; let dy = mouseTarget.y - playerBey.y; let dist = Math.sqrt(dx*dx + dy*dy);
+                        let dx = mouseTarget.x - window.playerBey.x; let dy = mouseTarget.y - window.playerBey.y; let dist = Math.sqrt(dx*dx + dy*dy);
                         if (dist > 15) { joyX = dx/dist; joyY = dy/dist; } else { joyX = 0; joyY = 0; } 
                     } else if (!isJoystickActive) { joyX = 0; joyY = 0; }
                 }
 
                 if (isGuest) {
-                    let now = performance.now();
-                    if (now - (window.lastInputTime || 0) > 16) {
-                        rtcManager.sendData({ type: "GUEST_INPUT", joyX: joyX, joyY: joyY });
-                        window.lastInputTime = now;
-                    }
-                    
-                    if (cpuBey && cpuBey.netX !== undefined) {
-                        cpuBey.x += (cpuBey.netX - cpuBey.x) * 0.3;
-                        cpuBey.y += (cpuBey.netY - cpuBey.y) * 0.3;
-                    }
-                    if (playerBey && playerBey.netX !== undefined) {
-                        let drift = Math.sqrt((playerBey.x - playerBey.netX)**2 + (playerBey.y - playerBey.netY)**2);
-                        let lerpFactor = drift > 20 ? 0.5 : 0.15;
-                        playerBey.x += (playerBey.netX - playerBey.x) * lerpFactor;
-                        playerBey.y += (playerBey.netY - playerBey.y) * lerpFactor;
-                    }
+                    rtcManager.sendData({ type: "GUEST_INPUT", joyX: joyX, joyY: joyY });
+                    return; 
                 }
 
-                if (window.SkillEngine) window.SkillEngine.update(dt, playerBey, cpuBey, joyX, joyY);
-                if (cpuBey && cpuBey.activeAttacks) cpuBey.activeAttacks.forEach(atk => { if (atk.currentCd > 0) atk.currentCd -= dt; });
-                if (cpuBey && matchTimerMs <= 60000) { cpuBey.spirit += (0.002 * dt) * (1 + ((cpuBey.stats.spiritCharge||0)/100)); }
-                if (cpuBey) cpuBey.spirit = Math.min(100, cpuBey.spirit);
+                if (window.SkillEngine) window.SkillEngine.update(dt, window.playerBey, window.cpuBey, joyX, joyY);
+                if (window.cpuBey && window.cpuBey.activeAttacks) window.cpuBey.activeAttacks.forEach(atk => { if (atk.currentCd > 0) atk.currentCd -= dt; });
+                if (window.cpuBey && matchTimerMs <= 60000) { window.cpuBey.spirit += (0.002 * dt) * (1 + ((window.cpuBey.stats.spiritCharge||0)/100)); }
+                if (window.cpuBey) window.cpuBey.spirit = Math.min(100, window.cpuBey.spirit);
 
-                if (!isMultiplayer && cpuData.aiScript && window.SkillEngine && cpuBey && !cpuBey.isBursted && !roundConcluding && !cpuBey.isGhost) { 
-                    if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
+                if (!isMultiplayer && cpuData.aiScript && window.SkillEngine && window.cpuBey && !window.cpuBey.isBursted && !roundConcluding && !window.cpuBey.isGhost) { 
+                    if (window.ActiveTutorial === "combat") {
                         const cx = width / 2; const cy = height / 2;
-                        if (window.TutorialManager.combatPhase < 6) {
-                            let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; cpuBey.vx += cdx * 0.0015; cpuBey.vy += cdy * 0.0015;
-                        } else if (window.TutorialManager.combatPhase >= 7 && window.TutorialManager.combatPhase < 9) {
-                            let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; let angle = Math.atan2(cdy, cdx) + (Math.PI / 2); 
-                            cpuBey.vx += Math.cos(angle) * 0.06; cpuBey.vy += Math.sin(angle) * 0.06; cpuBey.vx += cdx * 0.0005; cpuBey.vy += cdy * 0.0005; 
+                        if (TutorialManager.combatPhase < 6) {
+                            let cdx = cx - window.cpuBey.x; let cdy = cy - window.cpuBey.y; window.cpuBey.vx += cdx * 0.0015; window.cpuBey.vy += cdy * 0.0015;
+                        } else if (TutorialManager.combatPhase >= 7 && TutorialManager.combatPhase < 9) {
+                            let cdx = cx - window.cpuBey.x; let cdy = cy - window.cpuBey.y; let angle = Math.atan2(cdy, cdx) + (Math.PI / 2); 
+                            window.cpuBey.vx += Math.cos(angle) * 0.06; window.cpuBey.vy += Math.sin(angle) * 0.06; window.cpuBey.vx += cdx * 0.0005; window.cpuBey.vy += cdy * 0.0005; 
                         }
-                    } else { cpuData.aiScript(cpuBey, playerBey, window.SkillEngine); }
+                    } else { cpuData.aiScript(window.cpuBey, window.playerBey, window.SkillEngine); }
                 }
                 
                 const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
                 const basinRadius = maxRadius * 0.3; const rampRadius = maxRadius * 0.65;
 
-                window.TutorialManager.update(dt, playerBey, cx, cy);
+                TutorialManager.update(dt, window.playerBey, cx, cy);
 
-                if (activeBalloons.length > 0 && playerBey.z <= 0 && !playerBey.isBursted) {
+                if (activeBalloons.length > 0 && window.playerBey.z <= 0 && !window.playerBey.isBursted) {
                     for (let i = activeBalloons.length - 1; i >= 0; i--) {
-                        let b = activeBalloons[i]; let bDist = Math.sqrt((playerBey.x - b.x)**2 + (playerBey.y - b.y)**2);
-                        if (bDist < playerBey.radius + 35) { 
-                            activeBalloons.splice(i, 1); window.TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${window.TutorialManager.balloonsPopped} / 15`;
+                        let b = activeBalloons[i]; let bDist = Math.sqrt((window.playerBey.x - b.x)**2 + (window.playerBey.y - b.y)**2);
+                        if (bDist < window.playerBey.radius + 35) { 
+                            activeBalloons.splice(i, 1); TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${TutorialManager.balloonsPopped} / 15`;
                             let popSfx = new Audio('./audio/sounds/balloonpop.wav'); popSfx.volume = 0.5; popSfx.play().catch(e=>{});
                             let colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
                             for(let p=0; p<15; p++) {
                                 let ang = Math.random() * Math.PI*2; let spd = Math.random()*5+2;
                                 particles.push({x: b.x, y: b.y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, life: 1.0, decay: 0.05, color: colors[Math.floor(Math.random()*colors.length)], size: 3});
                             }
-                            window.TutorialManager.checkBalloons();
+                            TutorialManager.checkBalloons();
                         }
                     }
                 }
@@ -1304,7 +1639,7 @@
                             let finalDist = Math.max(0.01, Math.sqrt(finalDirX**2 + finalDirY**2));
                             accelX = (finalDirX / finalDist) * moveSpeed; accelY = (finalDirY / finalDist) * moveSpeed;
                         } else {
-                            let dx = playerBey.x - bey.x; let dy = playerBey.y - bey.y; let d = Math.max(1, Math.sqrt(dx*dx + dy*dy)); accelX = (dx / d) * moveSpeed; accelY = (dy / d) * moveSpeed;
+                            let dx = window.playerBey.x - bey.x; let dy = window.playerBey.y - bey.y; let d = Math.max(1, Math.sqrt(dx*dx + dy*dy)); accelX = (dx / d) * moveSpeed; accelY = (dy / d) * moveSpeed;
                         }
                         
                         bey.vx += accelX; bey.vy += accelY;
@@ -1324,10 +1659,10 @@
 
                         if (hitGap) {
                             bey.currentHp = 0; bey.ringOut = true;
-                            if (isPlayer && window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
-                                if (window.TutorialManager.combatPhase >= 10 && !window.TutorialManager.relaunching) {
-                                    window.TutorialManager.relaunching = true;
-                                    window.TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { window.TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
+                            if (isPlayer && TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                                if (TutorialManager.combatPhase >= 10 && !TutorialManager.relaunching) {
+                                    TutorialManager.relaunching = true;
+                                    TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
                                 }
                             }
                         } else {
@@ -1345,89 +1680,77 @@
                     bey.currentRpm = Math.max(0, bey.currentRpm); bey.currentHp = Math.max(0, bey.currentHp);
                 }
 
-                processBey(playerBey, true); 
-                
-                if (!cpuBey.isGhost && !isGuest) {
-                    processBey(cpuBey, false);
-                    
-                    let dx = cpuBey.x - playerBey.x; let dy = cpuBey.y - playerBey.y; let distance = Math.sqrt(dx * dx + dy * dy); let minDist = playerBey.radius + cpuBey.radius;
+                processBey(window.playerBey, true); 
+                if (!window.cpuBey.isGhost) {
+                    processBey(window.cpuBey, false);
+                    let dx = window.cpuBey.x - window.playerBey.x; let dy = window.cpuBey.y - window.playerBey.y; let distance = Math.sqrt(dx * dx + dy * dy); let minDist = window.playerBey.radius + window.cpuBey.radius;
 
-                    if (distance < minDist && !playerBey.ringOut && !cpuBey.ringOut && !playerBey.isBursted && !cpuBey.isBursted) {
+                    if (distance < minDist && !window.playerBey.ringOut && !window.cpuBey.ringOut && !window.playerBey.isBursted && !window.cpuBey.isBursted) {
                         if (distance === 0) { dx = 0.1; dy = 0.1; distance = Math.sqrt(dx * dx + dy * dy); }
                         let overlap = minDist - distance; let nx = dx / distance; let ny = dy / distance;
+                        window.playerBey.x -= nx * (overlap / 2); window.playerBey.y -= ny * (overlap / 2); window.cpuBey.x += nx * (overlap / 2); window.cpuBey.y += ny * (overlap / 2);
+
+                        let relVx = window.playerBey.vx - window.cpuBey.vx; let relVy = window.playerBey.vy - window.cpuBey.vy; let impactSpeed = Math.max(1, Math.sqrt(relVx*relVx + relVy*relVy));
+                        let isHeavyClash = (window.playerBey.auraDuration > 0 || window.cpuBey.auraDuration > 0 || impactSpeed > 15);
+
+                        if (isHeavyClash) { let randHeavy = Math.floor(Math.random() * 5) + 1; let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Heavy${randHeavy}.wav`); clashSFX.volume = 0.45; clashSFX.play().catch(e => console.log("SFX blocked by browser:", e)); } 
+                        else { let randNormal = Math.floor(Math.random() * 13) + 1; let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Normal${randNormal}.wav`); clashSFX.volume = 0.40; clashSFX.play().catch(e => console.log("SFX blocked by browser:", e)); }
                         
-                        playerBey.x -= nx * (overlap / 2); playerBey.y -= ny * (overlap / 2); cpuBey.x += nx * (overlap / 2); cpuBey.y += ny * (overlap / 2);
-
-                        let relVx = playerBey.vx - cpuBey.vx; let relVy = playerBey.vy - cpuBey.vy; let impactSpeed = Math.max(1, Math.sqrt(relVx*relVx + relVy*relVy));
-                        let isHeavyClash = (playerBey.auraDuration > 0 || cpuBey.auraDuration > 0 || impactSpeed > 15);
-
-                        let impactX = playerBey.x + (nx * playerBey.radius); let impactY = playerBey.y + (ny * playerBey.radius); 
-
-                        if (isMultiplayer && isHost) {
-                            rtcManager.sendData({ type: "CLASH_VFX", x: impactX, y: impactY, speed: impactSpeed, isHeavy: isHeavyClash });
-                        }
-
-                        if (isHeavyClash) { let randHeavy = Math.floor(Math.random() * 5) + 1; let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Heavy${randHeavy}.wav`); clashSFX.volume = 0.45; clashSFX.play().catch(e => console.log("SFX blocked:", e)); } 
-                        else { let randNormal = Math.floor(Math.random() * 13) + 1; let clashSFX = new Audio(`./audio/sounds/Beyblade_Clash_Normal${randNormal}.wav`); clashSFX.volume = 0.40; clashSFX.play().catch(e => console.log("SFX blocked:", e)); }
-                        
-                        let sparkCount = Math.min(20, Math.max(5, Math.floor(impactSpeed * 2)));
+                        let impactX = window.playerBey.x + (nx * window.playerBey.radius); let impactY = window.playerBey.y + (ny * window.playerBey.radius); let sparkCount = Math.min(20, Math.max(5, Math.floor(impactSpeed * 2)));
                         for (let i = 0; i < sparkCount; i++) {
                             let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 3 + 2 + (impactSpeed * 0.1);
                             particles.push({ x: impactX, y: impactY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1.0, decay: Math.random() * 0.06 + 0.03, color: Math.random() > 0.5 ? '#ffcc00' : '#ffffff', size: Math.random() * 3 + 1 });
                         }
 
-                        let pWeight = Math.max(1, safeNum(playerBey.stats.weight, 10) + safeNum(playerBey.tempWeight, 0)); let cWeight = Math.max(1, safeNum(cpuBey.stats.weight, 10) + safeNum(cpuBey.tempWeight, 0));
-                        let pKnockbackMod = ((cWeight / pWeight) * 0.275) * (1 + playerBey.wobbleFactor); let cKnockbackMod = ((pWeight / cWeight) * 0.275) * (1 + cpuBey.wobbleFactor);
+                        let pWeight = Math.max(1, safeNum(window.playerBey.stats.weight, 10) + safeNum(window.playerBey.tempWeight, 0)); let cWeight = Math.max(1, safeNum(window.cpuBey.stats.weight, 10) + safeNum(window.cpuBey.tempWeight, 0));
+                        let pKnockbackMod = ((cWeight / pWeight) * 0.275) * (1 + window.playerBey.wobbleFactor); let cKnockbackMod = ((pWeight / cWeight) * 0.275) * (1 + window.cpuBey.wobbleFactor);
                         let baseBounce = impactSpeed * 0.8 + 4.5; 
-                        playerBey.vx = -nx * baseBounce * pKnockbackMod; playerBey.vy = -ny * baseBounce * pKnockbackMod; cpuBey.vx = nx * baseBounce * cKnockbackMod; cpuBey.vy = ny * baseBounce * cKnockbackMod;
+                        window.playerBey.vx = -nx * baseBounce * pKnockbackMod; window.playerBey.vy = -ny * baseBounce * pKnockbackMod; window.cpuBey.vx = nx * baseBounce * cKnockbackMod; window.cpuBey.vy = ny * baseBounce * cKnockbackMod;
 
-                        let pAtk = safeNum(playerBey.stats.attack, 0) + safeNum(playerBey.tempAttack, 0); let pDef = safeNum(playerBey.stats.defense, 0) + safeNum(playerBey.tempDefense, 0); let pEnd = safeNum(playerBey.stats.endurance, 0) + safeNum(playerBey.tempEndurance, 0);
-                        let cAtk = safeNum(cpuBey.stats.attack, 0) + safeNum(cpuBey.tempAttack, 0); let cDef = safeNum(cpuBey.stats.defense, 0) + safeNum(cpuBey.tempDefense, 0); let cEnd = safeNum(cpuBey.stats.endurance, 0) + safeNum(cpuBey.tempEndurance, 0);
+                        let pAtk = safeNum(window.playerBey.stats.attack, 0) + safeNum(window.playerBey.tempAttack, 0); let pDef = safeNum(window.playerBey.stats.defense, 0) + safeNum(window.playerBey.tempDefense, 0); let pEnd = safeNum(window.playerBey.stats.endurance, 0) + safeNum(window.playerBey.tempEndurance, 0);
+                        let cAtk = safeNum(window.cpuBey.stats.attack, 0) + safeNum(window.cpuBey.tempAttack, 0); let cDef = safeNum(window.cpuBey.stats.defense, 0) + safeNum(window.cpuBey.tempDefense, 0); let cEnd = safeNum(window.cpuBey.stats.endurance, 0) + safeNum(window.cpuBey.tempEndurance, 0);
 
                         let pDmgToC_HP = Math.max(0.5, (pAtk * impactSpeed * 0.1) - (cDef * 0.4)); let pDmgToC_RPM = Math.max(1.0, (pAtk * impactSpeed * 0.3) - (cEnd * 0.8));
                         let cDmgToP_HP = Math.max(0.5, (cAtk * impactSpeed * 0.1) - (pDef * 0.4)); let cDmgToP_RPM = Math.max(1.0, (cAtk * impactSpeed * 0.3) - (pEnd * 0.8));
 
-                        playerBey.currentHp -= cDmgToP_HP; playerBey.currentRpm -= cDmgToP_RPM; cpuBey.currentHp -= pDmgToC_HP; cpuBey.currentRpm -= pDmgToC_RPM;
+                        window.playerBey.currentHp -= cDmgToP_HP; window.playerBey.currentRpm -= cDmgToP_RPM; window.cpuBey.currentHp -= pDmgToC_HP; window.cpuBey.currentRpm -= pDmgToC_RPM;
                         matchStats.totalDamageDealt += pDmgToC_HP;
 
-                        let pRecoilStat = safeNum(playerBey.stats.recoil, 0); let pRecoilReduc = safeNum(playerBey.stats.recoilReduction, 0) + safeNum(playerBey.tempRecoilReduction, 0);
-                        let cRecoilStat = safeNum(cpuBey.stats.recoil, 0); let cRecoilReduc = safeNum(cpuBey.stats.recoilReduction, 0) + safeNum(cpuBey.tempRecoilReduction, 0);
+                        let pRecoilStat = safeNum(window.playerBey.stats.recoil, 0); let pRecoilReduc = safeNum(window.playerBey.stats.recoilReduction, 0) + safeNum(window.playerBey.tempRecoilReduction, 0);
+                        let cRecoilStat = safeNum(window.cpuBey.stats.recoil, 0); let cRecoilReduc = safeNum(window.cpuBey.stats.recoilReduction, 0) + safeNum(window.cpuBey.tempRecoilReduction, 0);
                         
-                        let pRecoilDmg = Math.max(0, (pDmgToC_HP * (pRecoilStat * 0.02)) - (pRecoilReduc * 0.1)) * (1 + playerBey.wobbleFactor);
-                        let cRecoilDmg = Math.max(0, (cDmgToP_HP * (cRecoilStat * 0.02)) - (cRecoilReduc * 0.1)) * (1 + cpuBey.wobbleFactor);
+                        let pRecoilDmg = Math.max(0, (pDmgToC_HP * (pRecoilStat * 0.02)) - (pRecoilReduc * 0.1)) * (1 + window.playerBey.wobbleFactor);
+                        let cRecoilDmg = Math.max(0, (cDmgToP_HP * (cRecoilStat * 0.02)) - (cRecoilReduc * 0.1)) * (1 + window.cpuBey.wobbleFactor);
 
-                        playerBey.currentHp -= pRecoilDmg; playerBey.currentRpm -= pRecoilDmg * 2; cpuBey.currentHp -= cRecoilDmg; cpuBey.currentRpm -= cRecoilDmg * 2;
-                        playerBey.currentHp = Math.max(0, playerBey.currentHp); cpuBey.currentHp = Math.max(0, cpuBey.currentHp);
+                        window.playerBey.currentHp -= pRecoilDmg; window.playerBey.currentRpm -= pRecoilDmg * 2; window.cpuBey.currentHp -= cRecoilDmg; window.cpuBey.currentRpm -= cRecoilDmg * 2;
+                        window.playerBey.currentHp = Math.max(0, window.playerBey.currentHp); window.cpuBey.currentHp = Math.max(0, window.cpuBey.currentHp);
 
-                        if (playerBey.currentHp === 0 && !playerBey.isBursted) triggerBurst(playerBey, impactSpeed, -nx, -ny);
-                        if (cpuBey.currentHp === 0 && !cpuBey.isBursted) triggerBurst(cpuBey, impactSpeed, nx, ny);
+                        if (window.playerBey.currentHp === 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, impactSpeed, -nx, -ny);
+                        if (window.cpuBey.currentHp === 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, impactSpeed, nx, ny);
 
-                        p1Spirit += (impactSpeed * 0.2) * (1 + (safeNum(playerBey.stats.spiritCharge, 0)/100));
+                        p1Spirit += (impactSpeed * 0.2) * (1 + (safeNum(window.playerBey.stats.spiritCharge, 0)/100));
 
-                        if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
-                            let usedSpecial = playerBey.tutorialSpecialUsed || false;
-                            window.TutorialManager.registerCollision(usedSpecial);
-                            playerBey.tutorialSpecialUsed = false; 
+                        if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                            let usedSpecial = window.playerBey.tutorialSpecialUsed || false;
+                            TutorialManager.registerCollision(usedSpecial);
+                            window.playerBey.tutorialSpecialUsed = false; 
                         }
                     }
                 }
 
                 if (window.ActiveTutorial) {
-                    if (playerBey && !playerBey.ringOut) { playerBey.currentHp = playerBey.maxHp; playerBey.currentRpm = playerBey.maxRpm; }
-                    if (cpuBey && !cpuBey.ringOut) { cpuBey.currentHp = cpuBey.maxHp; cpuBey.currentRpm = cpuBey.maxRpm; }
+                    if (window.playerBey && !window.playerBey.ringOut) { window.playerBey.currentHp = window.playerBey.maxHp; window.playerBey.currentRpm = window.playerBey.maxRpm; }
+                    if (window.cpuBey && !window.cpuBey.ringOut) { window.cpuBey.currentHp = window.cpuBey.maxHp; window.cpuBey.currentRpm = window.cpuBey.maxRpm; }
                 }
 
+                // --- WEBRTC PHASE 2: HOST BROADCASTS THE ABSOLUTE TRUTH TO THE GUEST ---
                 if (isHost && gameState === "BATTLE") {
-                    let now = performance.now();
-                    if (now - (window.lastSyncTime || 0) > 16) {
-                        rtcManager.sendData({
-                            type: "STATE_SYNC",
-                            timer: matchTimerMs,
-                            p1: { x: playerBey.x, y: playerBey.y, z: playerBey.z, hp: playerBey.currentHp, rpm: playerBey.currentRpm, rot: playerBey.rotation, aura: playerBey.activeAura, auraDur: playerBey.activeAuraDuration, vText: playerBey.visualText, vTextColor: playerBey.visualTextColor },
-                            p2: { x: cpuBey.x, y: cpuBey.y, z: cpuBey.z, hp: cpuBey.currentHp, rpm: cpuBey.currentRpm, rot: cpuBey.rotation, aura: cpuBey.activeAura, auraDur: cpuBey.activeAuraDuration, vText: cpuBey.visualText, vTextColor: cpuBey.visualTextColor }
-                        });
-                        window.lastSyncTime = now;
-                    }
+                    rtcManager.sendData({
+                        type: "STATE_SYNC",
+                        timer: matchTimerMs,
+                        p1: { x: window.playerBey.x, y: window.playerBey.y, z: window.playerBey.z, hp: window.playerBey.currentHp, rpm: window.playerBey.currentRpm, rot: window.playerBey.rotation },
+                        p2: { x: window.cpuBey.x, y: window.cpuBey.y, z: window.cpuBey.z, hp: window.cpuBey.currentHp, rpm: window.cpuBey.currentRpm, rot: window.cpuBey.rotation }
+                    });
                 }
             }
 
@@ -1516,7 +1839,7 @@
                     if (bey.visualText) { ctx.fillStyle = bey.visualTextColor; ctx.font = 'bold 16px Arial'; ctx.fillText(bey.visualText, bey.x - 40, bey.y - 30); }
                 }
 
-                drawBey(playerBey); drawBey(cpuBey);
+                drawBey(window.playerBey); drawBey(window.cpuBey);
                 
                 for (let i = 0; i < burstParticles.length; i++) {
                     let bp = burstParticles[i];
@@ -1536,8 +1859,8 @@
                 if (roundConcluding) return; 
                 if (window.ActiveTutorial) return; 
 
-                let pAlive = playerBey.currentHp > 0 && playerBey.currentRpm > 0 && !playerBey.ringOut;
-                let cAlive = cpuBey.currentHp > 0 && cpuBey.currentRpm > 0 && !cpuBey.ringOut;
+                let pAlive = window.playerBey.currentHp > 0 && window.playerBey.currentRpm > 0 && !window.playerBey.ringOut;
+                let cAlive = window.cpuBey.currentHp > 0 && window.cpuBey.currentRpm > 0 && !window.cpuBey.ringOut;
                 let timeOut = matchTimerMs <= 0;
 
                 if (!pAlive || !cAlive || timeOut) { roundConcluding = true; roundConcludeTimer = 2500; }
@@ -1546,24 +1869,24 @@
             function processRoundWinner() {
                 gameState = "ROUND_OVER";
                 
-                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
-                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
+                if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
+                if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
                 
                 let winner = "DRAW"; let finishType = "SPIN"; 
                 
-                let pAlive = playerBey.currentHp > 0 && playerBey.currentRpm > 0 && !playerBey.ringOut;
-                let cAlive = cpuBey.currentHp > 0 && cpuBey.currentRpm > 0 && !cpuBey.ringOut;
+                let pAlive = window.playerBey.currentHp > 0 && window.playerBey.currentRpm > 0 && !window.playerBey.ringOut;
+                let cAlive = window.cpuBey.currentHp > 0 && window.cpuBey.currentRpm > 0 && !window.cpuBey.ringOut;
                 let timeOut = matchTimerMs <= 0;
 
                 if (timeOut) {
-                    let pPercent = (playerBey.currentHp / playerBey.maxHp) + (playerBey.currentRpm / playerBey.maxRpm); let cPercent = (cpuBey.currentHp / cpuBey.maxHp) + (cpuBey.currentRpm / cpuBey.maxRpm);
+                    let pPercent = (window.playerBey.currentHp / window.playerBey.maxHp) + (window.playerBey.currentRpm / window.playerBey.maxRpm); let cPercent = (window.cpuBey.currentHp / window.cpuBey.maxHp) + (window.cpuBey.currentRpm / window.cpuBey.maxRpm);
                     winner = pPercent > cPercent ? "PLAYER" : (cPercent > pPercent ? "CPU" : "DRAW");
                 } else if (pAlive && !cAlive) {
-                    winner = "PLAYER"; if (cpuBey.ringOut) finishType = "RING_OUT"; else if (cpuBey.currentHp <= 0) finishType = "BURST";
+                    winner = "PLAYER"; if (window.cpuBey.ringOut) finishType = "RING_OUT"; else if (window.cpuBey.currentHp <= 0) finishType = "BURST";
                 } else if (cAlive && !pAlive) {
-                    winner = "CPU"; if (playerBey.ringOut) finishType = "RING_OUT"; else if (playerBey.currentHp <= 0) finishType = "BURST";
+                    winner = "CPU"; if (window.playerBey.ringOut) finishType = "RING_OUT"; else if (window.playerBey.currentHp <= 0) finishType = "BURST";
                 } else if (!pAlive && !cAlive) {
-                    winner = "DRAW"; if (playerBey.ringOut || cpuBey.ringOut) finishType = "RING_OUT"; else if (playerBey.currentHp <= 0 || cpuBey.currentHp <= 0) finishType = "BURST";
+                    winner = "DRAW"; if (window.playerBey.ringOut || window.cpuBey.ringOut) finishType = "RING_OUT"; else if (window.playerBey.currentHp <= 0 || window.cpuBey.currentHp <= 0) finishType = "BURST";
                 }
 
                 let titleText = "DRAW"; let gradientClass = "spin-finish"; 
@@ -1572,8 +1895,8 @@
                 let subtitleText = "It's a Tie!";
                 if (winner === "PLAYER") {
                     p1Score++; document.getElementById(`p1-pt${p1Score}`).classList.add('filled'); matchStats.playerScore = p1Score;
-                    if (playerBey.currentHp >= playerBey.maxHp) matchStats.perfectRounds++;
-                    if (playerBey.currentHp / playerBey.maxHp <= 0.25 || playerBey.currentRpm / playerBey.maxRpm <= 0.25) matchStats.turnaboutsAchieved++;                
+                    if (window.playerBey.currentHp >= window.playerBey.maxHp) matchStats.perfectRounds++;
+                    if (window.playerBey.currentHp / window.playerBey.maxHp <= 0.25 || window.playerBey.currentRpm / window.playerBey.maxRpm <= 0.25) matchStats.turnaboutsAchieved++;                
                     let pName = window.PlayerData ? (window.PlayerData.accountName || "Player") : "Player"; subtitleText = `${pName} WINS A POINT!`;
                 } else if (winner === "CPU") {
                     cpuScore++; document.getElementById(`cpu-pt${cpuScore}`).classList.add('cpu-filled'); matchStats.cpuScore = cpuScore; 
@@ -1601,13 +1924,7 @@
             window.returnFromArena = function() {
                 if (localStorage.getItem('isStoryBattle') === 'true') {
                     window.stopArenaAudio(); localStorage.removeItem('isStoryBattle'); window.navigateTo('adventure.html'); 
-                } else if (isMultiplayer) {
-                    window.stopArenaAudio(); 
-                    localStorage.setItem('returningToLobby', 'true');
-                    window.navigateTo('multiplayer.html'); 
-                } else {
-                    window.stopArenaAudio(); window.navigateTo('beybattle.html'); 
-                }
+                } else { window.navigateTo('beybattle.html'); }
             };
 
             function resetRound() {
@@ -1616,9 +1933,11 @@
                 document.getElementById('launcher-container').style.display = 'none'; document.getElementById('countdown-text').innerText = '';
                 
                 let instruction = document.getElementById('instruction-text');
+                
                 instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
                 
                 setupLaunchMinigame(); playerLaunchSite = null; cpuLaunchSite = null; gameState = "SELECT_LAUNCH";
+                
                 localLaunchReady = false; remoteLaunchReady = false; remoteLaunchData = null;
                 
                 burstParticles = []; drawArena(); 
@@ -1648,72 +1967,6 @@
                 if (gameState === "BATTLE" || gameState === "DROP_IN" || gameState === "WAITING_FOR_OPPONENT" || gameState === "STARTING_MULTIPLAYER") drawBattle(timestamp);
                 if (gameState !== "ROUND_OVER") requestAnimationFrame(gameLoop);
             }
-
-            // ==========================================
-            // 8. INITIALIZATION TRIGGER
-            // ==========================================
-            function startArenaEngine() {
-                if (isMultiplayer) {
-                    matchData = window.ActiveMatch.data;
-                    if (!matchData && activeRoomId) {
-                        get(ref(rtdb, `rooms/${activeRoomId}`)).then((snap) => {
-                            matchData = snap.val();
-                            window.ActiveMatch.data = matchData;
-                            
-                            savedCpuData = {
-                                id: "remote_player",
-                                name: isHost ? matchData.guestName : matchData.hostName,
-                                isRemote: true,
-                                stats: {}, 
-                                spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
-                                images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
-                            };
-                            finalizeArenaSetup();
-                        }).catch(e => console.error("Failed to fetch room data:", e));
-                    } else if (matchData) {
-                        savedCpuData = {
-                            id: "remote_player",
-                            name: isHost ? matchData.guestName : matchData.hostName,
-                            isRemote: true,
-                            stats: {}, 
-                            spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
-                            images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
-                        };
-                        finalizeArenaSetup();
-                    }
-                } else {
-                    savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
-                    if (!savedCpuData && window.ActiveTutorial) {
-                        savedCpuData = { id: "opp_tutorial", name: "Dummy", stats: { hp: 800, weight: 30, rpm: 1500 } };
-                    }
-                    finalizeArenaSetup();
-                }
-            }
-
-            function finalizeArenaSetup() {
-                if (!playerBuild || !savedCpuData) {
-                    window.navigateTo('home-menu.html');
-                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
-                }
-
-                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
-                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
-
-                document.getElementById('top-info-bar').style.display = 'none';
-
-                window.addEventListener('resize', () => {
-                    width = window.innerWidth; height = window.innerHeight;
-                    canvas.width = width; canvas.height = height;
-                    if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
-                });
-
-                attachNetworkListeners();
-                setupLaunchMinigame();
-                drawArena();
-            }
-
-            // Pull the trigger!
-            startArenaEngine();
 
         } catch (err) {
             console.error("Arena Initialization Error:", err);
