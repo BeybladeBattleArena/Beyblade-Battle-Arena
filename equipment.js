@@ -555,6 +555,28 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_20", // Generalized ID
+            name: "Basilisk Eye", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Basilisk", "Eye", "Barrage Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/BasiliskEye.png",  
+            stats: { attack: 19, stamina: 9, balance: 3, weight: 15, mobility: 2, endurance: 4, defense: 3 },
+			passives: [], 
+			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "basilisk_eye",
+                    styleName: "Basilisk Eye", 
+                    styleColorSample: "#63818d", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/BasiliskEye.png", 
+                    topDownImage: "./images/beyblade_parts/AR/BasiliskEye.png" 
+                },
+            ]
+},
     ],
 	
 	
