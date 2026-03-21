@@ -284,7 +284,7 @@
     import { db, rtdb } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
     import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { rtcManager } from './webrtc-manager.js'; 
+    import { rtcManager } from './webrtc-manager.js';
 
     // --- WRAP ENTIRE SCRIPT IN AN IIFE TO BYPASS SPA PARSING BUGS ---
     (async function() {
@@ -305,7 +305,6 @@
             let isMultiplayer = window.ActiveMatch !== undefined && window.ActiveMatch !== null;
             let isHost = isMultiplayer && window.ActiveMatch.role === 'HOST';
             let isGuest = isMultiplayer && window.ActiveMatch.role === 'GUEST';
-
             let activeRoomId = window.ActiveMatch?.roomId || (rtcManager ? rtcManager.roomId : null);
 
             let localLaunchReady = false;
@@ -366,274 +365,7 @@
 
 
             // ==========================================
-            // CORE FUNCTIONS (FLATTENED SCOPE)
-            // ==========================================
-
-            function checkBothReady() {
-                if (localLaunchReady && remoteLaunchReady && gameState === "WAITING_FOR_OPPONENT") {
-                    if (launchSyncInterval) clearInterval(launchSyncInterval);
-                    
-                    const countText = document.getElementById('countdown-text');
-                    countText.innerText = "LINK ESTABLISHED!";
-                    countText.style.color = "#00ff00";
-                    
-                    setTimeout(() => {
-                        document.getElementById('minigame-overlay').style.display = 'none';
-                        document.getElementById('ui-layer').style.display = 'block';
-                        startBattleEngine();
-                        gameState = "DROP_IN";
-                    }, 1000);
-                }
-            }
-
-            function handleNetworkMessage(event) {
-                let data = JSON.parse(event.data);
-                
-                if (data.type === "LAUNCH_READY") {
-                    remoteLaunchReady = true; 
-                    remoteLaunchData = data; 
-                    remoteStartRpmMod = data.rpmMod; 
-                    checkBothReady();
-                }
-                else if (data.type === "GUEST_INPUT" && isHost) {
-                    remoteJoyX = data.joyX; remoteJoyY = data.joyY;
-                }
-                else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
-                    if(window.cpuBey && window.playerBey) {
-                        window.cpuBey.x = data.p1.x; window.cpuBey.y = data.p1.y; window.cpuBey.z = data.p1.z;
-                        window.cpuBey.currentHp = data.p1.hp; window.cpuBey.currentRpm = data.p1.rpm;
-                        window.cpuBey.rotation = data.p1.rot;
-                        
-                        window.playerBey.x = data.p2.x; window.playerBey.y = data.p2.y; window.playerBey.z = data.p2.z;
-                        window.playerBey.currentHp = data.p2.hp; window.playerBey.currentRpm = data.p2.rpm;
-                        window.playerBey.rotation = data.p2.rot;
-                        
-                        matchTimerMs = data.timer;
-                        if (matchTimerMs < 0) matchTimerMs = 0;
-
-                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
-                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
-                    }
-                }
-            }
-
-            function attachNetworkListeners() {
-                if (isMultiplayer) {
-                    if (rtcManager.dataChannel) {
-                        rtcManager.dataChannel.addEventListener('message', handleNetworkMessage);
-                    } else {
-                        setTimeout(attachNetworkListeners, 100); 
-                    }
-                }
-            }
-
-            function processLaunchTap(missed = false) {
-                gameState = "LAUNCHING"; 
-                cancelAnimationFrame(ripcordAnimation);
-                
-                if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
-                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
-                }
-
-                const countText = document.getElementById('countdown-text');
-
-                if (missed) {
-                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
-                } else {
-                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
-                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
-                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
-                    
-                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
-
-                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
-                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
-                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
-                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
-                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
-                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
-                    } else if (hitTooth > gRange[1]) { 
-                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
-                    } else { 
-                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
-                    }
-                }
-
-                if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
-                    TutorialManager.phase = 1; 
-                    setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
-                } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
-                    if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
-                    else {
-                        setTimeout(() => {
-                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
-                            window.playerBey.currentRpm = window.playerBey.maxRpm * playerStartRpmMod;
-                            window.playerBey.x = playerLaunchSite.x; window.playerBey.y = playerLaunchSite.y;
-                            window.playerBey.targetX = playerLaunchSite.x; window.playerBey.targetY = playerLaunchSite.y;
-                            window.playerBey.z = 300; window.playerBey.vz = 0; window.playerBey.isLanded = false; window.playerBey.ringOut = false; 
-                            gameState = "DROP_IN";
-                        }, 1500);
-                    }
-                    return;
-                }
-
-                // --- THE FIX: DELAY BEFORE HITTING THE SYNC BARRIER ---
-                // Gives the player 1.5 seconds to see their "GREAT LAUNCH!" text before moving on.
-                setTimeout(() => {
-                    localLaunchReady = true;
-
-                    if (isMultiplayer) {
-                        gameState = "WAITING_FOR_OPPONENT";
-                        countText.innerText = "WAITING FOR OPPONENT...";
-                        countText.style.color = "#ffaa00";
-
-                        let myTempStats = calculateStats(playerBuild);
-
-                        rtcManager.sendData({
-                            type: "LAUNCH_READY",
-                            rpmMod: playerStartRpmMod,
-                            x: playerLaunchSite.x,
-                            y: playerLaunchSite.y,
-                            stats: myTempStats 
-                        });
-
-                        launchSyncInterval = setInterval(() => {
-                            if (remoteLaunchReady) {
-                                clearInterval(launchSyncInterval);
-                            } else {
-                                rtcManager.sendData({
-                                    type: "LAUNCH_READY",
-                                    rpmMod: playerStartRpmMod,
-                                    x: playerLaunchSite.x,
-                                    y: playerLaunchSite.y,
-                                    stats: myTempStats 
-                                });
-                            }
-                        }, 250);
-
-                        checkBothReady();
-                    } else {
-                        document.getElementById('minigame-overlay').style.display = 'none';
-                        document.getElementById('ui-layer').style.display = 'block';
-                        startBattleEngine();
-                        gameState = "DROP_IN";
-                    }
-                }, 1500); // 1.5 second delay
-            }
-
-
-            // ==========================================
-            // EVENT LISTENERS
-            // ==========================================
-
-            const overlay = document.getElementById('minigame-overlay');
-            const instruction = document.getElementById('instruction-text');
-            const countText = document.getElementById('countdown-text');
-            const launcherUI = document.getElementById('launcher-container');
-
-            overlay.addEventListener('pointerdown', (e) => {
-                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
-
-                if (gameState === "SELECT_LAUNCH") {
-                    const cx = width / 2; const cy = height / 2;
-                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
-                    
-                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
-                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
-
-                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
-                    
-                    if (dist > maxRadius * 0.85) {
-                        instruction.innerText = "Aim closer to the inside of the stadium!";
-                        instruction.style.color = "#ff4444";
-                        setTimeout(() => { 
-                            if (gameState === "SELECT_LAUNCH") {
-                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
-                                instruction.style.color = "#00ffff"; 
-                            }
-                        }, 1500);
-                        return;
-                    }
-
-                    let isLeftSide = safeX <= width * 0.425;
-                    let isRightSide = safeX >= width * 0.575;
-                    
-                    let validSide = false;
-                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
-                    else if (isGuest) { validSide = isRightSide; }
-
-                    if (validSide) {
-                        playerLaunchSite = { x: safeX, y: safeY };
-                        gameState = "COUNTDOWN";
-                        drawArena(); 
-                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
-                        instruction.style.color = "#00ffff";
-                        startCountdown();
-                    } else {
-                        instruction.innerText = `You must launch on YOUR side of the arena!`;
-                        instruction.style.color = "#ff4444";
-                        setTimeout(() => { 
-                            if (gameState === "SELECT_LAUNCH") {
-                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
-                                instruction.style.color = "#00ffff"; 
-                            }
-                        }, 1500);
-                    }
-                } else if (gameState === "MINIGAME") {
-                    processLaunchTap();
-                }
-            });
-
-
-            // ==========================================
-            // DATA FETCH & INITIALIZATION
-            // ==========================================
-            
-            attachNetworkListeners(); // Start polling immediately
-
-            if (isMultiplayer) {
-                matchData = window.ActiveMatch.data;
-                if (!matchData && activeRoomId) {
-                    const snap = await get(ref(rtdb, `rooms/${activeRoomId}`));
-                    matchData = snap.val();
-                    window.ActiveMatch.data = matchData;
-                }
-                if (matchData) {
-                    savedCpuData = {
-                        id: "remote_player",
-                        name: isHost ? matchData.guestName : matchData.hostName,
-                        isRemote: true,
-                        stats: {}, 
-                        spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
-                        images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
-                    };
-                }
-            } else {
-                savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
-            }
-            
-            if (!playerBuild || !savedCpuData) {
-                window.navigateTo('home-menu.html');
-                throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
-            }
-
-            cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
-            arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
-
-            document.getElementById('top-info-bar').style.display = 'none';
-
-            window.addEventListener('resize', () => {
-                width = window.innerWidth; height = window.innerHeight;
-                canvas.width = width; canvas.height = height;
-                if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
-            });
-
-            setupLaunchMinigame();
-            drawArena();
-
-
-            // ==========================================
-            // THE REST OF THE ENGINE
+            // DEFINED AT TOP TO PREVENT "NOT DEFINED" ERRORS
             // ==========================================
 
             window.TutorialManager = {
@@ -663,7 +395,7 @@
                             "A match is divided into multiple rounds, and when a Blader scores a point, the round is over. Points are scored in a few ways!",
                             "First, there's bursting your opponent's build wide open by reducing its HP to zero from physical combat. That's called a Burst Finish.",
                             "Second, there's using the force of your hit to send the opponent outside the stadium, either through wall pockets or up and over the wall itself. This results in a Knockout Finish. Keep in mind, accidentally derping yourself outside the stadium counts as a Knockout Finish too, <player>.",
-                            "Third, and the most technical, if you ask me, is the Spin Finish! Outlast your opponent with sheer technical skill, mind games, and evasion until their Bey runs out of RPM and falls flat on its face.",
+                            "Third, and the most technical, if you ask me, is the Spin Finish! Outlast your opponent with sheer technical skill, mind games, and evasion until their Bey runs out of RPM and falls flat on face.",
                             "Now launch your Bey and use your fighting spirit to make it collide with mine!"
                         ], () => {
                             document.getElementById('instruction-text').innerText = "Launch your Beyblade into the stadium to face Toma!";
@@ -900,6 +632,206 @@
             
             window.TutorialManager.advanceVN = function() { window.TutorialManager.advanceVN(); };
 
+            function checkBothReady() {
+                if (localLaunchReady && remoteLaunchReady && gameState === "WAITING_FOR_OPPONENT") {
+                    if (launchSyncInterval) clearInterval(launchSyncInterval);
+                    gameState = "STARTING_MULTIPLAYER"; // Lock to prevent double triggering
+                    
+                    const countText = document.getElementById('countdown-text');
+                    countText.innerText = "LET IT RIP!";
+                    countText.style.color = "#00ff00";
+
+                    // --- THE FIX: PLAY THE AUDIO HERE FOR MULTIPLAYER! ---
+                    let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+                    letItRipSFX.volume = 0.45; 
+                    letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
+                    
+                    setTimeout(() => {
+                        document.getElementById('minigame-overlay').style.display = 'none';
+                        document.getElementById('ui-layer').style.display = 'block';
+                        startBattleEngine();
+                        gameState = "DROP_IN";
+                    }, 1000);
+                }
+            }
+
+            function handleNetworkMessage(event) {
+                let data = JSON.parse(event.data);
+                
+                if (data.type === "LAUNCH_READY") {
+                    remoteLaunchReady = true; 
+                    remoteLaunchData = data; 
+                    remoteStartRpmMod = data.rpmMod; 
+                    checkBothReady();
+                }
+                else if (data.type === "GUEST_INPUT" && isHost) {
+                    remoteJoyX = data.joyX; remoteJoyY = data.joyY;
+                }
+                else if (data.type === "STATE_SYNC" && isGuest && gameState === "BATTLE") {
+                    if(window.cpuBey && window.playerBey) {
+                        window.cpuBey.x = data.p1.x; window.cpuBey.y = data.p1.y; window.cpuBey.z = data.p1.z;
+                        window.cpuBey.currentHp = data.p1.hp; window.cpuBey.currentRpm = data.p1.rpm;
+                        window.cpuBey.rotation = data.p1.rot;
+                        
+                        window.playerBey.x = data.p2.x; window.playerBey.y = data.p2.y; window.playerBey.z = data.p2.z;
+                        window.playerBey.currentHp = data.p2.hp; window.playerBey.currentRpm = data.p2.rpm;
+                        window.playerBey.rotation = data.p2.rot;
+                        
+                        matchTimerMs = data.timer;
+                        if (matchTimerMs < 0) matchTimerMs = 0; // Prevent negative timer
+
+                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
+                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
+                    }
+                }
+            }
+
+            function attachNetworkListeners() {
+                if (isMultiplayer) {
+                    if (rtcManager.dataChannel) {
+                        rtcManager.dataChannel.addEventListener('message', handleNetworkMessage);
+                    } else {
+                        setTimeout(attachNetworkListeners, 100); 
+                    }
+                }
+            }
+
+
+            // ==========================================
+            // MINIGAME LOGIC
+            // ==========================================
+
+            function startCountdown() {
+                let count = 3; 
+                const countText = document.getElementById('countdown-text');
+                countText.innerText = "3...";
+                
+                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
+                count3.volume = 0.4; 
+                count3.play().catch(e => console.log("SFX blocked by browser:", e));
+
+                const countInterval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countText.innerText = `${count}...`;
+                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
+                        countSFX.volume = 0.4; 
+                        countSFX.play().catch(e => console.log("SFX blocked by browser:", e));
+                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
+                    } else {
+                        clearInterval(countInterval);
+                        
+                        // --- THE FIX: NEW AUDIO/TEXT SEQUENCE ---
+                        if (isMultiplayer) {
+                            countText.innerText = "PREPARE YOUR LAUNCH!";
+                            countText.style.color = "#00ffff";
+                            // Audio will play inside checkBothReady()
+                        } else {
+                            countText.innerText = "LET IT RIP!";
+                            let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+                            letItRipSFX.volume = 0.45; 
+                            letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
+                        }
+
+                        gameState = "MINIGAME";
+                        startRipcordPull();
+                    }
+                }, 1000);
+            }
+
+            function processLaunchTap(missed = false) {
+                gameState = "LAUNCHING"; 
+                cancelAnimationFrame(ripcordAnimation);
+                
+                if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
+                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
+                }
+
+                const countText = document.getElementById('countdown-text');
+
+                if (missed) {
+                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
+                } else {
+                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
+                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
+                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
+                    
+                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
+
+                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
+                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
+                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
+                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
+                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
+                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
+                    } else if (hitTooth > gRange[1]) { 
+                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
+                    } else { 
+                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
+                    }
+                }
+
+                if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
+                    TutorialManager.phase = 1; 
+                    setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
+                } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                    if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
+                    else {
+                        setTimeout(() => {
+                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
+                            window.playerBey.currentRpm = window.playerBey.maxRpm * playerStartRpmMod;
+                            window.playerBey.x = playerLaunchSite.x; window.playerBey.y = playerLaunchSite.y;
+                            window.playerBey.targetX = playerLaunchSite.x; window.playerBey.targetY = playerLaunchSite.y;
+                            window.playerBey.z = 300; window.playerBey.vz = 0; window.playerBey.isLanded = false; window.playerBey.ringOut = false; 
+                            gameState = "DROP_IN";
+                        }, 1500);
+                    }
+                    return;
+                }
+
+                // --- THE FIX: DELAY BEFORE HITTING THE SYNC BARRIER ---
+                // Gives the player 1.5 seconds to see their "GREAT LAUNCH!" text before moving on.
+                setTimeout(() => {
+                    localLaunchReady = true;
+
+                    if (isMultiplayer) {
+                        gameState = "WAITING_FOR_OPPONENT";
+                        countText.innerHTML = "LAUNCH READY!<br><span style='font-size:24px; color:#ffaa00;'>Waiting for other player...</span>";
+                        
+                        let myTempStats = calculateStats(playerBuild);
+
+                        rtcManager.sendData({
+                            type: "LAUNCH_READY",
+                            rpmMod: playerStartRpmMod,
+                            x: playerLaunchSite.x,
+                            y: playerLaunchSite.y,
+                            stats: myTempStats 
+                        });
+
+                        launchSyncInterval = setInterval(() => {
+                            if (remoteLaunchReady) {
+                                clearInterval(launchSyncInterval);
+                            } else {
+                                rtcManager.sendData({
+                                    type: "LAUNCH_READY",
+                                    rpmMod: playerStartRpmMod,
+                                    x: playerLaunchSite.x,
+                                    y: playerLaunchSite.y,
+                                    stats: myTempStats 
+                                });
+                            }
+                        }, 250);
+
+                        checkBothReady();
+                    } else {
+                        document.getElementById('minigame-overlay').style.display = 'none';
+                        document.getElementById('ui-layer').style.display = 'block';
+                        startBattleEngine();
+                        gameState = "DROP_IN";
+                    }
+                }, 1500); 
+            }
+
             function triggerTutorialRelaunch() {
                 if (window.playerBey && window.playerBey.spinSFX) { window.playerBey.spinSFX.pause(); window.playerBey.spinSFX = null; }
                 if (window.cpuBey && window.cpuBey.spinSFX) { window.cpuBey.spinSFX.pause(); window.cpuBey.spinSFX = null; }
@@ -921,6 +853,68 @@
                 setupLaunchMinigame(); drawArena(); 
             }
 
+            // ==========================================
+            // EVENT LISTENERS
+            // ==========================================
+
+            const overlay = document.getElementById('minigame-overlay');
+            const instruction = document.getElementById('instruction-text');
+            const countText = document.getElementById('countdown-text');
+            const launcherUI = document.getElementById('launcher-container');
+
+            overlay.addEventListener('pointerdown', (e) => {
+                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
+
+                if (gameState === "SELECT_LAUNCH") {
+                    const cx = width / 2; const cy = height / 2;
+                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
+                    
+                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
+                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
+
+                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
+                    
+                    if (dist > maxRadius * 0.85) {
+                        instruction.innerText = "Aim closer to the inside of the stadium!";
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                        return;
+                    }
+
+                    let isLeftSide = safeX <= width * 0.425;
+                    let isRightSide = safeX >= width * 0.575;
+                    
+                    let validSide = false;
+                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
+                    else if (isGuest) { validSide = isRightSide; }
+
+                    if (validSide) {
+                        playerLaunchSite = { x: safeX, y: safeY };
+                        gameState = "COUNTDOWN";
+                        drawArena(); 
+                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
+                        instruction.style.color = "#00ffff";
+                        startCountdown();
+                    } else {
+                        instruction.innerText = `You must launch on YOUR side of the arena!`;
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                    }
+                } else if (gameState === "MINIGAME") {
+                    processLaunchTap();
+                }
+            });
+
             window.addEventListener('keydown', e => { 
                 let k = e.key.toLowerCase(); 
                 if(keys.hasOwnProperty(k)) { keys[k] = true; } 
@@ -935,12 +929,13 @@
             
             window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
 
+            const joyZone = document.getElementById('joystick-zone');
             function handleTouchJoy(e) { 
                 e.preventDefault(); 
                 if(roundConcluding) return; 
                 
                 let touch = e.touches ? e.touches[0] : e; 
-                let rect = document.getElementById('joystick-zone').getBoundingClientRect(); 
+                let rect = joyZone.getBoundingClientRect(); 
                 let dx = touch.clientX - (rect.left + rect.width/2); 
                 let dy = touch.clientY - (rect.top + rect.height/2); 
                 let maxDist = rect.width/2; 
@@ -948,14 +943,86 @@
                 if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; } 
                 joyX = dx/maxDist; joyY = dy/maxDist; 
             }
-            document.getElementById('joystick-zone').addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
-            document.getElementById('joystick-zone').addEventListener('touchmove', handleTouchJoy, {passive: false});
-            document.getElementById('joystick-zone').addEventListener('touchend', () => { isJoystickActive = false; });
+            joyZone.addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
+            joyZone.addEventListener('touchmove', handleTouchJoy, {passive: false});
+            joyZone.addEventListener('touchend', () => { isJoystickActive = false; });
 
             canvas.addEventListener('mousedown', e => { if(e.button === 0 || e.button === 2) mouseTarget = { x: e.clientX, y: e.clientY }; });
             canvas.addEventListener('mousemove', e => { if(mouseTarget) mouseTarget = { x: e.clientX, y: e.clientY }; });
             window.addEventListener('mouseup', () => { mouseTarget = null; });
             canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+
+            // ==========================================
+            // DATA FETCH & INITIALIZATION
+            // ==========================================
+            
+            attachNetworkListeners(); 
+
+            function finalizeArenaSetup() {
+                if (!playerBuild || !savedCpuData) {
+                    window.navigateTo('home-menu.html');
+                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
+                }
+
+                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+
+                document.getElementById('top-info-bar').style.display = 'none';
+
+                setupLaunchMinigame();
+                drawArena();
+            }
+
+            if (isMultiplayer) {
+                matchData = window.ActiveMatch.data;
+                if (!matchData && activeRoomId) {
+                    get(ref(rtdb, `rooms/${activeRoomId}`)).then((snap) => {
+                        matchData = snap.val();
+                        window.ActiveMatch.data = matchData;
+                        
+                        savedCpuData = {
+                            id: "remote_player",
+                            name: isHost ? matchData.guestName : matchData.hostName,
+                            isRemote: true,
+                            stats: {}, 
+                            spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
+                            images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
+                        };
+                        finalizeArenaSetup();
+                    }).catch(e => console.error("Failed to fetch room data:", e));
+                } else if (matchData) {
+                    savedCpuData = {
+                        id: "remote_player",
+                        name: isHost ? matchData.guestName : matchData.hostName,
+                        isRemote: true,
+                        stats: {}, 
+                        spinDirection: isHost ? matchData.guestSpin : matchData.hostSpin,
+                        images: isHost ? matchData.guestBuildImages : matchData.hostBuildImages
+                    };
+                    finalizeArenaSetup();
+                }
+            } else {
+                savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
+                finalizeArenaSetup();
+            }
+
+
+            // ==========================================
+            // THE REST OF THE ENGINE
+            // ==========================================
+
+            function startRipcordPull() {
+                let nativePullSpeed = 2.5; 
+                function animateRipcord() {
+                    if (gameState !== "MINIGAME") return; 
+                    currentNativePixel -= nativePullSpeed; 
+                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
+                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
+                    ripcordAnimation = requestAnimationFrame(animateRipcord);
+                }
+                animateRipcord();
+            }
 
             function resolveImageUrl(partData, category) {
                 if (!partData) return '';
@@ -1057,7 +1124,6 @@
                 }
 
                 if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") {
-                    
                     if (!isMultiplayer || isHost) {
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(0, 0, width * 0.425, height); 
                     } else if (isGuest) {
@@ -1081,60 +1147,6 @@
                         ctx.fillStyle = '#ff0000'; ctx.fill();
                     }
                 }
-            }
-
-            function startCountdown() {
-                let count = 3; 
-                const countText = document.getElementById('countdown-text');
-                countText.innerText = "3...";
-                
-                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
-                count3.volume = 0.4; 
-                count3.play().catch(e => console.log("SFX blocked by browser:", e));
-
-                const countInterval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        countText.innerText = `${count}...`;
-                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
-                        countSFX.volume = 0.4; 
-                        countSFX.play().catch(e => console.log("SFX blocked by browser:", e));
-                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
-                    } else {
-                        clearInterval(countInterval);
-                        countText.innerText = "LET IT RIP!";
-                        
-                        let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
-                        letItRipSFX.volume = 0.45; 
-                        letItRipSFX.play().catch(e => console.log("SFX blocked by browser:", e));
-
-                        gameState = "MINIGAME";
-                        startRipcordPull();
-                    }
-                }, 1000);
-            }
-
-            function startRipcordPull() {
-                let nativePullSpeed = 2.5; 
-                function animateRipcord() {
-                    if (gameState !== "MINIGAME") return; 
-                    currentNativePixel -= nativePullSpeed; 
-                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
-                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
-                    ripcordAnimation = requestAnimationFrame(animateRipcord);
-                }
-                animateRipcord();
-            }
-
-            function resetRoundTutorial() {
-                document.getElementById('launcher-container').style.display = 'none';
-                document.getElementById('countdown-text').innerText = '';
-                document.getElementById('instruction-text').innerText = "Select a launch site by tapping the highlighted portion of the arena!";
-                document.getElementById('instruction-text').style.color = "#00ffff";
-                setupLaunchMinigame(); 
-                playerLaunchSite = null; cpuLaunchSite = null; 
-                gameState = "SELECT_LAUNCH";
-                drawArena(); 
             }
 
             function calculateStats(build) {
@@ -1952,7 +1964,7 @@
                     updatePhysics(dt); updateUI(dt); checkRoundCondition();
                 }
                 
-                if (gameState === "BATTLE" || gameState === "DROP_IN" || gameState === "WAITING_FOR_OPPONENT") drawBattle(timestamp);
+                if (gameState === "BATTLE" || gameState === "DROP_IN" || gameState === "WAITING_FOR_OPPONENT" || gameState === "STARTING_MULTIPLAYER") drawBattle(timestamp);
                 if (gameState !== "ROUND_OVER") requestAnimationFrame(gameLoop);
             }
 
