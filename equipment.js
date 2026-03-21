@@ -577,6 +577,80 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_21", // Generalized ID
+            name: "Protoshell Shield", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Protoshell", "Shield", "Concentrate Defense"], 
+			fallbackImage: "./images/beyblade_parts/AR/Protoshell_Shield.png",  
+            stats: { attack: 23, stamina: 2, balance: 2, weight: 16, mobility: -1, endurance: -1, defense: 7, recoil: 8 },
+			passives: [], 
+			attacks: [{ name: "Concentrate Defense", cd: 7 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "protoshell",
+                    styleName: "Protoshell Shield", 
+                    styleColorSample: "#279b3e", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/Protoshell_Shield.png", 
+                    topDownImage: "./images/beyblade_parts/AR/Protoshell_Shield.png" 
+                },
+				{ 
+                    styleId: "protoshell_maxdesign",
+                    styleName: "Protoshell Shield (Max Version)", 
+                    styleColorSample: "#279b3e", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/Protoshell_Shield_MaxShieldVersion.png", 
+                    topDownImage: "./images/beyblade_parts/AR/Protoshell_Shield_MaxShieldVersion.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_22", // Generalized ID
+            name: "Wing Cutter", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Wing", "Cutter", "Sharp Shooter"], 
+			fallbackImage: "./images/beyblade_parts/AR/WingCutter.png",  
+            stats: { attack: 26, stamina: 1, weight: 14, mobility: 3, speed: 2, endurance: 1, recoil: 2, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Sharp Shooter", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "wingcutter",
+                    styleName: "Wing Cutter", 
+                    styleColorSample: "#4667ce", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/WingCutter.png", 
+                    topDownImage: "./images/beyblade_parts/AR/WingCutter.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_22", // Generalized ID
+            name: "Mythic Horn", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Mythic", "Horn", "Sharp Shooter"], 
+			fallbackImage: "./images/beyblade_parts/AR/MythicHorn.png",  
+            stats: { attack: 22, stamina: 6, weight: 14, mobility: 2, endurance: 3, balance: 2, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Sharp Shooter", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "mythichorn",
+                    styleName: "Mythic Horn", 
+                    styleColorSample: "#889297", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/MythicHorn.png", 
+                    topDownImage: "./images/beyblade_parts/AR/MythicHorn.png" 
+                },
+            ]
+},
     ],
 	
 	
@@ -1148,7 +1222,23 @@ window.equipmentDB = {
                     styleColorSample: "#466970", 
                     styleRarity: 1,
                     image: "./images/beyblade_parts/SG/StandardSG_Right_CrestedCarapaceGreen_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_CrestedCarapaceGreen__topdown.png" 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_CrestedCarapaceGreen_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_blue2",
+                    styleName: "Right Spin Gear Blue (Dranzer Auto Change Balancer)", 
+                    styleColorSample: "#4667ce", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_DranzerAutoChangeBalancerBlue_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_DranzerAutoChangeBalancerBlue_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_green2",
+                    styleName: "Right Spin Gear Blue (Draciel Metal Ball Defenser)", 
+                    styleColorSample: "#279b3e", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_MetalBallDefenserGreen_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_MetalBallDefenserGreen_topdown.png" 
                 },
             ]
 },
@@ -1215,6 +1305,14 @@ window.equipmentDB = {
                     styleRarity: 4,
                     image: "./images/beyblade_parts/SG/DualAxisSG_Right_Sandstone_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/DualAxisSG_Right_Sandstone_topdown.png" 
+                },
+                { 
+                    styleId: "dualaxis_gray",
+                    styleName: "Dual Axis Spin Gear Gray (Lost Pegasus)", 
+                    styleColorSample: "#889297", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SG/DualAxisSG_Right_Gray_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/DualAxisSG_Right_Gray_topdown.png" 
                 },
             ]
 },
@@ -1724,6 +1822,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/BB/PivotFlat_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/PivotFlat_topdown.png" 
                 },
+				{ 
+                    styleId: "pivot_flat_lostpegasus",
+                    styleName: "Pivot Flat Gray (Lost Pegasus)", 
+                    styleColorSample: "#889297", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/PivotFlat_LostPegasusGray_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/PivotFlat_LostPegasusGray_topdown.png" 
+                },
             ]
 },
 { 
@@ -1734,7 +1840,7 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Thorn", "Semi-Flat", "Tip", "Metal" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png",  
-            stats: {  rpm: 100, speed: 8, defense: 1, attack: 9, grip: 21, balance: 15, mobility: 11, recoil: 1, weight: 13  },
+            stats: {  rpm: 100, speed: 8, defense: 1, attack: 6, grip: 21, balance: 15, mobility: 11, recoil: 1, weight: 13  },
 			passives: [], 
 			attacks: [],
 			
@@ -1747,6 +1853,54 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/ThornBase_Red_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_16", // Generalized ID
+            name: "Auto Change Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Flat",
+            tags: ["Auto", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal" ], 
+			fallbackImage: "./images/beyblade_parts/BB/AutoChangeBase_sideview.png",  
+            stats: {  rpm: 115, speed: 10, endurance: 1, attack: 1, grip: 22, balance: 14, mobility: 13, recoil: 1, weight: 15  },
+			passives: ["Mode Change"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "autochangebase",
+                    styleName: "Auto Change Base", 
+                    styleColorSample: "#4667ce", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/AutoChangeBase_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/AutoChangeBase_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_17", // Generalized ID
+            name: "Metal Ball Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Semi-Flat",
+            tags: ["Metal", "Ball", "Semi-Flat", "Tip", "Metal" ], 
+			fallbackImage: "./images/beyblade_parts/BB/MetalBallBase_sideview.png",  
+            stats: {  rpm: 120, stamina: 1, defense: 5, endurance: 1, grip: 21, balance: -1, mobility: -1, attack: -1, recoilReduction: 2, weight: 17  },
+			passives: ["Metal Ball Defense"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "metalballbase",
+                    styleName: "Metal Ball Base", 
+                    styleColorSample: "#279b3e", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/MetalBallBase_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/MetalBallBase_topdown.png" 
                 },
             ]
 },

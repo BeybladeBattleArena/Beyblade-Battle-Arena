@@ -14,6 +14,16 @@ window.SkillsDB = {
             desc: "When a collision occurs, reduce knockback by 10% and RPM damage by 2%. Then, temporarily increase Speed and Attack by 6% for 7 seconds. Cooldown: 28s.",
             apply: function(bey) {}
         },
+		"Mode Change": {
+            name: "Mode Change",
+            desc: "When RPM reaches below 50%, the blade base's mode change mechanism switches from a Flat tip to a Semi-Flat tip, decreasing Attack and Grip by 3%, but increasing Endurance and Stamina by 7% and Defense and Recoil Reduction by 2%.",
+            apply: function(bey) {}
+        },
+		"Metal Ball Defense": {
+            name: "Mode Change",
+            desc: "While RPM is above 55%, increase Attack by 2%, Balance and Mobility by 4%, and Defense by 5%. When RPM dips below 55%, instead increase Recoil Reduction by 1%, Knockback Resistance by 3% and Defense and Endurance by 4%.",
+            apply: function(bey) {}
+        },
         "Engine Activation": {
             name: "Engine Activation",
             desc: "When RPM drops below 50%, activates for a massive 350 RPM burst and Mobility boost.",
