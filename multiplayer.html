@@ -917,25 +917,54 @@
                 });
             });
         }
-        startRoomListener(); 
-                
-                // --- THE POST-MATCH RETURN CATCHER ---
-                if (localStorage.getItem('returningToLobby') === 'true') {
-                    localStorage.removeItem('returningToLobby'); // Consume the flag
-                    if (window.ActiveMatch && window.ActiveMatch.roomId) {
-                        document.getElementById('host-panel').classList.add('slide-left');
-                        document.getElementById('join-panel').classList.add('slide-right');
-                        document.getElementById('vs-arena').classList.add('active');
-                        
-                        document.getElementById('vs-p1-showcase').classList.add('active');
-                        document.getElementById('vs-p2-showcase').classList.add('active');
-                        
-                        window.ActiveMatch.guestReady = false; 
-                        let readyBtn = document.getElementById('vs-ready-btn');
-                        if(readyBtn) {
-                            readyBtn.innerText = "READY"; 
-                            readyBtn.style.background = "rgba(0,0,0,0.7)";
-                        }
+startRoomListener(); 
+        
+        // --- THE POST-MATCH RETURN CATCHER ---
+        if (localStorage.getItem('returningToLobby') === 'true') {
+            localStorage.removeItem('returningToLobby'); // Consume the flag
+            
+            // Safely wait 500ms for the DOM to settle before animating
+            setTimeout(async () => {
+                if (window.ActiveMatch && window.ActiveMatch.roomId) {
+                    const rId = window.ActiveMatch.roomId;
+                    
+                    // 1. RE-ESTABLISH FIREBASE CONNECTION
+                    currentRoomRef = ref(rtdb, `rooms/${rId}`);
+                    
+                    // 2. RESET ROOM STATE (Host Only)
+                    if (window.ActiveMatch.role === 'HOST') {
+                        await update(currentRoomRef, { status: "WAITING_FOR_CHALLENGER", guestReady: false });
+                        onDisconnect(currentRoomRef).remove(); // Re-arm the self-destruct
+                    } else if (window.ActiveMatch.role === 'GUEST') {
+                        guestDisconnectRef = ref(rtdb, `rooms/${rId}/guestUid`);
+                        onDisconnect(guestDisconnectRef).set(null); 
                     }
-                } 
+
+                    // 3. RESTORE THE UI
+                    document.getElementById('host-panel').classList.add('slide-left');
+                    document.getElementById('join-panel').classList.add('slide-right');
+                    document.getElementById('vs-arena').classList.add('active');
+                    
+                    isVsActive = true;
+                    startParticleSystem();
+                    triggerRollIn(1);
+                    if (window.ActiveMatch.data?.guestUid || window.ActiveMatch.role === 'GUEST') {
+                        triggerRollIn(2);
+                    }
+
+                    // 4. RESET READY BUTTONS
+                    window.ActiveMatch.guestReady = false; 
+                    let readyBtn = document.getElementById('vs-ready-btn');
+                    if(readyBtn) {
+                        readyBtn.innerText = "READY"; 
+                        readyBtn.style.background = "rgba(0,0,0,0.7)";
+                    }
+                    
+                    document.getElementById('vs-start-btn').style.display = 'none';
+
+                    // 5. RE-ATTACH LISTENER
+                    attachRoomListener(rId);
+                }
+            }, 500);
+        }
     </script>
