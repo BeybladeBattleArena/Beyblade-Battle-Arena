@@ -1438,6 +1438,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/BB/SharpBase_SaizoBlack_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/SharpBase_SaizoBlack_topdown.png" 
                 },
+				                { 
+                    styleId: "sharpbase_royalblue",
+                    styleName: "Sharp Base Royal Blue", 
+                    styleColorSample: "#2c3cdb", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/SharpBase_RoyalBlue_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/SharpBase_RoyalBlue_topdown.png" 
+                },
             ]
 },
 { 
