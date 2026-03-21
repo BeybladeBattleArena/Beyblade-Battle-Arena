@@ -286,7 +286,6 @@
     import { ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
     import { rtcManager } from './webrtc-manager.js';
 
-    // --- WRAP ENTIRE SCRIPT IN AN IIFE TO BYPASS SPA PARSING BUGS ---
     (async function() {
         try {
             function safeNum(val, fallback) {
@@ -317,14 +316,11 @@
             let cpuData = null;
             let arenaStyle = 1;
 
-            // --- LOCAL GLOBALS ---
             let playerBey = null; 
             let cpuBey = null; 
             let lastTime = null; 
-            let particles = []; 
-            let burstParticles = []; 
-            let p1Segments = []; 
-            let cpuSegments = [];
+            let particles = []; let burstParticles = []; 
+            let p1Segments = []; let cpuSegments = [];
             const NUM_HUD_SEGMENTS = 36; 
 
             window.stopArenaAudio = function() {
@@ -366,10 +362,21 @@
             let activeBalloons = [];
             let balloonImg = new Image(); balloonImg.src = './images/beyblade_parts/arena_props/redballoon.png';
 
+            const windSpriteSize = 300;
+            const windSprite = document.createElement('canvas'); windSprite.width = windSpriteSize; windSprite.height = windSpriteSize;
+            const wCtx = windSprite.getContext('2d'); const wCenter = windSpriteSize / 2; const wBaseRadius = 100;
+            const wSegments = 20; const wStep = (Math.PI * 1.5) / wSegments; 
+            for (let i = 0; i < wSegments; i++) {
+                let a1 = i * wStep; let a2 = (i + 1) * wStep + 0.1; let alpha = Math.sin((i / (wSegments - 1)) * Math.PI);
+                wCtx.beginPath(); wCtx.arc(wCenter, wCenter, wBaseRadius, a1, a2);
+                wCtx.strokeStyle = `rgba(210, 240, 255, ${alpha})`; wCtx.lineWidth = 2; wCtx.lineCap = "round";
+                wCtx.shadowBlur = 4; wCtx.shadowColor = "rgba(210, 240, 255, 0.8)"; wCtx.stroke();
+            }
+
             // ==========================================
-            // TUTORIAL MANAGER 
+            // TUTORIAL MANAGER
             // ==========================================
-            const TutorialManager = {
+            window.TutorialManager = {
                 isActive: window.ActiveTutorial === "basics" || window.ActiveTutorial === "combat",
                 tutorialType: window.ActiveTutorial,
                 phase: 0, launches: 0, accAngle: 0, lastAngle: null,
@@ -630,11 +637,129 @@
                     }
                 }
             };
-            
-            window.TutorialManager = TutorialManager; // Expose for HTML onclick
+
+            function triggerTutorialRelaunch() {
+                if (playerBey && playerBey.spinSFX) { playerBey.spinSFX.pause(); playerBey.spinSFX = null; }
+                if (cpuBey && cpuBey.spinSFX) { cpuBey.spinSFX.pause(); cpuBey.spinSFX = null; }
+
+                gameState = "SELECT_LAUNCH"; playerLaunchSite = null; burstParticles = [];
+                
+                playerBey.isLanded = false; playerBey.z = 300; playerBey.vz = 0;
+                playerBey.currentHp = playerBey.maxHp; playerBey.ringOut = false;
+
+                document.getElementById('ui-layer').style.display = 'none';
+                document.getElementById('minigame-overlay').style.display = 'flex';
+                document.getElementById('launcher-container').style.display = 'none';
+                document.getElementById('countdown-text').innerText = '';
+                
+                let instruction = document.getElementById('instruction-text');
+                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!";
+                instruction.style.color = "#00ffff"; instruction.style.display = "block";
+                
+                setupLaunchMinigame(); drawArena(); 
+            }
 
             // ==========================================
-            // NETWORKING & SYNC
+            // EVENT LISTENERS & INPUT
+            // ==========================================
+
+            window.addEventListener('keydown', e => { 
+                let k = e.key.toLowerCase(); 
+                if(keys.hasOwnProperty(k)) { keys[k] = true; } 
+                
+                if (gameState === "BATTLE" && !roundConcluding) {
+                    if (k === '1' && activeSkills.length > 0) window.useSkill(0);
+                    if (k === '2' && activeSkills.length > 1) window.useSkill(1);
+                    if (k === '3' && activeSkills.length > 2) window.useSkill(2);
+                    if (k === '4' && activeSkills.length > 3) window.useSkill(3);
+                }
+            });
+            
+            window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
+
+            const joyZone = document.getElementById('joystick-zone');
+            function handleTouchJoy(e) { 
+                e.preventDefault(); 
+                if(roundConcluding) return; 
+                
+                let touch = e.touches ? e.touches[0] : e; 
+                let rect = joyZone.getBoundingClientRect(); 
+                let dx = touch.clientX - (rect.left + rect.width/2); 
+                let dy = touch.clientY - (rect.top + rect.height/2); 
+                let maxDist = rect.width/2; 
+                let dist = Math.sqrt(dx*dx + dy*dy); 
+                if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; } 
+                joyX = dx/maxDist; joyY = dy/maxDist; 
+            }
+            joyZone.addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
+            joyZone.addEventListener('touchmove', handleTouchJoy, {passive: false});
+            joyZone.addEventListener('touchend', () => { isJoystickActive = false; });
+
+            canvas.addEventListener('mousedown', e => { if(e.button === 0 || e.button === 2) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            canvas.addEventListener('mousemove', e => { if(mouseTarget) mouseTarget = { x: e.clientX, y: e.clientY }; });
+            window.addEventListener('mouseup', () => { mouseTarget = null; });
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+            const overlay = document.getElementById('minigame-overlay');
+            const instruction = document.getElementById('instruction-text');
+            const countText = document.getElementById('countdown-text');
+            const launcherUI = document.getElementById('launcher-container');
+
+            overlay.addEventListener('pointerdown', (e) => {
+                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
+
+                if (gameState === "SELECT_LAUNCH") {
+                    const cx = width / 2; const cy = height / 2;
+                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
+                    
+                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
+                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
+
+                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
+                    
+                    if (dist > maxRadius * 0.85) {
+                        instruction.innerText = "Aim closer to the inside of the stadium!";
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                        return;
+                    }
+
+                    let isLeftSide = safeX <= width * 0.425;
+                    let isRightSide = safeX >= width * 0.575;
+                    
+                    let validSide = false;
+                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
+                    else if (isGuest) { validSide = isRightSide; }
+
+                    if (validSide) {
+                        playerLaunchSite = { x: safeX, y: safeY };
+                        gameState = "COUNTDOWN";
+                        drawArena(); 
+                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
+                        instruction.style.color = "#00ffff";
+                        startCountdown();
+                    } else {
+                        instruction.innerText = `You must launch on YOUR side of the arena!`;
+                        instruction.style.color = "#ff4444";
+                        setTimeout(() => { 
+                            if (gameState === "SELECT_LAUNCH") {
+                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
+                                instruction.style.color = "#00ffff"; 
+                            }
+                        }, 1500);
+                    }
+                } else if (gameState === "MINIGAME") {
+                    processLaunchTap();
+                }
+            });
+
+            // ==========================================
+            // NETWORKING
             // ==========================================
 
             function checkBothReady() {
@@ -723,213 +848,8 @@
             }
 
             // ==========================================
-            // GLOBAL SKILL EXPOSURE FOR HTML BUTTONS
+            // PRE-BATTLE LOGIC
             // ==========================================
-            window.useSkill = function(index) {
-                if (roundConcluding) return; 
-                let skill = activeSkills[index]; if (!skill) return;
-
-                let isAerialCombo = (playerBey && playerBey.skillState && playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance");
-
-                if (isAerialCombo || skill.currentCd <= 0) {
-                    if (!isAerialCombo) {
-                        let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100); 
-                        skill.currentCd = skill.baseCd * cdrMod;
-                    }
-                    if (isGuest) {
-                        rtcManager.sendData({ type: "GUEST_SKILL", skillName: skill.name, joyX: joyX, joyY: joyY });
-                    } else if (window.SkillEngine) {
-                        window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
-                        playerBey.tutorialSpecialUsed = true;
-                    }
-                }
-            };
-
-            window.useUltimate = function() {
-                if (roundConcluding) return;
-                if (p1Spirit >= 100 && playerUltimate) {
-                    p1Spirit = 0; 
-                    if (isGuest) {
-                        rtcManager.sendData({ type: "GUEST_ULTIMATE", skillName: playerUltimate.name });
-                    } else if (window.SkillsDB && window.SkillsDB.ultimates[playerUltimate.name]) {
-                        window.SkillsDB.ultimates[playerUltimate.name].execute(playerBey, cpuBey);
-                        playerBey.tutorialSpecialUsed = true;
-                    }
-                }
-            };
-
-            // ==========================================
-            // INITIALIZATION LOGIC (MISSING IN PREVIOUS ITERATION)
-            // ==========================================
-            function finalizeArenaSetup() {
-                if (!playerBuild || !savedCpuData) {
-                    window.navigateTo('home-menu.html');
-                    throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
-                }
-
-                cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
-                arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
-
-                document.getElementById('top-info-bar').style.display = 'none';
-
-                window.addEventListener('resize', () => {
-                    width = window.innerWidth; height = window.innerHeight;
-                    canvas.width = width; canvas.height = height;
-                    if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") drawArena(); 
-                });
-
-                setupLaunchMinigame();
-                drawArena();
-            }
-
-            // ==========================================
-            // EVENT LISTENERS
-            // ==========================================
-            const overlay = document.getElementById('minigame-overlay');
-            const instruction = document.getElementById('instruction-text');
-            const countText = document.getElementById('countdown-text');
-            const launcherUI = document.getElementById('launcher-container');
-
-            overlay.addEventListener('pointerdown', (e) => {
-                if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
-
-                if (gameState === "SELECT_LAUNCH") {
-                    const cx = width / 2; const cy = height / 2;
-                    const maxRadius = Math.min(width, height) / 2 * 0.9; 
-                    
-                    let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
-                    let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
-
-                    let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
-                    
-                    if (dist > maxRadius * 0.85) {
-                        instruction.innerText = "Aim closer to the inside of the stadium!";
-                        instruction.style.color = "#ff4444";
-                        setTimeout(() => { 
-                            if (gameState === "SELECT_LAUNCH") {
-                                instruction.innerText = "Select a launch site by tapping the highlighted portion of the arena!"; 
-                                instruction.style.color = "#00ffff"; 
-                            }
-                        }, 1500);
-                        return;
-                    }
-
-                    let isLeftSide = safeX <= width * 0.425;
-                    let isRightSide = safeX >= width * 0.575;
-                    
-                    let validSide = false;
-                    if (!isMultiplayer || isHost) { validSide = isLeftSide; } 
-                    else if (isGuest) { validSide = isRightSide; }
-
-                    if (validSide) {
-                        playerLaunchSite = { x: safeX, y: safeY };
-                        gameState = "COUNTDOWN";
-                        drawArena(); 
-                        instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
-                        instruction.style.color = "#00ffff";
-                        startCountdown();
-                    } else {
-                        instruction.innerText = `You must launch on YOUR side of the arena!`;
-                        instruction.style.color = "#ff4444";
-                        setTimeout(() => { 
-                            if (gameState === "SELECT_LAUNCH") {
-                                instruction.innerText = `Select a launch site by tapping the highlighted portion of the arena!`; 
-                                instruction.style.color = "#00ffff"; 
-                            }
-                        }, 1500);
-                    }
-                } else if (gameState === "MINIGAME") {
-                    processLaunchTap();
-                }
-            });
-
-            window.addEventListener('keydown', e => { 
-                let k = e.key.toLowerCase(); 
-                if(keys.hasOwnProperty(k)) { keys[k] = true; } 
-                
-                if (gameState === "BATTLE" && !roundConcluding) {
-                    if (k === '1' && activeSkills.length > 0) window.useSkill(0);
-                    if (k === '2' && activeSkills.length > 1) window.useSkill(1);
-                    if (k === '3' && activeSkills.length > 2) window.useSkill(2);
-                    if (k === '4' && activeSkills.length > 3) window.useSkill(3);
-                }
-            });
-            
-            window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
-
-            const joyZone = document.getElementById('joystick-zone');
-            function handleTouchJoy(e) { 
-                e.preventDefault(); 
-                if(roundConcluding) return; 
-                
-                let touch = e.touches ? e.touches[0] : e; 
-                let rect = joyZone.getBoundingClientRect(); 
-                let dx = touch.clientX - (rect.left + rect.width/2); 
-                let dy = touch.clientY - (rect.top + rect.height/2); 
-                let maxDist = rect.width/2; 
-                let dist = Math.sqrt(dx*dx + dy*dy); 
-                if (dist > maxDist) { dx = (dx/dist)*maxDist; dy = (dy/dist)*maxDist; } 
-                joyX = dx/maxDist; joyY = dy/maxDist; 
-            }
-            joyZone.addEventListener('touchstart', (e) => { isJoystickActive = true; handleTouchJoy(e); }, {passive: false});
-            joyZone.addEventListener('touchmove', handleTouchJoy, {passive: false});
-            joyZone.addEventListener('touchend', () => { isJoystickActive = false; });
-
-            canvas.addEventListener('mousedown', e => { if(e.button === 0 || e.button === 2) mouseTarget = { x: e.clientX, y: e.clientY }; });
-            canvas.addEventListener('mousemove', e => { if(mouseTarget) mouseTarget = { x: e.clientX, y: e.clientY }; });
-            window.addEventListener('mouseup', () => { mouseTarget = null; });
-            canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-            // ==========================================
-            // THE REST OF THE ENGINE
-            // ==========================================
-
-            function startCountdown() {
-                let count = 3; 
-                countText.innerText = "3...";
-                
-                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
-                count3.volume = 0.4; 
-                count3.play().catch(e => console.log("SFX blocked:", e));
-
-                const countInterval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        countText.innerText = `${count}...`;
-                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
-                        countSFX.volume = 0.4; 
-                        countSFX.play().catch(e => console.log("SFX blocked:", e));
-                        if (count === 1) launcherUI.style.display = 'block';
-                    } else {
-                        clearInterval(countInterval);
-                        
-                        if (isMultiplayer) {
-                            countText.innerText = "PREPARE YOUR LAUNCH!";
-                            countText.style.color = "#00ffff";
-                        } else {
-                            countText.innerText = "LET IT RIP!";
-                            let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
-                            letItRipSFX.volume = 0.45; 
-                            letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
-                        }
-
-                        gameState = "MINIGAME";
-                        startRipcordPull();
-                    }
-                }, 1000);
-            }
-
-            function startRipcordPull() {
-                let nativePullSpeed = 2.5; 
-                function animateRipcord() {
-                    if (gameState !== "MINIGAME") return; 
-                    currentNativePixel -= nativePullSpeed; 
-                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
-                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
-                    ripcordAnimation = requestAnimationFrame(animateRipcord);
-                }
-                animateRipcord();
-            }
 
             function setupLaunchMinigame() {
                 if (!playerBuild.parts) return;
@@ -1005,19 +925,18 @@
                 }
 
                 if (gameState === "SELECT_LAUNCH" || gameState === "WAITING_FOR_OPPONENT") {
-                    
                     if (!isMultiplayer || isHost) {
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(0, 0, width * 0.425, height); 
                     } else if (isGuest) {
                         ctx.fillStyle = "rgba(0, 255, 0, 0.1)"; ctx.fillRect(width * 0.575, 0, width * 0.425, height); 
                     }
                     
-                    if (!cpuLaunchSite && !TutorialManager.isActive && !isMultiplayer) {
+                    if (!cpuLaunchSite && !window.TutorialManager.isActive && !isMultiplayer) {
                         let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
                         cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
                     }
 
-                    if (cpuLaunchSite && !TutorialManager.isActive) {
+                    if (cpuLaunchSite && !window.TutorialManager.isActive) {
                         ctx.beginPath(); ctx.ellipse(cpuLaunchSite.x, cpuLaunchSite.y, 25, 10, 0, 0, Math.PI * 2); 
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fill();
                     }
@@ -1030,6 +949,149 @@
                     }
                 }
             }
+
+            function startCountdown() {
+                let count = 3; 
+                const countText = document.getElementById('countdown-text');
+                countText.innerText = "3...";
+                
+                let count3 = new Audio('./audio/sounds/Countdown3.wav'); 
+                count3.volume = 0.4; 
+                count3.play().catch(e => console.log("SFX blocked:", e));
+
+                const countInterval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        countText.innerText = `${count}...`;
+                        let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
+                        countSFX.volume = 0.4; 
+                        countSFX.play().catch(e => console.log("SFX blocked:", e));
+                        if (count === 1) document.getElementById('launcher-container').style.display = 'block';
+                    } else {
+                        clearInterval(countInterval);
+                        
+                        if (isMultiplayer) {
+                            countText.innerText = "PREPARE YOUR LAUNCH!";
+                            countText.style.color = "#00ffff";
+                        } else {
+                            countText.innerText = "LET IT RIP!";
+                            let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+                            letItRipSFX.volume = 0.45; 
+                            letItRipSFX.play().catch(e => console.log("SFX blocked:", e));
+                        }
+
+                        gameState = "MINIGAME";
+                        startRipcordPull();
+                    }
+                }, 1000);
+            }
+
+            function startRipcordPull() {
+                let nativePullSpeed = 2.5; 
+                function animateRipcord() {
+                    if (gameState !== "MINIGAME") return; 
+                    currentNativePixel -= nativePullSpeed; 
+                    document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
+                    if (currentNativePixel <= 0) { processLaunchTap(true); return; }
+                    ripcordAnimation = requestAnimationFrame(animateRipcord);
+                }
+                animateRipcord();
+            }
+
+            function processLaunchTap(missed = false) {
+                gameState = "LAUNCHING"; 
+                cancelAnimationFrame(ripcordAnimation);
+                
+                if (window.AudioManager && currentRound === 1 && !window.TutorialManager.isActive) {
+                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
+                }
+
+                const countText = document.getElementById('countdown-text');
+
+                if (missed) {
+                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
+                } else {
+                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
+                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
+                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
+                    
+                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
+
+                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
+                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
+                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
+                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
+                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
+                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
+                    } else if (hitTooth > gRange[1]) { 
+                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
+                    } else { 
+                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
+                    }
+                }
+
+                if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "basics" && window.TutorialManager.phase < 2) {
+                    window.TutorialManager.phase = 1; 
+                    setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
+                } else if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
+                    if (window.TutorialManager.combatPhase === 0) { setTimeout(() => { window.TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
+                    else {
+                        setTimeout(() => {
+                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
+                            playerBey.currentRpm = playerBey.maxRpm * playerStartRpmMod;
+                            playerBey.x = playerLaunchSite.x; playerBey.y = playerLaunchSite.y;
+                            playerBey.targetX = playerLaunchSite.x; playerBey.targetY = playerLaunchSite.y;
+                            playerBey.z = 300; playerBey.vz = 0; playerBey.isLanded = false; playerBey.ringOut = false; 
+                            gameState = "DROP_IN";
+                        }, 1500);
+                    }
+                    return;
+                }
+
+                setTimeout(() => {
+                    localLaunchReady = true;
+
+                    if (isMultiplayer) {
+                        gameState = "WAITING_FOR_OPPONENT";
+                        countText.innerHTML = "LAUNCH READY!<br><span style='font-size:24px; color:#ffaa00;'>Waiting for other player...</span>";
+                        
+                        let myTempStats = calculateStats(playerBuild);
+
+                        rtcManager.sendData({
+                            type: "LAUNCH_READY",
+                            rpmMod: playerStartRpmMod,
+                            x: playerLaunchSite.x,
+                            y: playerLaunchSite.y,
+                            stats: myTempStats 
+                        });
+
+                        launchSyncInterval = setInterval(() => {
+                            if (remoteLaunchReady) {
+                                clearInterval(launchSyncInterval);
+                            } else {
+                                rtcManager.sendData({
+                                    type: "LAUNCH_READY",
+                                    rpmMod: playerStartRpmMod,
+                                    x: playerLaunchSite.x,
+                                    y: playerLaunchSite.y,
+                                    stats: myTempStats 
+                                });
+                            }
+                        }, 250);
+
+                        checkBothReady();
+                    } else {
+                        document.getElementById('minigame-overlay').style.display = 'none';
+                        document.getElementById('ui-layer').style.display = 'block';
+                        startBattleEngine();
+                        gameState = "DROP_IN";
+                    }
+                }, 1500); 
+            }
+
+            // ==========================================
+            // BATTLE ENGINE
+            // ==========================================
 
             function calculateStats(build) {
                 let totals = { hp: 0, rpm: 0, attack: 0, defense: 0, stamina: 0, speed: 0, weight: 0, grip: 0, mobility: 0, recoil: 0, recoilReduction: 0, endurance: 0, balance: 0, spiritCharge: 0, cdr: 0 };
@@ -1115,95 +1177,6 @@
                 }
             }
 
-            function processLaunchTap(missed = false) {
-                gameState = "LAUNCHING"; 
-                cancelAnimationFrame(ripcordAnimation);
-                
-                if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
-                    window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
-                }
-
-                if (missed) {
-                    playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
-                } else {
-                    let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
-                    let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
-                    let gRange = [...ripcordData.goodRange]; let grRange = [...ripcordData.greatRange];
-                    
-                    if (hasMarvelousLaunch) { gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2; grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1; }
-
-                    if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
-                        playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
-                    } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
-                        playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
-                    } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
-                        playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
-                    } else if (hitTooth > gRange[1]) { 
-                        playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
-                    } else { 
-                        playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
-                    }
-                }
-
-                if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
-                    TutorialManager.phase = 1; 
-                    setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); return; 
-                } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
-                    if (TutorialManager.combatPhase === 0) { setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000); } 
-                    else {
-                        setTimeout(() => {
-                            document.getElementById('minigame-overlay').style.display = 'none'; document.getElementById('ui-layer').style.display = 'block';
-                            playerBey.currentRpm = playerBey.maxRpm * playerStartRpmMod;
-                            playerBey.x = playerLaunchSite.x; playerBey.y = playerLaunchSite.y;
-                            playerBey.targetX = playerLaunchSite.x; playerBey.targetY = playerLaunchSite.y;
-                            playerBey.z = 300; playerBey.vz = 0; playerBey.isLanded = false; playerBey.ringOut = false; 
-                            gameState = "DROP_IN";
-                        }, 1500);
-                    }
-                    return;
-                }
-
-                setTimeout(() => {
-                    localLaunchReady = true;
-
-                    if (isMultiplayer) {
-                        gameState = "WAITING_FOR_OPPONENT";
-                        countText.innerHTML = "LAUNCH READY!<br><span style='font-size:24px; color:#ffaa00;'>Waiting for other player...</span>";
-                        
-                        let myTempStats = calculateStats(playerBuild);
-
-                        rtcManager.sendData({
-                            type: "LAUNCH_READY",
-                            rpmMod: playerStartRpmMod,
-                            x: playerLaunchSite.x,
-                            y: playerLaunchSite.y,
-                            stats: myTempStats 
-                        });
-
-                        launchSyncInterval = setInterval(() => {
-                            if (remoteLaunchReady) {
-                                clearInterval(launchSyncInterval);
-                            } else {
-                                rtcManager.sendData({
-                                    type: "LAUNCH_READY",
-                                    rpmMod: playerStartRpmMod,
-                                    x: playerLaunchSite.x,
-                                    y: playerLaunchSite.y,
-                                    stats: myTempStats 
-                                });
-                            }
-                        }, 250);
-
-                        checkBothReady();
-                    } else {
-                        document.getElementById('minigame-overlay').style.display = 'none';
-                        document.getElementById('ui-layer').style.display = 'block';
-                        startBattleEngine();
-                        gameState = "DROP_IN";
-                    }
-                }, 1500); 
-            }
-
             function startBattleEngine() {
                 try {
                     roundConcluding = false; roundConcludeTimer = 0;
@@ -1221,7 +1194,7 @@
 
                     if (isMultiplayer && remoteLaunchData) {
                         cpuLaunchSite = { x: remoteLaunchData.x, y: remoteLaunchData.y };
-                    } else if (!cpuLaunchSite && !TutorialManager.isActive) {
+                    } else if (!cpuLaunchSite && !window.TutorialManager.isActive) {
                         let r = Math.random() * (maxRadius * 0.5); let theta = (Math.random() - 0.5) * Math.PI; 
                         cpuLaunchSite = { x: cx + (maxRadius * 0.25) + Math.cos(theta) * r, y: cy + Math.sin(theta) * r };
                     }
@@ -1252,7 +1225,7 @@
                         skillState: { actionState: 'IDLE' }
                     };
                     
-                    if (TutorialManager.isActive && TutorialManager.tutorialType === "basics") {
+                    if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "basics") {
                         cpuBey = { 
                             isGhost: true, isBursted: false, isLanded: true, x: cx, y: cy, z: 0, vz: 0, vx: 0, vy: 0, radius: 0, 
                             color: 'transparent', stats: cStats, maxHp: 9999, maxRpm: 9999, currentHp: 9999, currentRpm: 9999, activeAttacks: [], spirit: 0 
@@ -1348,6 +1321,39 @@
                     
                 } catch (e) { console.error("START BATTLE ENGINE CRASH:", e); }
             }
+
+            window.useSkill = function(index) {
+                if (roundConcluding) return; 
+                let skill = activeSkills[index]; if (!skill) return;
+
+                let isAerialCombo = (playerBey && playerBey.skillState && playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance");
+
+                if (isAerialCombo || skill.currentCd <= 0) {
+                    if (!isAerialCombo) {
+                        let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100); 
+                        skill.currentCd = skill.baseCd * cdrMod;
+                    }
+                    if (isGuest) {
+                        rtcManager.sendData({ type: "GUEST_SKILL", skillName: skill.name, joyX: joyX, joyY: joyY });
+                    } else if (window.SkillEngine) {
+                        window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
+                        playerBey.tutorialSpecialUsed = true;
+                    }
+                }
+            };
+
+            window.useUltimate = function() {
+                if (roundConcluding) return;
+                if (p1Spirit >= 100 && playerUltimate) {
+                    p1Spirit = 0; 
+                    if (isGuest) {
+                        rtcManager.sendData({ type: "GUEST_ULTIMATE", skillName: playerUltimate.name });
+                    } else if (window.SkillsDB && window.SkillsDB.ultimates[playerUltimate.name]) {
+                        window.SkillsDB.ultimates[playerUltimate.name].execute(playerBey, cpuBey);
+                        playerBey.tutorialSpecialUsed = true;
+                    }
+                }
+            };
 
             function updateDropIn(dt) {
                 function dropBey(bey) {
@@ -1486,11 +1492,11 @@
                 if (cpuBey) cpuBey.spirit = Math.min(100, cpuBey.spirit);
 
                 if (!isMultiplayer && cpuData.aiScript && window.SkillEngine && cpuBey && !cpuBey.isBursted && !roundConcluding && !cpuBey.isGhost) { 
-                    if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                    if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
                         const cx = width / 2; const cy = height / 2;
-                        if (TutorialManager.combatPhase < 6) {
+                        if (window.TutorialManager.combatPhase < 6) {
                             let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; cpuBey.vx += cdx * 0.0015; cpuBey.vy += cdy * 0.0015;
-                        } else if (TutorialManager.combatPhase >= 7 && TutorialManager.combatPhase < 9) {
+                        } else if (window.TutorialManager.combatPhase >= 7 && window.TutorialManager.combatPhase < 9) {
                             let cdx = cx - cpuBey.x; let cdy = cy - cpuBey.y; let angle = Math.atan2(cdy, cdx) + (Math.PI / 2); 
                             cpuBey.vx += Math.cos(angle) * 0.06; cpuBey.vy += Math.sin(angle) * 0.06; cpuBey.vx += cdx * 0.0005; cpuBey.vy += cdy * 0.0005; 
                         }
@@ -1500,20 +1506,20 @@
                 const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
                 const basinRadius = maxRadius * 0.3; const rampRadius = maxRadius * 0.65;
 
-                TutorialManager.update(dt, playerBey, cx, cy);
+                window.TutorialManager.update(dt, playerBey, cx, cy);
 
                 if (activeBalloons.length > 0 && playerBey.z <= 0 && !playerBey.isBursted) {
                     for (let i = activeBalloons.length - 1; i >= 0; i--) {
                         let b = activeBalloons[i]; let bDist = Math.sqrt((playerBey.x - b.x)**2 + (playerBey.y - b.y)**2);
                         if (bDist < playerBey.radius + 35) { 
-                            activeBalloons.splice(i, 1); TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${TutorialManager.balloonsPopped} / 15`;
+                            activeBalloons.splice(i, 1); window.TutorialManager.balloonsPopped++; document.getElementById('balloon-tally').innerText = `${window.TutorialManager.balloonsPopped} / 15`;
                             let popSfx = new Audio('./audio/sounds/balloonpop.wav'); popSfx.volume = 0.5; popSfx.play().catch(e=>{});
                             let colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
                             for(let p=0; p<15; p++) {
                                 let ang = Math.random() * Math.PI*2; let spd = Math.random()*5+2;
                                 particles.push({x: b.x, y: b.y, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, life: 1.0, decay: 0.05, color: colors[Math.floor(Math.random()*colors.length)], size: 3});
                             }
-                            TutorialManager.checkBalloons();
+                            window.TutorialManager.checkBalloons();
                         }
                     }
                 }
@@ -1594,10 +1600,10 @@
 
                         if (hitGap) {
                             bey.currentHp = 0; bey.ringOut = true;
-                            if (isPlayer && TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
-                                if (TutorialManager.combatPhase >= 10 && !TutorialManager.relaunching) {
-                                    TutorialManager.relaunching = true;
-                                    TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
+                            if (isPlayer && window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
+                                if (window.TutorialManager.combatPhase >= 10 && !window.TutorialManager.relaunching) {
+                                    window.TutorialManager.relaunching = true;
+                                    window.TutorialManager.showVN([ "Don't sweat it, it happens. Get back in there, dude!" ], () => { window.TutorialManager.relaunching = false; triggerTutorialRelaunch(); });
                                 }
                             }
                         } else {
@@ -1674,9 +1680,9 @@
 
                         p1Spirit += (impactSpeed * 0.2) * (1 + (safeNum(playerBey.stats.spiritCharge, 0)/100));
 
-                        if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
+                        if (window.TutorialManager.isActive && window.TutorialManager.tutorialType === "combat") {
                             let usedSpecial = playerBey.tutorialSpecialUsed || false;
-                            TutorialManager.registerCollision(usedSpecial);
+                            window.TutorialManager.registerCollision(usedSpecial);
                             playerBey.tutorialSpecialUsed = false; 
                         }
                     }
