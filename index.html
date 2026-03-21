@@ -109,88 +109,96 @@
         import { auth } from './firebase-config.js';
         import { signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
- // --- NEW: THE GLOBAL AUDIO ENGINE ---
-        window.AudioManager = {
-            currentBGM: null,
-            loopFrame: null,
+// --- NEW: THE GLOBAL AUDIO ENGINE ---
+window.AudioManager = {
+    currentBGM: null,
+    currentSrc: null, // <-- NEW: Tracks the exact text string of the playing song
+    loopFrame: null,
 
-            playBGM: function(src, loopStartMark, customVolume) {
-                this.stopBGM(); // Kill any currently playing music
-
-                this.currentBGM = new Audio(src);
-                
-                // If a page asks for a specific volume, use it. Otherwise, default to 0.6.
-                this.currentBGM.volume = customVolume !== undefined ? customVolume : 0.6;
-
-                // Attempt to play (with a safety net for browser autoplay rules)
-                this.currentBGM.play().catch(e => {
-                    document.addEventListener('pointerdown', () => {
-                        if (this.currentBGM) this.currentBGM.play();
-                    }, { once: true });
-                });
-
-                // Start the precision loop if a custom loop mark is provided!
-                if (loopStartMark !== undefined) {
-                    
-                    const checkLoop = () => {
-                        if (this.currentBGM && this.currentBGM.duration) {
-                            // Increased padding slightly to 0.08 to catch it before the browser auto-pauses
-                            if (this.currentBGM.currentTime >= this.currentBGM.duration - 0.08) {
-                                this.currentBGM.currentTime = loopStartMark;
-                                
-                                // FORCE PLAY: If the track accidentally hit the absolute end and paused, wake it back up!
-                                if (this.currentBGM.paused) {
-                                    this.currentBGM.play().catch(err => console.log(err));
-                                }
-                            }
-                        }
-                        this.loopFrame = requestAnimationFrame(checkLoop);
-                    };
-                    this.loopFrame = requestAnimationFrame(checkLoop);
-
-                    // SAFETY NET: If the animation frame completely misses the end, this guarantees it loops
-                    this.currentBGM.addEventListener('ended', () => {
-                        this.currentBGM.currentTime = loopStartMark;
-                        this.currentBGM.play();
-                    });
-
-                } else {
-                    // Standard Loop: If no custom mark is provided, just loop normally!
-                    this.currentBGM.loop = true; 
-                }
-            },
-
-            stopBGM: function() {
-                if (this.currentBGM) {
-                    this.currentBGM.pause();
-                    this.currentBGM = null;
-                }
-                if (this.loopFrame) {
-                    cancelAnimationFrame(this.loopFrame);
-                    this.loopFrame = null;
-                }
-            }
-        };
-        // --- UPDATED NAVIGATION (Kills music on page change!) ---
-        async function navigateTo(pageUrl) {
-            try {
-                window.AudioManager.stopBGM();
-
-                const response = await fetch(pageUrl);
-                const html = await response.text();
-                document.getElementById('app-root').innerHTML = html;
-                
-                const scripts = document.getElementById('app-root').querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    oldScript.parentNode.replaceChild(newScript, oldScript);
-                });
-            } catch (error) {
-                console.error("Navigation Error:", error);
-            }
+    playBGM: function(src, loopStartMark, customVolume) {
+        // --- THE GATEKEEPER CHECK ---
+        // If the requested song is already playing, exit out and let it keep looping!
+        if (this.currentSrc === src) {
+            console.log("BGM already playing seamlessly. Skipping restart.");
+            return; 
         }
+
+        this.stopBGM(); // Kill any currently playing music
+
+        this.currentSrc = src; // <-- NEW: Log the new song's string
+        this.currentBGM = new Audio(src);
+        
+        // If a page asks for a specific volume, use it. Otherwise, default to 0.6.
+        this.currentBGM.volume = customVolume !== undefined ? customVolume : 0.6;
+
+        // Attempt to play (with a safety net for browser autoplay rules)
+        this.currentBGM.play().catch(e => {
+            document.addEventListener('pointerdown', () => {
+                if (this.currentBGM) this.currentBGM.play();
+            }, { once: true });
+        });
+
+        // Start the precision loop if a custom loop mark is provided!
+        if (loopStartMark !== undefined) {
+            
+            const checkLoop = () => {
+                if (this.currentBGM && this.currentBGM.duration) {
+                    // Increased padding slightly to 0.08 to catch it before the browser auto-pauses
+                    if (this.currentBGM.currentTime >= this.currentBGM.duration - 0.08) {
+                        this.currentBGM.currentTime = loopStartMark;
+                        
+                        // FORCE PLAY: If the track accidentally hit the absolute end and paused, wake it back up!
+                        if (this.currentBGM.paused) {
+                            this.currentBGM.play().catch(err => console.log(err));
+                        }
+                    }
+                }
+                this.loopFrame = requestAnimationFrame(checkLoop);
+            };
+            this.loopFrame = requestAnimationFrame(checkLoop);
+
+            // SAFETY NET: If the animation frame completely misses the end, this guarantees it loops
+            this.currentBGM.addEventListener('ended', () => {
+                this.currentBGM.currentTime = loopStartMark;
+                this.currentBGM.play();
+            });
+
+        } else {
+            // Standard Loop: If no custom mark is provided, just loop normally!
+            this.currentBGM.loop = true; 
+        }
+    },
+
+    stopBGM: function() {
+        if (this.currentBGM) {
+            this.currentBGM.pause();
+            this.currentBGM = null;
+            this.currentSrc = null; // <-- NEW: Clear the tracker when stopped
+        }
+        if (this.loopFrame) {
+            cancelAnimationFrame(this.loopFrame);
+            this.loopFrame = null;
+        }
+    }
+}
+
+        // --- Standard Navigation Logic Follows ---
+        const response = await fetch(pageUrl);
+        const html = await response.text();
+        document.getElementById('app-root').innerHTML = html;
+        
+        const scripts = document.getElementById('app-root').querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    } catch (error) {
+        console.error("Navigation Error:", error);
+    }
+}
+
         window.navigateTo = navigateTo;
 
         window.onload = () => {

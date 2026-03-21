@@ -121,7 +121,7 @@ window.GachaBanners = {
 				{ id: 'sg_01', category: 'spinGears', styleId: 'SG_basic_noxia' },
                 { id: 'bb_05', category: 'bladeBases', styleId: 'sharpbase_polta_red_crystal' },
 				{ id: 'bb_06', category: 'bladeBases', styleId: 'cloud_pastern' },
-				{ id: 'bb_03', category: 'bladeBases', styleId: 'volcanoflatbase_noxia' },
+				{ id: 'bb_02', category: 'bladeBases', styleId: 'volcanoflatbase_noxia' },
 				{ id: 'bb_13', category: 'bladeBases', styleId: 'pulse_core_emerald_crystal' },
 				{ id: 'ripcord_01', category: 'ripCords', styleId: 'ezwinder_rainbowblend' }
                 
