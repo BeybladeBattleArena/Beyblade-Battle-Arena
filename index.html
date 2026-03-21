@@ -182,22 +182,24 @@ window.AudioManager = {
     }
 };
 
-        // --- Standard Navigation Logic Follows ---
-        const response = await fetch(pageUrl);
-        const html = await response.text();
-        document.getElementById('app-root').innerHTML = html;
-        
-        const scripts = document.getElementById('app-root').querySelectorAll('script');
-        scripts.forEach(oldScript => {
-            const newScript = document.createElement('script');
-            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-    } catch (error) {
-        console.error("Navigation Error:", error);
-    }
-}
+// --- Standard Navigation Logic Follows ---
+        async function navigateTo(pageUrl) {
+            try {
+                const response = await fetch(pageUrl);
+                const html = await response.text();
+                document.getElementById('app-root').innerHTML = html;
+                
+                const scripts = document.getElementById('app-root').querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+            } catch (error) {
+                console.error("Navigation Error:", error);
+            }
+        }
 
         window.navigateTo = navigateTo;
 
