@@ -845,9 +845,9 @@
                 const startX = isLeftToRight ? -400 : window.innerWidth + 400; const endX = isLeftToRight ? window.innerWidth + 400 : -400;
 
                 particle.animate(isLeftToRight ? [
-                    { left: `${startX}px`, opacity: 0, ...redState }, { left: `${window.innerWidth/2}px`, offset: 0.5, ...purpleState }, { left: `${endX}px`, opacity: 0, ...blueState }
+                    { left: `${startX}px`, opacity: 1, ...redState }, { left: `${window.innerWidth/2}px`, offset: 0.5, ...purpleState }, { left: `${endX}px`, opacity: 0, ...blueState }
                 ] : [
-                    { left: `${startX}px`, opacity: 0, ...blueState }, { left: `${window.innerWidth/2}px`, offset: 0.5, ...purpleState }, { left: `${endX}px`, opacity: 0, ...redState }
+                    { left: `${startX}px`, opacity: 1, ...blueState }, { left: `${window.innerWidth/2}px`, offset: 0.5, ...purpleState }, { left: `${endX}px`, opacity: 0, ...redState }
                 ], { duration: speed, easing: 'linear' }).onfinish = () => particle.remove();
             } else {
                 particle.classList.add('particle', 'particle-v');
@@ -859,7 +859,7 @@
                 const isTopToBottom = Math.random() < 0.5;
                 const startY = isTopToBottom ? -400 : window.innerHeight + 400; const endY = isTopToBottom ? window.innerHeight + 400 : -400;
 
-                particle.animate([ { top: `${startY}px`, opacity: 0, ...staticState }, { top: `${endY}px`, opacity: 0, ...staticState } ], { duration: speed, easing: 'linear' }).onfinish = () => particle.remove();
+                particle.animate([ { top: `${startY}px`, opacity: 1, ...staticState }, { top: `${endY}px`, opacity: 0, ...staticState } ], { duration: speed, easing: 'linear' }).onfinish = () => particle.remove();
             }
             vsArena.appendChild(particle);
         }
