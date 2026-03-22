@@ -651,6 +651,28 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_23", // Generalized ID
+            name: "Imperial Rising", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Imperial", "Rising", "Upper Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/ImperialRising.png",  
+            stats: { attack: 26, weight: 15, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Upper Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "imperial_rising",
+                    styleName: "Imperial Rising", 
+                    styleColorSample: "#889297", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/ImperialRising.png", 
+                    topDownImage: "./images/beyblade_parts/AR/ImperialRising.png" 
+                },
+            ]
+},
     ],
 	
 	
