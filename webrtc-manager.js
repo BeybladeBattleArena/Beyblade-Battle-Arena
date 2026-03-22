@@ -127,23 +127,27 @@ export class WebRTCManager {
         });
     }
 
-    setupDataChannelListeners() {
+setupDataChannelListeners() {
+        this.dataChannel.binaryType = "arraybuffer"; // NEW: Tell WebRTC to use raw memory
+        
         this.dataChannel.onopen = () => console.log("[WebRTC] High-Speed Data Channel OPEN!");
         this.dataChannel.onclose = () => console.log("[WebRTC] High-Speed Data Channel CLOSED.");
         
-        // This is the engine block where game physics will come in later!
         this.dataChannel.onmessage = (event) => {
-            // console.log("Received peer data:", event.data);
+            // physics handled in arena
         };
     }
 
-    // Helper to blast data to the other player
-    sendData(dataObject) {
+    // NEW: Smart helper to send either raw binary or JSON strings
+    sendData(data) {
         if (this.dataChannel && this.dataChannel.readyState === 'open') {
-            this.dataChannel.send(JSON.stringify(dataObject));
+            if (data instanceof ArrayBuffer) {
+                this.dataChannel.send(data); // Send raw binary
+            } else {
+                this.dataChannel.send(JSON.stringify(data)); // Fallback for complex setup data
+            }
         }
     }
-}
 
 // Export a single global instance
 export const rtcManager = new WebRTCManager();
