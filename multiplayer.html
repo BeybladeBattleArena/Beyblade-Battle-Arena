@@ -852,7 +852,7 @@
             } else {
                 particle.classList.add('particle', 'particle-v');
                 particle.style.width = '4px'; particle.style.height = '600px';
-                particle.style.marginTop = '-300px'; particle.style.marginLeft = '-2px'; 
+                particle.style.marginTop = '-400px'; particle.style.marginLeft = '-2px'; 
                 const startX = (Math.floor(Math.random() * (divisions - 2)) + 1) * (window.innerWidth / divisions);
                 particle.style.left = `${startX}px`;
                 let staticState = startX < (window.innerWidth / 2) - 10 ? redState : (startX > (window.innerWidth / 2) + 10 ? blueState : purpleState);
