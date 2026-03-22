@@ -1652,7 +1652,7 @@ window.equipmentDB = {
                     styleColorSample: "#de4921", 
                     styleRarity: 3,
                     image: "./images/beyblade_parts/BB/TiltShiftBase_Red_sideview.png", 
-                    topDownImage: "./images/beyblade_parts/BB/TiltShift_Red_topdown.png" 
+                    topDownImage: "./images/beyblade_parts/BB/TiltShiftBase_Red_topdown.png" 
                 },
             ]
 },
