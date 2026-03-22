@@ -654,56 +654,7 @@
                 }
             }
 
-			function handleNetworkMessage(event) {
-                // --- HIGH-SPEED BINARY DECODER ---
-                if (event.data instanceof ArrayBuffer) {
-                    let arrayBuffer = event.data;
-                    let view8 = new Uint8Array(arrayBuffer);
-                    let opcode = view8[0];
-                    
-                    // OpCode 0: STATE_SYNC (Host -> Guest)
-                    if (opcode === 0 && isGuest && gameState === "BATTLE") {
-                        let view32 = new Float32Array(arrayBuffer);
-                        matchTimerMs = view32[1];
-                        if (matchTimerMs < 0) matchTimerMs = 0;
-
-                        window.cpuBey.targetNetX = view32[2];
-                        window.cpuBey.targetNetY = view32[3];
-                        window.cpuBey.z = view32[4];
-                        window.cpuBey.currentHp = view32[5];
-                        window.cpuBey.currentRpm = view32[6];
-                        window.cpuBey.rotation = view32[7];
-
-                        window.playerBey.targetNetX = view32[8];
-                        window.playerBey.targetNetY = view32[9];
-                        window.playerBey.z = view32[10];
-                        window.playerBey.currentHp = view32[11];
-                        window.playerBey.currentRpm = view32[12];
-                        window.playerBey.rotation = view32[13];
-
-                        if (window.cpuBey.currentHp <= 0 && !window.cpuBey.isBursted) triggerBurst(window.cpuBey, 10, 0, 0);
-                        if (window.playerBey.currentHp <= 0 && !window.playerBey.isBursted) triggerBurst(window.playerBey, 10, 0, 0);
-                    }
-                    // OpCode 1: GUEST_INPUT (Guest -> Host)
-                    else if (opcode === 1 && isHost) {
-                        let view32 = new Float32Array(arrayBuffer);
-                        remoteJoyX = view32[1];
-                        remoteJoyY = view32[2];
-                    }
-                    // OpCode 2: GUEST_SKILL (Guest -> Host)
-                    else if (opcode === 2 && isHost) {
-                        let index = view8[1];
-                        let guestSkill = window.cpuBey.activeAttacks[index];
-                        if (guestSkill && guestSkill.currentCd <= 0 && window.SkillEngine) {
-                            window.SkillEngine.executeAttack(guestSkill.name, window.cpuBey, window.playerBey, remoteJoyX, remoteJoyY);
-                            let cdrMod = 1.0 - ((window.cpuBey.stats.cdr || 0) / 100);
-                            guestSkill.currentCd = guestSkill.baseCd * cdrMod;
-                        }
-                    }
-                    return; // Stop processing, binary handled
-                }
-
-                // --- SLOW JSON DECODER (For Match Setup Only) ---
+            function handleNetworkMessage(event) {
                 let data = JSON.parse(event.data);
                 
                 if (data.type === "LAUNCH_READY") {
@@ -711,6 +662,7 @@
                     remoteLaunchData = data; 
                     remoteStartRpmMod = data.rpmMod; 
                     
+                    // NEW: Assemble the opponent's skills so the Host can trigger them!
                     if (window.cpuBey && data.skills) {
                         window.cpuBey.activeAttacks = data.skills.map(name => {
                             let attackDef = window.SkillsDB.attacks[name];
@@ -719,7 +671,6 @@
                     }
                     checkBothReady();
                 }
-            }
                 else if (data.type === "GUEST_INPUT" && isHost) {
                     remoteJoyX = data.joyX; remoteJoyY = data.joyY;
                 }
@@ -1523,21 +1474,18 @@
                 if (roundConcluding) return; 
                 let skill = activeSkills[index]; if (!skill) return;
 
+                // NEW: If we are the Guest, send the skill command to the Host!
                 if (isGuest) {
                     if (skill.currentCd <= 0) {
-                        // OpCode 2: GUEST_SKILL (2 bytes total)
-                        let skillBuffer = new ArrayBuffer(2);
-                        let skillView8 = new Uint8Array(skillBuffer);
-                        skillView8[0] = 2;
-                        skillView8[1] = index;
-                        rtcManager.sendData(skillBuffer);
-                        
+                        rtcManager.sendData({ type: "GUEST_SKILL", index: index });
+                        // Put it on cooldown locally for the UI
                         let cdrMod = 1.0 - ((window.playerBey.stats.cdr || 0) / 100); 
                         skill.currentCd = skill.baseCd * cdrMod;
                     }
-                    return; 
+                    return; // Stop here. The Host handles the actual physics.
                 }
 
+                // Normal execution for Host or Single Player
                 if (window.playerBey.skillState.actionState === "AIRBORNE_LANCE" && skill.name === "Aerial Lance") { 
                     window.SkillEngine.executeAttack(skill.name, window.playerBey, window.cpuBey, joyX, joyY); 
                     return; 
@@ -1630,17 +1578,10 @@
                     } else if (!isJoystickActive) { joyX = 0; joyY = 0; }
                 }
 
-				if (isGuest) {
-                    // OpCode 1: GUEST_INPUT (12 bytes total)
-                    let inputBuffer = new ArrayBuffer(12);
-                    let inputView8 = new Uint8Array(inputBuffer);
-                    let inputView32 = new Float32Array(inputBuffer);
+                if (isGuest) {
+                    rtcManager.sendData({ type: "GUEST_INPUT", joyX: joyX, joyY: joyY });
                     
-                    inputView8[0] = 1;
-                    inputView32[1] = joyX;
-                    inputView32[2] = joyY;
-                    rtcManager.sendData(inputBuffer);
-                    
+                    // NEW: Smoothly slide (Lerp) to the Host's coordinates
                     if (window.cpuBey.targetNetX !== undefined) {
                         window.cpuBey.x += (window.cpuBey.targetNetX - window.cpuBey.x) * 0.4;
                         window.cpuBey.y += (window.cpuBey.targetNetY - window.cpuBey.y) * 0.4;
@@ -2075,31 +2016,15 @@
                 
                 if (gameState === "BATTLE" || gameState === "DROP_IN" || gameState === "WAITING_FOR_OPPONENT" || gameState === "STARTING_MULTIPLAYER") drawBattle(timestamp);
                 
-				if (isHost && gameState === "BATTLE") {
+                // NEW: Throttle the Host's WebRTC Blast to ~25 times a second
+                if (isHost && gameState === "BATTLE") {
                     if (timestamp - lastSyncTime > 40) {
-                        // OpCode 0: STATE_SYNC (56 bytes total)
-                        let stateBuffer = new ArrayBuffer(56);
-                        let stateView8 = new Uint8Array(stateBuffer);
-                        let stateView32 = new Float32Array(stateBuffer);
-                        
-                        stateView8[0] = 0;
-                        stateView32[1] = matchTimerMs;
-                        
-                        stateView32[2] = window.playerBey.x;
-                        stateView32[3] = window.playerBey.y;
-                        stateView32[4] = window.playerBey.z;
-                        stateView32[5] = window.playerBey.currentHp;
-                        stateView32[6] = window.playerBey.currentRpm;
-                        stateView32[7] = window.playerBey.rotation;
-                        
-                        stateView32[8] = window.cpuBey.x;
-                        stateView32[9] = window.cpuBey.y;
-                        stateView32[10] = window.cpuBey.z;
-                        stateView32[11] = window.cpuBey.currentHp;
-                        stateView32[12] = window.cpuBey.currentRpm;
-                        stateView32[13] = window.cpuBey.rotation;
-
-                        rtcManager.sendData(stateBuffer);
+                        rtcManager.sendData({
+                            type: "STATE_SYNC",
+                            timer: matchTimerMs,
+                            p1: { x: window.playerBey.x, y: window.playerBey.y, z: window.playerBey.z, hp: window.playerBey.currentHp, rpm: window.playerBey.currentRpm, rot: window.playerBey.rotation },
+                            p2: { x: window.cpuBey.x, y: window.cpuBey.y, z: window.cpuBey.z, hp: window.cpuBey.currentHp, rpm: window.cpuBey.currentRpm, rot: window.cpuBey.rotation }
+                        });
                         lastSyncTime = timestamp;
                     }
                 }
