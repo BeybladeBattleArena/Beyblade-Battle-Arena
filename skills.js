@@ -1128,7 +1128,6 @@ window.SkillEngine = {
                 opacity: 0.65 // <--- WE WILL USE THIS IN PART 2!
             };
         }
-        }
         else if (attackName === "Spike Attack") {
             let dashX = 0; 
             let dashY = 0;
