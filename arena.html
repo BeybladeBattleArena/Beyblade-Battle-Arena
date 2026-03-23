@@ -1603,7 +1603,32 @@
         bey.isBursted = true;
         const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
         partsList.forEach(partKey => {
-            if (bey.images && bey.images[partKey]) {
+            // --- PHANTOM WARP VISUALS ---
+            let isTpOut = bey.skillState && bey.skillState.actionState === "TELEPORT_OUT";
+            let isTpIn = bey.skillState && bey.skillState.actionState === "TELEPORT_IN";
+            
+            if (isTpOut || isTpIn) {
+                let progress = 1 - (bey.skillState.tpTimer / 600); // Goes from 0.0 to 1.0
+                if (isTpIn) progress = 1 - progress; // Reverses for teleporting back in
+                
+                // 1. Draw the Expanding Red Beam
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                let beamRadius = bey.radius * 2 + (progress * 25);
+                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, beamRadius);
+                grad.addColorStop(0, `rgba(255, 0, 0, ${1 - progress})`);
+                grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(0, 0, beamRadius, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+
+                // 2. Apply the Silhouette Filter!
+                // brightness(0) turns it pitch black. opacity fades it out to invisible!
+                ctx.filter = `brightness(0) opacity(${1 - progress})`;
+            }
+
+            // --- DRAW THE BEYBLADE IMAGES ---
+            if (bey.images) {
                 let spread = (Math.random() - 0.5) * 1.5; 
                 let angle = Math.atan2(dirY, dirX) + spread;
                 let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
@@ -1617,6 +1642,7 @@
                     friction: 0.92 
                 });
             }
+			ctx.filter = 'none';
         });
         
         for(let i=0; i<30; i++) {
@@ -2056,6 +2082,29 @@
             if (!bey || bey.isGhost) return; 
             if (bey.isBursted || (bey.currentHp <= 0 && !bey.ringOut)) return; 
             
+			
+			// IF AIMING: Draw the Reticle and STOP drawing the Beyblade!
+            if (bey.skillState && bey.skillState.actionState === "TELEPORT_AIM") {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(bey.skillState.tpTargetX, bey.skillState.tpTargetY, bey.radius * 2, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+                ctx.lineWidth = 3;
+                ctx.setLineDash([8, 4]); // Dashed sci-fi circle
+                ctx.stroke();
+                
+                // Inner Crosshair
+                ctx.beginPath();
+                ctx.moveTo(bey.skillState.tpTargetX - 15, bey.skillState.tpTargetY);
+                ctx.lineTo(bey.skillState.tpTargetX + 15, bey.skillState.tpTargetY);
+                ctx.moveTo(bey.skillState.tpTargetX, bey.skillState.tpTargetY - 15);
+                ctx.lineTo(bey.skillState.tpTargetX, bey.skillState.tpTargetY + 15);
+                ctx.stroke();
+                ctx.restore();
+                return; // DO NOT draw the beyblade!
+            }
+			
+			
             let isFallen = (bey.currentRpm <= 0 && bey.currentHp > 0 && !bey.ringOut);
             let wobbleOffsetX = 0; let wobbleOffsetY = 0;
             

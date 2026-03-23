@@ -179,6 +179,11 @@ window.SkillsDB = {
             name: "Concentrate Defense", cd: 7,
             desc: "Halts movement completely to brace for impact, massively reducing incoming damage for 2 seconds.",
             execute: function() {}
+        },
+		"Phantom Warp": {
+            name: "Phantom Warp", cd: 8,
+            desc: "Utilize a mysterious, dark power to teleport across the arena.",
+            execute: function() {}
         }
     },
 
@@ -250,6 +255,9 @@ window.SkillEngine = {
 				rdEndBonus: 0,
 				cycloneTimer: 0,
 				cycloneTotalTime: 0,
+				tpTimer: 0,
+				tpTargetX: 0,
+				tpTargetY: 0,
                 
                 defenseBoostTimer: 0,
                 barrageDashesLeft: 0,
@@ -702,6 +710,85 @@ window.SkillEngine = {
                 }
             }
 
+// --- PHANTOM WARP PHYSICS & PARTICLES ---
+            if (state.actionState === "TELEPORT_OUT") {
+                bey.vx = 0; bey.vy = 0; // Completely freeze
+                state.tpTimer -= dt;
+                
+                // When the dissolve timer hits 0...
+                if (state.tpTimer <= 0) {
+                    state.actionState = "TELEPORT_AIM";
+                    state.tpTimer = 3000; // You have 3 seconds to aim before it forces the teleport!
+                    
+                    // 💥 EXPLODE INTO BLACK PARTICLES!
+                    if (window.particles) {
+                        for(let i=0; i<40; i++) {
+                            let ang = Math.random() * Math.PI * 2;
+                            let spd = Math.random() * 3 + 1;
+                            window.particles.push({
+                                x: bey.x, y: bey.y,
+                                vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd,
+                                life: 1.0, decay: 0.03 + Math.random() * 0.02, 
+                                color: '#000000', size: Math.random() * 4 + 2
+                            });
+                        }
+                    }
+                    // Banish the actual Beyblade to the shadow realm so it can't be hit while aiming
+                    bey.x = -9999; bey.y = -9999;
+                }
+            } 
+            else if (state.actionState === "TELEPORT_AIM") {
+                state.tpTimer -= dt;
+                
+                // Move the Reticle with the Joystick!
+                if (isPlayer) {
+                    state.tpTargetX += joyX * 10;
+                    state.tpTargetY += joyY * 10;
+                } else {
+                    // CPU just picks a spot behind the player
+                    state.tpTargetX = opponent.x + (opponent.vx * 10);
+                    state.tpTargetY = opponent.y + (opponent.vy * 10);
+                }
+
+                // Clamp the reticle so you can't teleport outside the stadium
+                let cx = window.innerWidth / 2; let cy = window.innerHeight / 2;
+                let maxR = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.85;
+                let rDx = state.tpTargetX - cx; let rDy = state.tpTargetY - cy;
+                let rDist = Math.sqrt(rDx*rDx + rDy*rDy);
+                if (rDist > maxR) {
+                    state.tpTargetX = cx + (rDx/rDist) * maxR;
+                    state.tpTargetY = cy + (rDy/rDist) * maxR;
+                }
+
+                // Auto-trigger if time runs out, or CPU fires instantly
+                if (state.tpTimer <= 0 || (!isPlayer && state.tpTimer < 2500)) {
+                    this.executeAttack("Phantom Warp", bey, opponent); 
+                }
+            }
+            else if (state.actionState === "TELEPORT_IN") {
+                bey.vx = 0; bey.vy = 0; // Stay frozen while reforming
+                state.tpTimer -= dt;
+                
+                // 🌀 SUCK BLACK PARTICLES INWARD!
+                if (state.tpTimer > 200 && Math.random() < 0.6) {
+                    if (window.particles) {
+                        let ang = Math.random() * Math.PI * 2;
+                        let dist = Math.random() * 40 + 20; // Spawn them 20-60 pixels away
+                        window.particles.push({
+                            x: bey.x + Math.cos(ang) * dist, 
+                            y: bey.y + Math.sin(ang) * dist,
+                            // Negative velocity means they fly exactly toward the center!
+                            vx: -Math.cos(ang) * 4, vy: -Math.sin(ang) * 4, 
+                            life: 1.0, decay: 0.06, color: '#000000', size: Math.random() * 4 + 2
+                        });
+                    }
+                }
+
+                if (state.tpTimer <= 0) {
+                    state.actionState = "NORMAL"; // Fully reformed!
+                }
+            }
+
             // --- AERIAL LANCE (Hang Time & Plunge) ---
             if (state.actionState === "AIRBORNE_LANCE") {
                 state.z = 25; 
@@ -927,6 +1014,34 @@ window.SkillEngine = {
                 state.airLanceTimer = 2000; 
             }, 300);
         }
+		
+		else if (attackName === "Phantom Warp") {
+            let state = attacker.skillState;
+
+            // PHASE 2: Reappear at the target!
+            if (state.actionState === "TELEPORT_AIM") {
+                state.actionState = "TELEPORT_IN";
+                state.tpTimer = 600; // 0.6 seconds to reform the silhouette
+                
+                // Move the actual physical hitboxes to the new location instantly
+                attacker.x = state.tpTargetX;
+                attacker.y = state.tpTargetY;
+                attacker.vx = 0; attacker.vy = 0;
+            } 
+            // PHASE 1: Start the dissolve!
+            else if (state.actionState !== "TELEPORT_OUT" && state.actionState !== "TELEPORT_IN") {
+                state.actionState = "TELEPORT_OUT";
+                state.tpTimer = 600; // 0.6 seconds to dissolve into particles
+                
+                // Freeze the Beyblade in place
+                attacker.vx = 0; attacker.vy = 0;
+                
+                // Set the initial aiming reticle to where the Bey currently is
+                state.tpTargetX = attacker.x;
+                state.tpTargetY = attacker.y;
+            }
+        }
+		
         else if (attackName === "Smash Attack") {
             let dashX = 0; 
             let dashY = 0;
