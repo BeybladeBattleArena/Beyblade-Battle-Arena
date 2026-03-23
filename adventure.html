@@ -215,6 +215,9 @@
 </div>
 
 <script type="module">
+    import { db } from './firebase-config.js';
+    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
     console.log("Adventure map script successfully initialized!");
     window.AudioManager.playBGM('./audio/music/A_Map_of_Tokyo_ForAdventure.wav', 10.579355, 0.4);
 
@@ -231,6 +234,32 @@
     let fullTextToType = "";
     
     let pendingEpisodeSwap = null; 
+	
+	window.savePlayerData = async function() {
+        if (!window.PlayerData || !window.PlayerData.uid) {
+            console.warn("Could not save to Firestore: No user UID found.");
+            return; 
+        }
+
+        try {
+            const userRef = doc(db, "users", window.PlayerData.uid);
+            
+            // Push the tracked local data to the database
+            await updateDoc(userRef, {
+                activeEpisode: window.PlayerData.activeEpisode || null,
+                activeStage: window.PlayerData.activeStage || 0,
+                episodeProgress: window.PlayerData.episodeProgress || {},
+                completedEpisodes: window.PlayerData.completedEpisodes || [],
+                bp: window.PlayerData.bp || 0,
+                unlockedOpponents: window.PlayerData.unlockedOpponents || []
+            });
+            
+            console.log("Adventure progress safely secured in Firestore!");
+            
+        } catch (error) {
+            console.error("Error saving progress to Firestore:", error);
+        }
+    };
 
     function initAdventure() {
         // --- 1. POST-BATTLE INTERCEPTION ---
