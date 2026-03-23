@@ -930,8 +930,8 @@ window.SkillEngine = {
 else if (attackName === "Sharp Shooter") {
             // 1. Predict where the opponent is GOING to be (heading them off)
             // We look roughly 15 frames into the future based on their current speed
-            let futureX = cpuBey.x + (cpuBey.vx * 15);
-            let futureY = cpuBey.y + (cpuBey.vy * 15);
+            let futureX = defender.x + (defender.vx * 15);
+            let futureY = defender.y + (defender.vy * 15);
             
             // 2. Calculate the trajectory to that FUTURE position
             let leadDx = futureX - attacker.x;
