@@ -715,6 +715,25 @@ window.SkillEngine = {
             } else if (state.actionState === "PLUNGING") {
                 state.z -= 4.0; 
                 if (state.z <= 0) {
+					// Ground-Pound Shockwave Effect!
+                    if (window.particles) {
+                        for (let i = 0; i < 15; i++) {
+                            // Calculate an evenly spaced 360-degree circle
+                            let angle = (Math.PI * 2 / 15) * i; 
+                            let speed = 5 + Math.random() * 3; // Fast, violent outward burst
+                            
+                            window.particles.push({
+                                x: bey.x,
+                                y: bey.y,
+                                vx: Math.cos(angle) * speed,
+                                vy: Math.sin(angle) * speed,
+                                life: 1.0, 
+                                decay: 0.02 + Math.random() * 0.02, // Fades quickly
+                                color: Math.random() > 0.5 ? '#00ffff' : '#ffffff', // Cyan and White
+                                size: Math.random() * 4 + 2 // Chunky impact dust
+                            });
+                        }
+                    }
                     state.z = 0;
                     state.actionState = "NORMAL";
                     
