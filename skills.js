@@ -842,8 +842,8 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 600;
             
             setTimeout(() => {
-                attacker.vx = dirX * 18;
-                attacker.vy = dirY * 18;
+                attacker.vx = dirX * 5;
+                attacker.vy = dirY * 5;
                 state.z = 25; 
                 state.actionState = "AIRBORNE_LANCE";
                 state.airLanceTimer = 2000; 
@@ -930,8 +930,8 @@ window.SkillEngine = {
 else if (attackName === "Sharp Shooter") {
             // 1. Predict where the opponent is GOING to be (heading them off)
             // We look roughly 15 frames into the future based on their current speed
-            let futureX = defender.x + (defender.vx * 15);
-            let futureY = defender.y + (defender.vy * 15);
+            let futureX = cpuBey.x + (cpuBey.vx * 15);
+            let futureY = cpuBey.y + (cpuBey.vy * 15);
             
             // 2. Calculate the trajectory to that FUTURE position
             let leadDx = futureX - attacker.x;
@@ -941,7 +941,7 @@ else if (attackName === "Sharp Shooter") {
             let interceptY = leadDy / leadDist;
 
             // 3. Convert Speed stat into raw dash power
-            let speedBonus = (attacker.stats.speed || 10) * 0.3;
+            let speedBonus = (attacker.stats.speed || 10) * 0.2;
             let dashPower = 6 + speedBonus; // Base 6 + speed scaling
             
             // 4. Fire the intercept dash! 
@@ -959,8 +959,8 @@ else if (attackName === "Sharp Shooter") {
             attacker.activeAura = "rgba(0, 255, 0, 0.8)";
             attacker.activeAuraDuration = 600;
             setTimeout(() => {
-                attacker.vx = dirX * 7;
-                attacker.vy = dirY * 7;
+                attacker.vx = dirX * 6;
+                attacker.vy = dirY * 6;
                 attacker.skillState.actionState = "UPPER_DASHING";
             }, 300);
         }
