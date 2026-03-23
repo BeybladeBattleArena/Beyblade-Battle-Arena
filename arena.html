@@ -1557,16 +1557,11 @@
 
     function updateUI(dt) {
         let mins = Math.floor(matchTimerMs / 60000); let secs = Math.floor((matchTimerMs % 60000) / 1000);
-        
-        // THE FIX FOR ERROR 1: Ensure the DOM element actually exists before editing text!
-        let timerEl = document.getElementById('match-timer');
-        if (timerEl) timerEl.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        document.getElementById('match-timer').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 
         if (matchTimerMs <= 60000) p1Spirit += (0.002 * dt) * (1 + ((playerBey.stats.spiritCharge||0)/100));
         p1Spirit = Math.min(100, p1Spirit);
-        
-        let spiritFill = document.getElementById('spirit-fill');
-        if (spiritFill) spiritFill.style.width = p1Spirit + "%";
+        document.getElementById('spirit-fill').style.width = p1Spirit + "%";
         
         const ultBtn = document.getElementById('ultimate-btn');
         if (ultBtn) {
@@ -1576,8 +1571,6 @@
 
         activeSkills.forEach((skill, i) => {
             let btn = document.getElementById(`skill-btn-${i}`);
-            if (!btn) return;
-            
             let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
             if (skill.currentCd > 0) {
                 skill.currentCd -= dt; btn.classList.add('cooldown');
@@ -1590,16 +1583,12 @@
         function updateRadialHUD(bey, prefix, segments) {
             if (!bey || bey.isGhost) return;
             const hpEl = document.getElementById(`${prefix}-hp-current`);
-            
-            // THE FIX FOR ERROR 1: Null check the HP element
-            if (hpEl) hpEl.innerText = Math.max(0, Math.floor(bey.currentHp));
+            hpEl.innerText = Math.max(0, Math.floor(bey.currentHp));
             
             const hpRatio = bey.currentHp / bey.maxHp;
-            if (hpEl) {
-                if (hpRatio <= 0.33) hpEl.style.color = '#ff4444';
-                else if (hpRatio <= 0.50) hpEl.style.color = '#ffaa00';
-                else hpEl.style.color = '#ffffff';
-            }
+            if (hpRatio <= 0.33) hpEl.style.color = '#ff4444';
+            else if (hpRatio <= 0.50) hpEl.style.color = '#ffaa00';
+            else hpEl.style.color = '#ffffff';
 
             const rpmRatio = Math.max(0, Math.min(1, bey.currentRpm / bey.maxRpm));
             
@@ -1615,16 +1604,12 @@
 
             const rpmTextEl = document.getElementById(`${prefix}-rpm-text`);
             const rpmWrapperEl = document.getElementById(`${prefix}-rpm-wrapper`);
-            
-            // THE FIX FOR ERROR 1: Null check the RPM element
-            if (rpmTextEl) rpmTextEl.innerText = Math.max(0, Math.floor(bey.currentRpm));
+            rpmTextEl.innerText = Math.max(0, Math.floor(bey.currentRpm));
             
             const currentHue = rpmRatio * 120;
             const currentColor = `hsl(${currentHue}, 100%, 50%)`;
-            if (rpmWrapperEl) {
-                rpmWrapperEl.style.color = currentColor;
-                rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
-            }
+            rpmWrapperEl.style.color = currentColor;
+            rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
         }
 
         updateRadialHUD(playerBey, 'p1', p1Segments);
@@ -1634,14 +1619,14 @@
     function triggerBurst(bey, impactSpeed, dirX, dirY) {
         bey.isBursted = true;
         const partsList = ['bb', 'sg', 'wd', 'sar', 'ar', 'bc'];
-        
         partsList.forEach(partKey => {
-            // THE FIX FOR ERROR 2: Make sure the part actually exists before making a particle for it!
-            if (bey.images && bey.images[partKey]) {
+
+
+            // --- DRAW THE BEYBLADE IMAGES ---
+            if (bey.images) {
                 let spread = (Math.random() - 0.5) * 1.5; 
                 let angle = Math.atan2(dirY, dirX) + spread;
                 let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
-                
                 burstParticles.push({
                     img: bey.images[partKey],
                     x: bey.x, y: bey.y,
@@ -1652,6 +1637,7 @@
                     friction: 0.92 
                 });
             }
+			ctx.filter = 'none';
         });
         
         for(let i=0; i<30; i++) {
@@ -2083,10 +2069,9 @@
             if (cpuBey && !cpuBey.ringOut) {
                 cpuBey.currentHp = cpuBey.maxHp;
                 cpuBey.currentRpm = cpuBey.maxRpm;
-				
-			}
-		}
-	}
+            }
+        }
+    }
 
     function drawBattle(timestamp) {
         drawArena(); 
@@ -2110,11 +2095,12 @@
             ctx.restore();
         });
 
-function drawBey(bey) {
+        function drawBey(bey) {
             if (!bey || bey.isGhost) return; 
             if (bey.isBursted || (bey.currentHp <= 0 && !bey.ringOut)) return; 
             
-            // IF AIMING: Draw the Reticle and STOP drawing the Beyblade!
+			
+			// IF AIMING: Draw the Reticle and STOP drawing the Beyblade!
             if (bey.skillState && bey.skillState.actionState === "TELEPORT_AIM") {
                 ctx.save();
                 ctx.beginPath();
@@ -2134,7 +2120,8 @@ function drawBey(bey) {
                 ctx.restore();
                 return; // DO NOT draw the beyblade!
             }
-            
+			
+			
             let isFallen = (bey.currentRpm <= 0 && bey.currentHp > 0 && !bey.ringOut);
             let wobbleOffsetX = 0; let wobbleOffsetY = 0;
             
@@ -2192,38 +2179,15 @@ function drawBey(bey) {
                 }
                 ctx.restore();
             }
-            
-            // =======================================================
-            // ---> 1. PHANTOM WARP RED BEAM & FILTER <---
-            // =======================================================
-            let isTpOut = bey.skillState && bey.skillState.actionState === "TELEPORT_OUT";
-            let isTpIn = bey.skillState && bey.skillState.actionState === "TELEPORT_IN";
-            
-            if (isTpOut || isTpIn) {
-                let progress = 1 - (bey.skillState.tpTimer / 600); // Goes from 0.0 to 1.0
-                if (isTpIn) progress = 1 - progress; // Reverses for teleporting back in
-                
-                // Draw the Expanding Red Beam
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                let beamRadius = bey.radius * 2 + (progress * 25);
-                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, beamRadius);
-                grad.addColorStop(0, `rgba(255, 0, 0, ${1 - progress})`);
-                grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(0, 0, beamRadius, 0, Math.PI*2); ctx.fill();
-                ctx.restore();
+               
 
-                // Apply the Silhouette Filter!
-                ctx.filter = `brightness(0) opacity(${1 - progress})`;
-            }
-
-            // --- DRAW THE ACTIVE ATTACK LAYER ON TOP ---
+            // --- THE FIX: DRAW THE ACTIVE ATTACK LAYER ON TOP ---
             if (bey.passiveAura) {
                 ctx.save();
                 ctx.scale(1, 0.95); 
                 ctx.globalCompositeOperation = 'screen'; 
                 ctx.beginPath();
+                // Drawn slightly larger and softer than the active attack
                 ctx.arc(0, 0, renderSize * 0.48, 0, Math.PI * 2);
                 ctx.fillStyle = bey.passiveAura;
                 ctx.shadowBlur = 20; 
@@ -2232,6 +2196,7 @@ function drawBey(bey) {
                 ctx.restore();
             }
 
+            // --- THE FIX: DRAW THE ACTIVE ATTACK LAYER ON TOP ---
             if (bey.activeAura && bey.activeAuraDuration > 0) {
                 ctx.save();
                 ctx.scale(1, 0.95); 
@@ -2248,7 +2213,7 @@ function drawBey(bey) {
                 ctx.fill();
                 ctx.restore();
             }
-            
+                
             if (isFallen) {
                 ctx.scale(1, 0.45); 
                 ctx.translate(0, renderSize * 0.15); 
@@ -2256,10 +2221,35 @@ function drawBey(bey) {
             
             ctx.beginPath(); ctx.arc(0, 0, bey.radius * scale, 0, Math.PI*2);
             ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
+			
+			
+			            // --- PHANTOM WARP VISUALS ---
+            let isTpOut = bey.skillState && bey.skillState.actionState === "TELEPORT_OUT";
+            let isTpIn = bey.skillState && bey.skillState.actionState === "TELEPORT_IN";
+            
+            if (isTpOut || isTpIn) {
+                let progress = 1 - (bey.skillState.tpTimer / 600); // Goes from 0.0 to 1.0
+                if (isTpIn) progress = 1 - progress; // Reverses for teleporting back in
+                
+                // 1. Draw the Expanding Red Beam
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                let beamRadius = bey.radius * 2 + (progress * 25);
+                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, beamRadius);
+                grad.addColorStop(0, `rgba(255, 0, 0, ${1 - progress})`);
+                grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(0, 0, beamRadius, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+
+                // 2. Apply the Silhouette Filter!
+                // brightness(0) turns it pitch black. opacity fades it out to invisible!
+                ctx.filter = `brightness(0) opacity(${1 - progress})`;
+            }
+			
 
             ctx.rotate(bey.rotation);
 
-            // Because the filter is active, this physically draws as a black silhouette during Warp!
             if (bey.images) {
                 if (bey.images.bb) ctx.drawImage(bey.images.bb, -renderSize/2, -renderSize/2, renderSize, renderSize);
                 if (bey.images.sg) ctx.drawImage(bey.images.sg, -renderSize/2, -renderSize/2, renderSize, renderSize);
@@ -2269,10 +2259,11 @@ function drawBey(bey) {
                 if (bey.images.bc) ctx.drawImage(bey.images.bc, -renderSize/2, -renderSize/2, renderSize, renderSize);
             }
             
-            // REMOVE THE FILTER!
-            ctx.filter = 'none';
+			
+			// REMOVE THE FILTER so it doesn't affect other elements on the canvas!
+            ctx.filter = 'none'; 
 
-            ctx.restore();
+            ctx.restore(); // <--- Ends the rendering block for the physical Beyblade
 
             // =======================================================
             // ---> 2. MODULAR ANIMATION OVERLAY (BOOST DASH) <---
@@ -2281,30 +2272,41 @@ function drawBey(bey) {
                 let anim = bey.activeOverlayAnim;
                 let img = getAnimFrame(anim);
                 
+                // Track the last known angle so it doesn't snap to 0 when stopped
                 let currentSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
                 if (currentSpeed > 0.1) {
                     bey.lastMoveAngle = Math.atan2(bey.vy, bey.vx);
                 }
                 
+                // Add 90 degrees (Math.PI / 2) because your art faces NORTH!
                 let drawAngle = (bey.lastMoveAngle || 0) + (Math.PI / 2);
 
                 ctx.save();
+                // Move to the Beyblade's actual 3D altitude!
                 ctx.translate(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY - renderZ);
                 ctx.rotate(drawAngle);
                 
+                // Blend mode to make fireballs look hot and glowy!
                 ctx.globalCompositeOperation = 'screen'; 
                 
+                // 1. Check if the attack requested a specific opacity, otherwise default to 1.0 (fully solid)
                 let maxOpacity = anim.opacity !== undefined ? anim.opacity : 1.0;
-                let fade = Math.min(1.0, anim.duration / 200); 
-                ctx.globalAlpha = fade * maxOpacity; 
                 
+                // 2. Calculate the smooth fade-out at the end (goes from 1.0 down to 0.0)
+                let fade = Math.min(1.0, anim.duration / 200); 
+                
+                // 3. Multiply them together! 
+                // If maxOpacity is 0.65, it stays at 0.65 until the very end, then fades to 0!
+                ctx.globalAlpha = fade * maxOpacity;
+                
+                // Draw it roughly 2.2x the size of the Beyblade so it engulfs it
                 let overlaySize = renderSize * 2.2; 
                 if (img && img.complete) {
                     ctx.drawImage(img, -overlaySize/2, -overlaySize/2, overlaySize, overlaySize);
                 }
-                ctx.restore();
+                
+				ctx.restore();
             }
-            // =======================================================
 
             if (bey.wobbleFactor > 0.5 && !isFallen) {
                 ctx.beginPath(); ctx.arc(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY, bey.radius * scale, 0, Math.PI * 2);
@@ -2315,14 +2317,13 @@ function drawBey(bey) {
                 ctx.fillStyle = bey.visualTextColor; ctx.font = 'bold 16px Arial';
                 ctx.fillText(bey.visualText, bey.x - 40, bey.y - 30);
             }
-        } // <--- THIS is the end of drawBey
+        }
 
-        // ==========================================
-        // ---> THE MISSING RENDERING BLOCK! <---
-        // ==========================================
         // --- DYNAMIC Z-SORTING (Depth rendering) ---
         let renderQueue = [playerBey, cpuBey];
         
+        // Sort them so the Beyblade with the lowest Z is drawn first (in the back),
+        // and the Beyblade with the highest Z is drawn last (on top of everything else!)
         renderQueue.sort((a, b) => {
             let aZ = (a.z || 0) + (a.skillState ? (a.skillState.z || 0) : 0);
             let bZ = (b.z || 0) + (b.skillState ? (b.skillState.z || 0) : 0);
@@ -2332,7 +2333,6 @@ function drawBey(bey) {
         // Loop through the sorted array and draw them
         renderQueue.forEach(bey => drawBey(bey));
         
-        // Draw the explosion particles
         for (let i = 0; i < burstParticles.length; i++) {
             let bp = burstParticles[i];
             bp.x += bp.vx; bp.y += bp.vy;
@@ -2345,7 +2345,6 @@ function drawBey(bey) {
             ctx.restore();
         }
 
-        // Draw the spark particles
         for (let i = particles.length - 1; i >= 0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= p.decay; 
@@ -2356,7 +2355,7 @@ function drawBey(bey) {
                 ctx.globalAlpha = 1.0; 
             }
         }
-		}
+    }
 
     function checkRoundCondition() {
         if (roundConcluding) return; 
