@@ -233,6 +233,30 @@
     let pendingEpisodeSwap = null; 
 
     function initAdventure() {
+        // --- 1. POST-BATTLE INTERCEPTION ---
+        let receiptStr = localStorage.getItem('postMatchReceipt');
+        if (receiptStr) {
+            let receipt = JSON.parse(receiptStr);
+            let didPlayerWin = receipt.playerScore >= 3;
+            
+            // Destroy the receipt immediately so it doesn't trigger again elsewhere!
+            localStorage.removeItem('postMatchReceipt');
+            
+            // If they were actively in an episode, we need to handle the outcome!
+            if (window.PlayerData && window.PlayerData.activeEpisode) {
+                if (didPlayerWin) {
+                    console.log("Player won the story battle! Advancing to next stage...");
+                    // The battle is over, advance to the next stage in the VN
+                    window.PlayerData.activeStage = (window.PlayerData.activeStage || 0) + 1;
+                } else {
+                    console.log("Player lost the story battle! Relaunching the pre-battle VN scene.");
+                    // They lost! They stay on the same stage to try the battle again.
+                    // add a specific 'loss_stage' to your JSON if you wanted dynamic fail states?
+                }
+            }
+        }
+        // -----------------------------------
+
         window.StoryDB = { ...(window.TokyoEpisodes || {}) };
         if (!window.PlayerData) window.PlayerData = {};
         
