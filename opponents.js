@@ -112,6 +112,50 @@ window.opponentsDB = [
 
 
     {
+        id: "opp_matt1",
+        name: "Matt",
+        portrait: "Daichi.png",
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Godblade",
+        bitBeast: "None",
+		bitChip: "bc_03",
+		attackRing: "ar_19",
+		weightDisk: "wd_14",
+		spinGear: "sg_01",
+		bladeBase: "bb_15",
+        alwaysUnlocked: true,
+        arenaStyle: 1, 
+        stats: { 
+            hp: 800, rpm: 4500, attack: 25, defense: 19, stamina: 17, speed: 12, weight: 62, mobility: 11, grip: 21, balance: 10, recoil: 11, recoilReduction: 7, spiritCharge: 5, cdr: 2 },
+        passives: [],
+        attacks: [{ name: "Smash Attack", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Oh, you're looking to test something?",
+            "Well, I can be your guinea pig, sure. Let's see what's new!",
+        ],
+        winDialogue: [
+            "Yeah, I guess whatever you got couldn't beat my 4500 RPM and 800 HP.",
+            "Better luck next time, nerd."
+        ],
+        loseDialogue: [
+            "Nice over-powered junk bey. Moron.",
+            "Keep bug testing."
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
+                engine.executeAttack("Smash Attack", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
+
+
+    {
         id: "opp_daichi1",
         name: "Daichi",
         portrait: "Daichi.png",
