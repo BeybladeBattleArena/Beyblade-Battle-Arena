@@ -872,9 +872,8 @@ window.SkillEngine = {
             attacker.tempDefense = 30; 
         }
         else if (attackName === "Spike Attack") {
-            let dashPower = 6; 
-            attacker.vx += dashX * dashPower;
-            attacker.vy += dashY * dashPower;
+            attacker.vx += dirX * 6;
+            attacker.vy += dirY * 6;
             attacker.currentHp -= 2; 
             attacker.activeAura = "rgba(255, 0, 0, 0.8)";
             attacker.activeAuraDuration = 600;
