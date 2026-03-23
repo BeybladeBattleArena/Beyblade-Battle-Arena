@@ -100,6 +100,28 @@ window.equipmentDB = {
             ]
 },
 { 
+            id: "godring_test2", // Generalized ID
+            name: "The God Ring 2", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Development", "Test", "God", "Ring", "Not for Resale"], 
+			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
+            stats: { attack: 24, weight: 15, hp: 800, rpm: 2000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Cyclone Loop", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "godring_2",
+                    styleName: "The God Ring 2", 
+                    styleColorSample: "#000000", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/AR/GodRing2.png", 
+                    topDownImage: "./images/beyblade_parts/AR/GodRing2.png" 
+                },
+            ]
+},
+{ 
             id: "ar_01", // Generalized ID
             name: "Cross Dragon", // Generalized Name
             type: "Attack Ring", 
