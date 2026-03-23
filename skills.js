@@ -378,12 +378,12 @@ window.SkillEngine = {
                     }
 
                     // Overwrite velocity for a sudden, sharp dash
-                    bey.vx = dX * 14; 
-                    bey.vy = dY * 14;
+                    bey.vx = dX * 7; 
+                    bey.vy = dY * 7;
 
                     // Deduct one dash, and set the timer for 200ms for the next one
                     state.barrageDashesLeft--;
-                    state.barrageDashTimer = 200; 
+                    state.barrageDashTimer = 150; 
                 }
             }
             
