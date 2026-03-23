@@ -927,14 +927,29 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 600;
 			attacker.tempAttack = weightMod;
         }
-        else if (attackName === "Sharp Shooter") {
-            let moveVel = Math.sqrt(attacker.vx**2 + attacker.vy**2);
-            let mX = moveVel > 0.5 ? attacker.vx / moveVel : dirX;
-            let mY = moveVel > 0.5 ? attacker.vy / moveVel : dirY;
+else if (attackName === "Sharp Shooter") {
+            // 1. Predict where the opponent is GOING to be (heading them off)
+            // We look roughly 15 frames into the future based on their current speed
+            let futureX = defender.x + (defender.vx * 15);
+            let futureY = defender.y + (defender.vy * 15);
             
-            let maxSpeedBoost = (attacker.stats.speed || 10) * 0.00425 * 1.15; 
-            attacker.vx = mX * maxSpeedBoost * 20; 
-            attacker.vy = mY * maxSpeedBoost * 20;
+            // 2. Calculate the trajectory to that FUTURE position
+            let leadDx = futureX - attacker.x;
+            let leadDy = futureY - attacker.y;
+            let leadDist = Math.max(1, Math.sqrt(leadDx*leadDx + leadDy*leadDy));
+            let interceptX = leadDx / leadDist;
+            let interceptY = leadDy / leadDist;
+
+            // 3. Convert Speed stat into raw dash power
+            let speedBonus = (attacker.stats.speed || 10) * 0.3;
+            let dashPower = 6 + speedBonus; // Base 6 + speed scaling
+            
+            // 4. Fire the intercept dash! 
+            // We overwrite (rather than +=) so it sharply corrects your path to nail the target
+            attacker.vx = interceptX * dashPower; 
+            attacker.vy = interceptY * dashPower;
+            
+            // 5. Visuals
             attacker.activeAura = "rgba(128, 0, 128, 0.8)";
             attacker.activeAuraDuration = 600;
         }
