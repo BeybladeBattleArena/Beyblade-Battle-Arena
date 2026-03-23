@@ -165,6 +165,11 @@ window.SkillsDB = {
             desc: "Executes a rapid flurry of high speed movements to overwhelm the opponent.",
             execute: function() {}
         },
+		"Cyclone Loop": {
+            name: "Cyclone Loop", cd: 6,
+            desc: "Execute a tight offensive loop in the same direction as the beyblade's spin.",
+            execute: function() {}
+        },
         "Cross Smash": {
             name: "Cross Smash", cd: 6,
             desc: "A devastating, concentrated blow utilizing the secondary contact points of a Sub-Attack Ring.",
@@ -243,6 +248,8 @@ window.SkillEngine = {
 				driftForceTimer: 0,
 				rdAtkBonus: 0,
 				rdEndBonus: 0,
+				cycloneTimer: 0,
+				cycloneTotalTime: 0,
                 
                 defenseBoostTimer: 0,
                 barrageDashesLeft: 0,
@@ -388,6 +395,41 @@ window.SkillEngine = {
                 if (Math.random() < 0.05) {
                     bey.vx += (Math.random() - 0.5) * 1.5;
                     bey.vy += (Math.random() - 0.5) * 1.5;
+                }
+            }
+
+			// --- CYCLONE LOOP PHYSICS ---
+            if (state.actionState === "CYCLONE_LOOP") {
+                if (state.cycloneTimer > 0) {
+                    
+                    // 1. Calculate how much to rotate this specific frame
+                    // Math.PI * 2 equals a full 360 degrees
+                    let rotAngle = (Math.PI * 2) * (dt / state.cycloneTotalTime);
+                    
+                    // 2. Read the Beyblade's actual spin direction!
+                    // Right Spin (1) rotates Clockwise. Left Spin (-1) rotates Counter-Clockwise.
+                    let spinDirection = bey.spinDir || 1;
+                    rotAngle *= spinDirection;
+
+                    // 3. The 2D Rotation Matrix
+                    let cosA = Math.cos(rotAngle);
+                    let sinA = Math.sin(rotAngle);
+                    
+                    let newVx = bey.vx * cosA - bey.vy * sinA;
+                    let newVy = bey.vx * sinA + bey.vy * cosA;
+
+                    // 4. Force the speed to stay at 16 so arena friction doesn't turn it into a spiral
+                    let currentSpeed = Math.sqrt(newVx**2 + newVy**2);
+                    let targetSpeed = 16; 
+                    if (currentSpeed > 0) {
+                        bey.vx = (newVx / currentSpeed) * targetSpeed;
+                        bey.vy = (newVy / currentSpeed) * targetSpeed;
+                    }
+
+                    state.cycloneTimer -= dt;
+                } else {
+                    // When the 400ms timer is up, the 360 loop is finished!
+                    state.actionState = "NORMAL";
                 }
             }
 
@@ -963,6 +1005,25 @@ else if (attackName === "Sharp Shooter") {
                 attacker.vy = dirY * 6;
                 attacker.skillState.actionState = "UPPER_DASHING";
             }, 300);
+        }
+		else if (attackName === "Cyclone Loop") {
+            let dashPower = 16; // Very fast initial burst
+            
+            // Dash toward the joystick input, or default to the opponent
+            let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
+            let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
+
+            attacker.vx = dashX * dashPower;
+            attacker.vy = dashY * dashPower;
+
+            // Trigger the state machine
+            attacker.skillState.actionState = "CYCLONE_LOOP";
+            attacker.skillState.cycloneTimer = 400; // 0.4 seconds to complete the circle
+            attacker.skillState.cycloneTotalTime = 400; 
+
+            // Mint green wind aura
+            attacker.activeAura = "rgba(0, 255, 150, 0.9)";
+            attacker.activeAuraDuration = 400;
         }
         else if (attackName === "Grindblade Lunge") {
             attacker.wobbleFactor = 0.8; 
