@@ -1853,8 +1853,23 @@
                 } else {
                     bey.x = cx - dirToCenterX * (maxRadius - bey.radius); 
                     bey.y = cy - dirToCenterY * (maxRadius - bey.radius);
-                    bey.vx *= -0.6; 
-                    bey.vy *= -0.6;
+                    
+                    let preImpactSpeed = Math.max(1, Math.sqrt(bey.vx**2 + bey.vy**2));
+
+                    // --- PASSIVE: Wall Rebound Assist ---
+                    if (bey.passives && bey.passives.includes("Wall Rebound Assist")) {
+                        // Springboard effect! 120% speed aimed directly at the center.
+                        bey.vx = dirToCenterX * (preImpactSpeed * 1.2);
+                        bey.vy = dirToCenterY * (preImpactSpeed * 1.2);
+                        
+                        // Green flash to show the springboard activated!
+                        bey.activeAura = "rgba(0, 255, 0, 0.8)";
+                        bey.activeAuraDuration = 400;
+                    } else {
+                        // Normal wall bounce (loses 40% momentum)
+                        bey.vx *= -0.6; 
+                        bey.vy *= -0.6;
+                    }
                     
                     let impactSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
                     let wobblePenalty = 1 + bey.wobbleFactor;
@@ -1896,6 +1911,28 @@
                 let impactSpeed = Math.max(1, Math.sqrt(relVx*relVx + relVy*relVy));
                 
                 let isHeavyClash = (playerBey.auraDuration > 0 || cpuBey.auraDuration > 0 || impactSpeed > 15);
+				
+				// PASSIVE: Rollback Drift Activation
+                if (impactSpeed >= 12) { // "Heavy" knockback threshold
+                    [playerBey, cpuBey].forEach(bey => {
+                        if (bey.passives && bey.passives.includes("Rollback Drift") && bey.skillState.rollbackTimer <= 0) {
+                            let state = bey.skillState;
+                            state.rollbackTimer = 8000; // 8-second buff
+                            state.driftForceTimer = 600; // 0.6 seconds of intense steering
+                            
+                            state.rdAtkBonus = (bey.stats.attack || 0) * 0.05;
+                            state.rdEndBonus = (bey.stats.endurance || 0) * 0.05;
+                            
+                            bey.stats.attack = (bey.stats.attack || 0) + state.rdAtkBonus;
+                            bey.stats.endurance = (bey.stats.endurance || 0) + state.rdEndBonus;
+                            bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) + 0.04; // 4% RPM mitigation
+
+                            // A bright cyan glow for the 8-second duration!
+                            bey.activeAura = "rgba(0, 255, 255, 0.7)";
+                            bey.activeAuraDuration = 8000;
+                        }
+                    });
+                }
 
                 if (isHeavyClash) {
                     let randHeavy = Math.floor(Math.random() * 5) + 1;
@@ -1925,6 +1962,8 @@
                 let pKnockbackMod = ((cWeight / pWeight) * 0.275) * (1 + playerBey.wobbleFactor); 
                 let cKnockbackMod = ((pWeight / cWeight) * 0.275) * (1 + cpuBey.wobbleFactor);
                 let baseBounce = impactSpeed * 0.8 + 4.5; 
+				pKnockbackMod *= (1 - safeNum(playerBey.stats.knockbackResist, 0));
+                cKnockbackMod *= (1 - safeNum(cpuBey.stats.knockbackResist, 0));
                 
                 playerBey.vx = -nx * baseBounce * pKnockbackMod; playerBey.vy = -ny * baseBounce * pKnockbackMod;
                 cpuBey.vx = nx * baseBounce * cKnockbackMod; cpuBey.vy = ny * baseBounce * cKnockbackMod;
@@ -1932,13 +1971,13 @@
                 let pAtk = safeNum(playerBey.stats.attack, 0) + safeNum(playerBey.tempAttack, 0); let pDef = safeNum(playerBey.stats.defense, 0) + safeNum(playerBey.tempDefense, 0); let pEnd = safeNum(playerBey.stats.endurance, 0) + safeNum(playerBey.tempEndurance, 0);
                 let cAtk = safeNum(cpuBey.stats.attack, 0) + safeNum(cpuBey.tempAttack, 0); let cDef = safeNum(cpuBey.stats.defense, 0) + safeNum(cpuBey.tempDefense, 0); let cEnd = safeNum(cpuBey.stats.endurance, 0) + safeNum(cpuBey.tempEndurance, 0);
 
-                let pDmgToC_HP = Math.max(0.5, (pAtk * impactSpeed * 0.1) - (cDef * 0.4));
+                let pDmgToC_HP = Math.max(0.5, (pAtk * 0.5) + (impactSpeed * 1.0) - (cDef * 0.4));
                 let pDmgToC_RPM = Math.max(1.0, (pAtk * impactSpeed * 0.3) - (cEnd * 0.8));
-                let cDmgToP_HP = Math.max(0.5, (cAtk * impactSpeed * 0.1) - (pDef * 0.4));
+                let cDmgToP_HP = Math.max(0.5, (cAtk * 0.5) + (impactSpeed * 1.0) - (pDef * 0.4));
                 let cDmgToP_RPM = Math.max(1.0, (cAtk * impactSpeed * 0.3) - (pEnd * 0.8));
 
-                playerBey.currentHp -= cDmgToP_HP; playerBey.currentRpm -= cDmgToP_RPM;
-                cpuBey.currentHp -= pDmgToC_HP; cpuBey.currentRpm -= pDmgToC_RPM;
+                playerBey.currentHp -= cDmgToP_HP; playerBey.currentRpm -= cDmgToP_RPM * (1 - safeNum(playerBey.stats.rpmDamageResist, 0));
+                cpuBey.currentHp -= pDmgToC_HP; cpuBey.currentRpm -= pDmgToC_RPM * (1 - safeNum(cpuBey.stats.rpmDamageResist, 0));
                 matchStats.totalDamageDealt += pDmgToC_HP;
 
                 let pRecoilStat = safeNum(playerBey.stats.recoil, 0); let pRecoilReduc = safeNum(playerBey.stats.recoilReduction, 0) + safeNum(playerBey.tempRecoilReduction, 0);

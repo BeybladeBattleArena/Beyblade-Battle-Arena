@@ -78,6 +78,28 @@ window.equipmentDB = {
             ]
 },
 { 
+            id: "godring_test", // Generalized ID
+            name: "The God Ring", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Development", "Test", "God", "Ring", "Not for Resale"], 
+			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
+            stats: { attack: 24, weight: 15, hp: 800, rpm: 2000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Heavy Ram", cd: 5 }, { name: "Sharp Shooter", cd: 6 }, { name: "Grindblade Lunge", cd: 8 }, { name: "Aerial Lance", cd: 8 }, { name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }, { name: "Upper Attack", cd: 6 }, { name: "Barrage Attack", cd: 5 }, { name: "Cross Smash", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "godring_1",
+                    styleName: "The God Ring", 
+                    styleColorSample: "#FFFFFF", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/AR/GodRing.png", 
+                    topDownImage: "./images/beyblade_parts/AR/GodRing.png" 
+                },
+            ]
+},
+{ 
             id: "ar_01", // Generalized ID
             name: "Cross Dragon", // Generalized Name
             type: "Attack Ring", 

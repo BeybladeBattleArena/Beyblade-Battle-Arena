@@ -20,7 +20,7 @@ window.SkillsDB = {
             apply: function(bey) {}
         },
 		"Metal Ball Defense": {
-            name: "Mode Change",
+            name: "Metal Ball Defense",
             desc: "While RPM is above 55%, increase Attack by 2%, Balance and Mobility by 4%, and Defense by 5%. When RPM dips below 55%, instead increase Recoil Reduction by 1%, Knockback Resistance by 3% and Defense and Endurance by 4%.",
             apply: function(bey) {}
         },
@@ -235,10 +235,20 @@ window.SkillEngine = {
                 haAtkBonus: 0,
                 haSpdBonus: 0,
                 haDefPenalty: 0,
+				recoilRebounderCd: 0,
+				recoilRebounderTimer: 0,
+				rrSpdBonus: 0,
+				rrAtkBonus: 0,
+				rollbackTimer: 0,
+				driftForceTimer: 0,
+				rdAtkBonus: 0,
+				rdEndBonus: 0,
                 
                 defenseBoostTimer: 0,
                 barrageDashesLeft: 0,
 				barrageDashTimer: 0,
+				modeChangeActive: false,
+				metalBallState: "NONE",
                 wispBurnTimer: 0,
                 lastHp: bey.currentHp,
                 
@@ -276,6 +286,102 @@ window.SkillEngine = {
                     bey.wobbleFactor = 0; 
                 }
             }
+			
+			// --- PASSIVE: Mode Change ---
+            if (bey.passives && bey.passives.includes("Mode Change")) {
+                let isBelowHalf = bey.currentRpm < (bey.maxRpm * 0.50);
+                
+                if (isBelowHalf && !state.modeChangeActive) {
+                    // Activate Mode Change! Change tip to Semi-Flat
+                    bey.tipShape = "Semi-Flat"; 
+                    
+                    // Calculate the exact percentage adjustments
+                    state.mcAtkPen = (bey.stats.attack || 0) * 0.03;
+                    state.mcGripPen = (bey.stats.grip || 0) * 0.03;
+                    state.mcEndBns = (bey.stats.endurance || 0) * 0.07;
+                    state.mcStamBns = (bey.stats.stamina || 0) * 0.07;
+                    state.mcDefBns = (bey.stats.defense || 0) * 0.02;
+                    state.mcRecBns = (bey.stats.recoilReduction || 0) * 0.02;
+                    
+                    // Apply them
+                    bey.stats.attack -= state.mcAtkPen;
+                    bey.stats.grip -= state.mcGripPen;
+                    bey.stats.endurance += state.mcEndBns;
+                    bey.stats.stamina += state.mcStamBns;
+                    bey.stats.defense += state.mcDefBns;
+                    bey.stats.recoilReduction += state.mcRecBns;
+                    
+                    // Flash a green aura so the player knows the tip just dropped!
+                    bey.activeAura = "rgba(0, 255, 100, 0.8)";
+                    bey.activeAuraDuration = 600;
+                    
+                    state.modeChangeActive = true;
+                } 
+                else if (!isBelowHalf && state.modeChangeActive) {
+                    // If they somehow regain RPM (Spin Steal, etc), revert it!
+                    bey.tipShape = "Flat"; 
+                    bey.stats.attack += state.mcAtkPen;
+                    bey.stats.grip += state.mcGripPen;
+                    bey.stats.endurance -= state.mcEndBns;
+                    bey.stats.stamina -= state.mcStamBns;
+                    bey.stats.defense -= state.mcDefBns;
+                    bey.stats.recoilReduction -= state.mcRecBns;
+                    
+                    state.modeChangeActive = false;
+                }
+            }
+
+            // --- PASSIVE: Metal Ball Defense ---
+            if (bey.passives && bey.passives.includes("Metal Ball Defense")) {
+                let isHighRpm = bey.currentRpm >= (bey.maxRpm * 0.55);
+                let targetState = isHighRpm ? "HIGH" : "LOW";
+                
+                if (state.metalBallState !== targetState) {
+                    
+                    // 1. Strip away the OLD buffs before applying new ones
+                    if (state.metalBallState === "HIGH") {
+                        bey.stats.attack -= state.mbHighAtk;
+                        bey.stats.balance -= state.mbHighBal;
+                        bey.stats.mobility -= state.mbHighMob;
+                        bey.stats.defense -= state.mbHighDef;
+                    } else if (state.metalBallState === "LOW") {
+                        bey.stats.recoilReduction -= state.mbLowRec;
+                        // REMOVED WEIGHT, REPLACED WITH KNOCKBACK RESIST
+                        bey.stats.knockbackResist -= state.mbLowKb; 
+                        bey.stats.defense -= state.mbLowDef;
+                        bey.stats.endurance -= state.mbLowEnd;
+                    }
+                    
+                    // 2. Apply the NEW buffs
+                    if (targetState === "HIGH") {
+                        state.mbHighAtk = (bey.stats.attack || 0) * 0.02;
+                        state.mbHighBal = (bey.stats.balance || 0) * 0.04;
+                        state.mbHighMob = (bey.stats.mobility || 0) * 0.04;
+                        state.mbHighDef = (bey.stats.defense || 0) * 0.05;
+                        
+                        bey.stats.attack += state.mbHighAtk;
+                        bey.stats.balance += state.mbHighBal;
+                        bey.stats.mobility += state.mbHighMob;
+                        bey.stats.defense += state.mbHighDef;
+                    } else { // LOW RPM STANCE
+                        state.mbLowRec = (bey.stats.recoilReduction || 0) * 0.01;
+                        // ADD FLAT 3% KNOCKBACK RESISTANCE (0.03)
+                        state.mbLowKb = 0.03; 
+                        state.mbLowDef = (bey.stats.defense || 0) * 0.04;
+                        state.mbLowEnd = (bey.stats.endurance || 0) * 0.04;
+                        
+                        bey.stats.recoilReduction += state.mbLowRec;
+                        bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + state.mbLowKb;
+                        bey.stats.defense += state.mbLowDef;
+                        bey.stats.endurance += state.mbLowEnd;
+                        
+                        bey.activeAura = "rgba(192, 192, 192, 0.8)";
+                        bey.activeAuraDuration = 600;
+                    }
+                    
+                    state.metalBallState = targetState;
+                }
+            }
 
             // --- PASSIVE: Sour Saucer ---
             if (bey.passives && bey.passives.includes("Sour Saucer")) {
@@ -299,6 +405,29 @@ window.SkillEngine = {
                             bey.activeAura = "rgba(0, 255, 255, 0.8)";
                             bey.activeAuraDuration = 400;
                         }
+                    }
+                }
+				
+				// PASSIVE: Recoil Rebounder
+                if (bey.passives && bey.passives.includes("Recoil Rebounder")) {
+                    if (state.recoilRebounderCd <= 0) {
+                        // 1. Set the Timers (7s buff, 28s cooldown)
+                        state.recoilRebounderTimer = 7000; 
+                        state.recoilRebounderCd = 28000;
+                        
+                        // 2. Calculate the 6% stat boosts
+                        state.rrSpdBonus = (bey.stats.speed || 0) * 0.06;
+                        state.rrAtkBonus = (bey.stats.attack || 0) * 0.06;
+                        
+                        // 3. Apply the Buffs! (+Speed, +Attack, +10% KB Resist, +2% RPM Resist)
+                        bey.stats.speed = (bey.stats.speed || 0) + state.rrSpdBonus;
+                        bey.stats.attack = (bey.stats.attack || 0) + state.rrAtkBonus;
+                        bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.10;
+                        bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) + 0.02;
+                        
+                        // Glow orange so the player knows the rebounder is active
+                        bey.activeAura = "rgba(255, 140, 0, 0.7)";
+                        bey.activeAuraDuration = 7000;
                     }
                 }
 
@@ -352,6 +481,60 @@ window.SkillEngine = {
                     bey.stats.recoilReduction -= 50;
                 }
             }
+			
+			// --- RECOIL REBOUNDER CLEANUP ---
+            if (state.recoilRebounderCd > 0) state.recoilRebounderCd -= dt;
+            
+            if (state.recoilRebounderTimer > 0) {
+                state.recoilRebounderTimer -= dt;
+                if (state.recoilRebounderTimer <= 0) {
+                    // Time's up! Strip the buffs away.
+                    bey.stats.speed -= state.rrSpdBonus;
+                    bey.stats.attack -= state.rrAtkBonus;
+                    bey.stats.knockbackResist -= 0.10;
+                    bey.stats.rpmDamageResist -= 0.02;
+                }
+            }
+			
+			// --- PASSIVE: ROLLBACK DRIFT STEERING & CLEANUP ---
+            if (state.rollbackTimer > 0) {
+                state.rollbackTimer -= dt;
+                
+                // The actual "Drift" physics (only lasts a fraction of a second after a heavy hit)
+                if (state.driftForceTimer > 0) {
+                    state.driftForceTimer -= dt;
+                    
+                    let driftX = 0, driftY = 0;
+                    let liveJoyX = isPlayer ? joyX : 0;
+                    let liveJoyY = isPlayer ? joyY : 0;
+
+                    // If a direction is held, target that direction!
+                    if (liveJoyX !== 0 || liveJoyY !== 0) {
+                        driftX = liveJoyX;
+                        driftY = liveJoyY;
+                    } else {
+                        // If no direction is held, drift back toward the exact center of the arena
+                        let cx = window.innerWidth / 2;
+                        let cy = window.innerHeight / 2;
+                        let dcX = cx - bey.x;
+                        let dcY = cy - bey.y;
+                        let dist = Math.max(1, Math.sqrt(dcX*dcX + dcY*dcY));
+                        driftX = dcX / dist;
+                        driftY = dcY / dist;
+                    }
+
+                    // Apply a strong, persistent force to fight the knockback trajectory
+                    bey.vx += driftX * 1.2; 
+                    bey.vy += driftY * 1.2;
+                }
+
+                // When the 8 seconds are up, strip the buffs!
+                if (state.rollbackTimer <= 0) {
+                    bey.stats.attack -= state.rdAtkBonus;
+                    bey.stats.endurance -= state.rdEndBonus;
+                    bey.stats.rpmDamageResist -= 0.04;
+                }
+            }
 
             if (state.barrageDashesLeft > 0) {
                 state.barrageDashTimer -= dt;
@@ -383,7 +566,7 @@ window.SkillEngine = {
 
                     // Deduct one dash, and set the timer for 200ms for the next one
                     state.barrageDashesLeft--;
-                    state.barrageDashTimer = 150; 
+                    state.barrageDashTimer = 200; 
                 }
             }
             
@@ -689,11 +872,15 @@ window.SkillEngine = {
             attacker.tempDefense = 30; 
         }
         else if (attackName === "Spike Attack") {
-            attacker.vx += dirX * 12;
-            attacker.vy += dirY * 12;
+            let dashPower = 6; 
+            attacker.vx += dashX * dashPower;
+            attacker.vy += dashY * dashPower;
             attacker.currentHp -= 2; 
             attacker.activeAura = "rgba(255, 0, 0, 0.8)";
             attacker.activeAuraDuration = 600;
+			attacker.tempAttack = 2;
+            attacker.tempRecoilReduction = 1.5; 
+            attacker.tempDefense = 20; 
         }
         else if (attackName === "Cross Smash") {
             attacker.vx += dirX * 14;
@@ -711,6 +898,8 @@ window.SkillEngine = {
         else if (attackName === "Concentrate Defense") {
             attacker.vx *= 0.1;
             attacker.vy *= 0.1;
+			attacker.tempSpeed = 1 - attacker.stats.speed;
+			attacker.tempMobility = 2 - attacker.stats.mobility;
             attacker.stats.defense += 50;
             attacker.stats.recoilReduction += 50;
             attacker.skillState.defenseBoostTimer = 2000;
@@ -718,11 +907,13 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 2000;
         }
         else if (attackName === "Heavy Ram") {
-            let weightMod = (attacker.stats.weight || 1.1) * 0.1;
-            attacker.vx += dirX * (1.1 + weightMod);
-            attacker.vy += dirY * (1.1 + weightMod);
+            let weightMod = (attacker.stats.weight || 10) * 0.3;
+            let dashPower = 5; 
+            attacker.vx += dirX * dashPower;
+            attacker.vy += dirY * dashPower;
             attacker.activeAura = "rgba(139, 69, 19, 0.8)";
             attacker.activeAuraDuration = 600;
+			attacker.tempAttack = weightMod;
         }
         else if (attackName === "Sharp Shooter") {
             let moveVel = Math.sqrt(attacker.vx**2 + attacker.vy**2);
