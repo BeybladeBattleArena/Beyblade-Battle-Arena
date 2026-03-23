@@ -1045,6 +1045,13 @@ window.SkillEngine = {
                 attacker.x = state.tpTargetX;
                 attacker.y = state.tpTargetY;
                 attacker.vx = 0; attacker.vy = 0;
+				
+				// 🔊 PLAY TELEPORT IN SOUND!
+                let tpInSfx = new Audio('./audio/sounds/PhantomWarp_In.wav');
+                tpInSfx.volume = 0.5;
+                tpInSfx.play().catch(e => console.log("Audio blocked:", e));
+				
+				
             } 
             // PHASE 1: Start the dissolve!
             else if (state.actionState !== "TELEPORT_OUT" && state.actionState !== "TELEPORT_IN") {
@@ -1057,6 +1064,11 @@ window.SkillEngine = {
                 // Set the initial aiming reticle to where the Bey currently is
                 state.tpTargetX = attacker.x;
                 state.tpTargetY = attacker.y;
+				
+				// 🔊 PLAY TELEPORT OUT SOUND!
+                let tpOutSfx = new Audio('./audio/sounds/PhantomWarp_Out.wav');
+                tpOutSfx.volume = 0.5;
+                tpOutSfx.play().catch(e => console.log("Audio blocked:", e));
             }
         }
 		
@@ -1083,7 +1095,13 @@ window.SkillEngine = {
             attacker.tempDefense = 30; 
         }
 		else if (attackName === "Meteor Dash") {
-            let dashX = 0; 
+            
+			// 🔊 PLAY BOOST DASH SOUND!
+            let dashSfx = new Audio('./audio/sounds/SuperPowerDash.wav');
+            dashSfx.volume = 0.5;
+            dashSfx.play().catch(e => console.log("Audio blocked:", e));
+			
+			let dashX = 0; 
             let dashY = 0;
 
             if (inputX !== 0 || inputY !== 0) {
