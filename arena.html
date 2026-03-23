@@ -1900,18 +1900,26 @@
 
             let dx = cpuBey.x - playerBey.x; let dy = cpuBey.y - playerBey.y;
             let distance = Math.sqrt(dx * dx + dy * dy); let minDist = playerBey.radius + cpuBey.radius;
+			
+			// 1. Calculate the absolute height difference
+        let pZ = playerBey.skillState ? (playerBey.skillState.z || 0) : 0;
+        let cZ = cpuBey.skillState ? (cpuBey.skillState.z || 0) : 0;
+        let zDiff = Math.abs(pZ - cZ);
 
-            if (distance < minDist && !playerBey.ringOut && !cpuBey.ringOut && !playerBey.isBursted && !cpuBey.isBursted) {
+        // 2. The Merged Collision Check! 
+        // Checks distance, height, and makes sure nobody is already dead/ringed out
+        if (distance < minDist && zDiff < 12 && !playerBey.ringOut && !cpuBey.ringOut && !playerBey.isBursted && !cpuBey.isBursted) {
                 
-                if (distance === 0) { dx = 0.1; dy = 0.1; distance = Math.sqrt(dx * dx + dy * dy); }
+            if (distance === 0) { dx = 0.1; dy = 0.1; distance = Math.sqrt(dx * dx + dy * dy); }
                 
-                let overlap = minDist - distance; let nx = dx / distance; let ny = dy / distance;
-                playerBey.x -= nx * (overlap / 2); playerBey.y -= ny * (overlap / 2); cpuBey.x += nx * (overlap / 2); cpuBey.y += ny * (overlap / 2);
+            let overlap = minDist - distance; let nx = dx / distance; let ny = dy / distance;
+            playerBey.x -= nx * (overlap / 2); playerBey.y -= ny * (overlap / 2); 
+            cpuBey.x += nx * (overlap / 2); cpuBey.y += ny * (overlap / 2);
 
-                let relVx = playerBey.vx - cpuBey.vx; let relVy = playerBey.vy - cpuBey.vy;
-                let impactSpeed = Math.max(1, Math.sqrt(relVx*relVx + relVy*relVy));
+            let relVx = playerBey.vx - cpuBey.vx; let relVy = playerBey.vy - cpuBey.vy;
+            let impactSpeed = Math.max(1, Math.sqrt(relVx*relVx + relVy*relVy));
                 
-                let isHeavyClash = (playerBey.auraDuration > 0 || cpuBey.auraDuration > 0 || impactSpeed > 15);
+            let isHeavyClash = (playerBey.auraDuration > 0 || cpuBey.auraDuration > 0 || impactSpeed > 15);
 				
 				// PASSIVE: Rollback Drift Activation
                 if (impactSpeed >= 12) { // "Heavy" knockback threshold
