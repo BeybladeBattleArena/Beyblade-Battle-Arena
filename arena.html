@@ -2069,8 +2069,9 @@
                 wobbleOffsetY = Math.cos(wobbleSpeed * 1.3) * (bey.wobbleFactor * 4);
             }
 
-            let renderZ = (bey.z || 0) + (bey.skillState ? (bey.skillState.z || 0) : 0);
+            let renderZ = bey.z || 0;
             let scale = 1 + (renderZ * 0.003); 
+            if (bey.skillState && bey.skillState.z) scale += bey.skillState.z * 0.03; 
             let renderSize = bey.radius * 8.0 * scale;
 
             if (renderZ > 0) {
