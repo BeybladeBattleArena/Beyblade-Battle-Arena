@@ -162,7 +162,7 @@ window.SkillsDB = {
         },
         "Barrage Attack": {
             name: "Barrage Attack", cd: 5,
-            desc: "Executes a rapid flurry of erratic, zig-zag movements to overwhelm the opponent.",
+            desc: "Executes a rapid flurry of high speed movements to overwhelm the opponent.",
             execute: function() {}
         },
         "Cross Smash": {
@@ -237,7 +237,8 @@ window.SkillEngine = {
                 haDefPenalty: 0,
                 
                 defenseBoostTimer: 0,
-                barrageTimer: 0,
+                barrageDashesLeft: 0,
+				barrageDashTimer: 0,
                 wispBurnTimer: 0,
                 lastHp: bey.currentHp,
                 
@@ -352,11 +353,37 @@ window.SkillEngine = {
                 }
             }
 
-            if (state.barrageTimer > 0) {
-                state.barrageTimer -= dt;
-                if (Math.random() < 0.4) {
-                    bey.vx += (Math.random() - 0.5) * 12;
-                    bey.vy += (Math.random() - 0.5) * 12;
+            if (state.barrageDashesLeft > 0) {
+                state.barrageDashTimer -= dt;
+                
+                // When the timer hits 0, fire the next dash!
+                if (state.barrageDashTimer <= 0) {
+                    let dX, dY;
+                    
+                    // Grab the LIVE joystick input (or 0 if it's the CPU)
+                    let liveJoyX = isPlayer ? joyX : 0;
+                    let liveJoyY = isPlayer ? joyY : 0;
+
+                    // If the player is pushing a direction, dash that way!
+                    if (liveJoyX !== 0 || liveJoyY !== 0) {
+                        dX = liveJoyX;
+                        dY = liveJoyY;
+                    } else {
+                        // If no direction is pressed (or it's the CPU), auto-target the opponent
+                        let oppX = opponent.x - bey.x;
+                        let oppY = opponent.y - bey.y;
+                        let dist = Math.max(1, Math.sqrt(oppX*oppX + oppY*oppY));
+                        dX = oppX / dist;
+                        dY = oppY / dist;
+                    }
+
+                    // Overwrite velocity for a sudden, sharp dash
+                    bey.vx = dX * 14; 
+                    bey.vy = dY * 14;
+
+                    // Deduct one dash, and set the timer for 200ms for the next one
+                    state.barrageDashesLeft--;
+                    state.barrageDashTimer = 200; 
                 }
             }
             
@@ -675,6 +702,8 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 600;
         }
         else if (attackName === "Barrage Attack") {
+			attacker.skillState.barrageDashesLeft = 4;
+			attacker.skillState.barrageDashTimer = 0;
             attacker.skillState.barrageTimer = 1500; 
             attacker.activeAura = "rgba(255, 255, 0, 0.8)";
             attacker.activeAuraDuration = 1500;
