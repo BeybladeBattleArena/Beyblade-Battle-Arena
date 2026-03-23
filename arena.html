@@ -2069,9 +2069,8 @@
                 wobbleOffsetY = Math.cos(wobbleSpeed * 1.3) * (bey.wobbleFactor * 4);
             }
 
-            let renderZ = bey.z || 0;
+            let renderZ = (bey.z || 0) + (bey.skillState ? (bey.skillState.z || 0) : 0);
             let scale = 1 + (renderZ * 0.003); 
-            if (bey.skillState && bey.skillState.z) scale += bey.skillState.z * 0.03; 
             let renderSize = bey.radius * 8.0 * scale;
 
             if (renderZ > 0) {
@@ -2179,7 +2178,19 @@
             }
         }
 
-        drawBey(playerBey); drawBey(cpuBey);
+        // --- DYNAMIC Z-SORTING (Depth rendering) ---
+        let renderQueue = [playerBey, cpuBey];
+        
+        // Sort them so the Beyblade with the lowest Z is drawn first (in the back),
+        // and the Beyblade with the highest Z is drawn last (on top of everything else!)
+        renderQueue.sort((a, b) => {
+            let aZ = (a.z || 0) + (a.skillState ? (a.skillState.z || 0) : 0);
+            let bZ = (b.z || 0) + (b.skillState ? (b.skillState.z || 0) : 0);
+            return aZ - bZ;
+        });
+
+        // Loop through the sorted array and draw them
+        renderQueue.forEach(bey => drawBey(bey));
         
         for (let i = 0; i < burstParticles.length; i++) {
             let bp = burstParticles[i];
