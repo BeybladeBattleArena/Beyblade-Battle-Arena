@@ -872,8 +872,21 @@ window.SkillEngine = {
             attacker.tempDefense = 30; 
         }
         else if (attackName === "Spike Attack") {
-            attacker.vx += dirX * 6;
-            attacker.vy += dirY * 6;
+            let dashX = 0; 
+            let dashY = 0;
+
+            if (inputX !== 0 || inputY !== 0) {
+                dashX = inputX;
+                dashY = inputY;
+            } 
+            else {
+                dashX = dirX;
+                dashY = dirY;
+            }
+			
+			let dashPower = 6; 
+            attacker.vx += dashX * dashPower;
+            attacker.vy += dashY * dashPower;
             attacker.currentHp -= 2; 
             attacker.activeAura = "rgba(255, 0, 0, 0.8)";
             attacker.activeAuraDuration = 600;
@@ -907,7 +920,7 @@ window.SkillEngine = {
         }
         else if (attackName === "Heavy Ram") {
             let weightMod = (attacker.stats.weight || 10) * 0.3;
-            let dashPower = 5; 
+            let dashPower = 6; 
             attacker.vx += dirX * dashPower;
             attacker.vy += dirY * dashPower;
             attacker.activeAura = "rgba(139, 69, 19, 0.8)";
@@ -931,8 +944,8 @@ window.SkillEngine = {
             attacker.activeAura = "rgba(0, 255, 0, 0.8)";
             attacker.activeAuraDuration = 600;
             setTimeout(() => {
-                attacker.vx = dirX * 12;
-                attacker.vy = dirY * 12;
+                attacker.vx = dirX * 7;
+                attacker.vy = dirY * 7;
                 attacker.skillState.actionState = "UPPER_DASHING";
             }, 300);
         }
@@ -942,8 +955,8 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 800;
             setTimeout(() => {
                 attacker.wobbleFactor = 0;
-                attacker.vx = dirX * 10;
-                attacker.vy = dirY * 10;
+                attacker.vx = dirX * 6;
+                attacker.vy = dirY * 6;
                 attacker.skillState.z = 15; 
                 attacker.skillState.actionState = "LUNGE_HOP";
             }, 500);
