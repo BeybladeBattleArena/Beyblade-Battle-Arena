@@ -114,7 +114,7 @@ window.opponentsDB = [
     {
         id: "opp_matt1",
         name: "Matt",
-        portrait: "Daichi.png",
+        portrait: "Matt.png",
         dialogueBG: "beystadium_official.png",
         aiType: "STANDARD_AGGRESSIVE",
         beyName: "Godblade",
