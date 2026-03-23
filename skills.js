@@ -426,10 +426,27 @@ window.SkillEngine = {
                         bey.vy = (newVy / currentSpeed) * targetSpeed;
                     }
 
+					// 5. Leave a fiery spark trail along the curve!
+                    if (window.particles) {
+                        window.particles.push({
+                            x: bey.x + (Math.random() - 0.5) * 10, // Slight spread around the Bey
+                            y: bey.y + (Math.random() - 0.5) * 10,
+                            vx: (Math.random() - 0.5) * 2, // Slow drift for the sparks
+                            vy: (Math.random() - 0.5) * 2,
+                            life: 1.0, 
+                            decay: 0.04 + Math.random() * 0.04, // Fades out over time
+                            color: Math.random() > 0.5 ? '#ffcc00' : '#ff4400', // Gold or Orange
+                            size: Math.random() * 3 + 2
+                        });
+                    }
+
                     state.cycloneTimer -= dt;
                 } else {
                     // When the 400ms timer is up, the 360 loop is finished!
                     state.actionState = "NORMAL";
+					// Instantly halve the momentum so it stabilizes!
+                    bey.vx *= 0.5;
+                    bey.vy *= 0.5;
                 }
             }
 
