@@ -1943,9 +1943,15 @@
         let cZ = cpuBey.skillState ? (cpuBey.skillState.z || 0) : 0;
         let zDiff = Math.abs(pZ - cZ);
 
+        // Check if either Beyblade is currently doing any phase of Phantom Warp
+            let pState = playerBey.skillState ? playerBey.skillState.actionState : "";
+            let cState = cpuBey.skillState ? cpuBey.skillState.actionState : "";
+            let isP1Ethereal = pState.includes("TELEPORT");
+            let isCpuEthereal = cState.includes("TELEPORT");
+
         // 2. The Merged Collision Check! 
-        // Checks distance, height, and makes sure nobody is already dead/ringed out
-        if (distance < minDist && zDiff < 12 && !playerBey.ringOut && !cpuBey.ringOut && !playerBey.isBursted && !cpuBey.isBursted) {
+		// Checks distance, height, alive status, AND makes sure neither is teleporting!
+            if (distance < minDist && zDiff < 12 && !playerBey.ringOut && !cpuBey.ringOut && !playerBey.isBursted && !cpuBey.isBursted && !isP1Ethereal && !isCpuEthereal) {
                 
             if (distance === 0) { dx = 0.1; dy = 0.1; distance = Math.sqrt(dx * dx + dy * dy); }
                 
