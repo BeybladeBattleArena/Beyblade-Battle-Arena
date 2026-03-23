@@ -107,7 +107,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
             stats: { attack: 24, weight: 15, hp: 800, rpm: 2000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
 			passives: [], 
-			attacks: [{ name: "Cyclone Loop", cd: 6 }, { name: "Phantom Warp", cd: 8 }],
+			attacks: [{ name: "Cyclone Loop", cd: 6 }, { name: "Phantom Warp", cd: 8 }, { name: "Meteor Dash", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [

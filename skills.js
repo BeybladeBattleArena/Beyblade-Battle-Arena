@@ -180,6 +180,11 @@ window.SkillsDB = {
             desc: "Halts movement completely to brace for impact, massively reducing incoming damage for 2 seconds.",
             execute: function() {}
         },
+        "Meteor Dash": {
+            name: "Meteor Dash", cd: 7,
+            desc: "Draw out a wellspring of fighting spirit to mow down your foes, but be careful; using this much power has temporary drawbacks.",
+            execute: function() {}
+        },
 		"Phantom Warp": {
             name: "Phantom Warp", cd: 8,
             desc: "Utilize a mysterious, dark power to teleport across the arena.",
@@ -259,6 +264,8 @@ window.SkillEngine = {
 				tpTargetX: 0,
 				tpTargetY: 0,
                 
+				meteorDebuffTimer: 0,
+				meteorEndPenalty: 0,
                 defenseBoostTimer: 0,
                 barrageDashesLeft: 0,
 				barrageDashTimer: 0,
@@ -560,6 +567,17 @@ window.SkillEngine = {
                     bey.stats.attack -= state.rrAtkBonus;
                     bey.stats.knockbackResist -= 0.10;
                     bey.stats.rpmDamageResist -= 0.02;
+                }
+            }
+			
+			// --- METEOR DASH DEBUFF CLEANUP ---
+            if (state.meteorDebuffTimer > 0) {
+                state.meteorDebuffTimer -= dt;
+                
+                // When the 7 seconds are up, give the Endurance back!
+                if (state.meteorDebuffTimer <= 0) {
+                    bey.stats.endurance += state.meteorEndPenalty;
+                    state.meteorEndPenalty = 0; // Reset the tracker
                 }
             }
 			
@@ -1063,6 +1081,53 @@ window.SkillEngine = {
             attacker.activeAuraDuration = 600;
             attacker.tempRecoilReduction = 2; 
             attacker.tempDefense = 30; 
+        }
+		else if (attackName === "Meteor Dash") {
+            let dashX = 0; 
+            let dashY = 0;
+
+            if (inputX !== 0 || inputY !== 0) {
+                dashX = inputX;
+                dashY = inputY;
+            } 
+            else {
+                dashX = dirX;
+                dashY = dirY;
+            }
+
+            let dashPower = 7; 
+            attacker.vx += dashX * dashPower;
+            attacker.vy += dashY * dashPower;
+            
+            attacker.tempAttack = 8;
+            attacker.tempRecoilReduction = 3; 
+            attacker.tempDefense = 25;
+			attacker.activeAuraDuration = 400;
+			// --- THE 5% ENDURANCE DEBUFF ---
+            // 1. Calculate 5% of their actual endurance stat
+            let penalty = (attacker.stats.endurance || 0) * 0.05;
+            
+            // 2. Save that exact number so we know how much to give back later
+            attacker.skillState.meteorEndPenalty = penalty;
+            
+            // 3. Subtract it from their live stats
+            attacker.stats.endurance = (attacker.stats.endurance || 0) - penalty;
+            
+            // 4. Start the 7-second countdown!
+            attacker.skillState.meteorDebuffTimer = 7000; 
+            
+            // --- THE ANIMATION OVERLAY ---
+            attacker.activeOverlayAnim = {
+                basePath: "./images/beyblade_parts/arena_props/effects/boostdash",
+                frameCount: 3,
+                ext: ".png",
+                duration: 600,
+                frameSpeed: 80,
+                currentFrame: 1,
+                timer: 0,
+                opacity: 0.65 // <--- WE WILL USE THIS IN PART 2!
+            };
+        }
         }
         else if (attackName === "Spike Attack") {
             let dashX = 0; 

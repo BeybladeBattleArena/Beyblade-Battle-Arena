@@ -1186,6 +1186,23 @@
     let playerBey, cpuBey; let lastTime = null; 
     let particles = []; let burstParticles = [];
 	window.particles = particles;	
+	
+	// --- MODULAR ANIMATION CACHE ---
+    window.AnimCache = {};
+    function getAnimFrame(animObj) {
+        // If we haven't loaded this specific effect yet, build the array!
+        if (!window.AnimCache[animObj.basePath]) {
+            window.AnimCache[animObj.basePath] = [];
+            for(let i = 1; i <= animObj.frameCount; i++) {
+                let img = new Image();
+                img.src = `${animObj.basePath}${i}${animObj.ext}`;
+                window.AnimCache[animObj.basePath].push(img);
+            }
+        }
+        // Return the specific frame we are currently on (subtract 1 for array index)
+        return window.AnimCache[animObj.basePath][animObj.currentFrame - 1];
+    }
+	
 
     let p1Segments = [];
     let cpuSegments = [];
@@ -1601,31 +1618,9 @@
     
     function triggerBurst(bey, impactSpeed, dirX, dirY) {
         bey.isBursted = true;
-        const partsList = ['bb', 'sg', 'wd', 'ar', 'sar', 'bc'];
+        const partsList = ['bb', 'sg', 'wd', 'sar', 'ar', 'bc'];
         partsList.forEach(partKey => {
-            // --- PHANTOM WARP VISUALS ---
-            let isTpOut = bey.skillState && bey.skillState.actionState === "TELEPORT_OUT";
-            let isTpIn = bey.skillState && bey.skillState.actionState === "TELEPORT_IN";
-            
-            if (isTpOut || isTpIn) {
-                let progress = 1 - (bey.skillState.tpTimer / 600); // Goes from 0.0 to 1.0
-                if (isTpIn) progress = 1 - progress; // Reverses for teleporting back in
-                
-                // 1. Draw the Expanding Red Beam
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                let beamRadius = bey.radius * 2 + (progress * 25);
-                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, beamRadius);
-                grad.addColorStop(0, `rgba(255, 0, 0, ${1 - progress})`);
-                grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
-                ctx.fillStyle = grad;
-                ctx.beginPath(); ctx.arc(0, 0, beamRadius, 0, Math.PI*2); ctx.fill();
-                ctx.restore();
 
-                // 2. Apply the Silhouette Filter!
-                // brightness(0) turns it pitch black. opacity fades it out to invisible!
-                ctx.filter = `brightness(0) opacity(${1 - progress})`;
-            }
 
             // --- DRAW THE BEYBLADE IMAGES ---
             if (bey.images) {
@@ -1749,6 +1744,22 @@
                     bey.tempGrip = 0; 
                     bey.tempStamina = 0; 
                     bey.tempEndurance = 0; 
+                }
+			}
+			if (bey.activeOverlayAnim) {
+            let anim = bey.activeOverlayAnim;
+            anim.duration -= dt;
+                
+                if (anim.duration <= 0) {
+                    bey.activeOverlayAnim = null; // Attack over, remove the animation
+                } else {
+                    anim.timer += dt;
+                    if (anim.timer >= anim.frameSpeed) {
+                        anim.timer = 0;
+                        anim.currentFrame++;
+                        // Loop back to frame 1 if we hit the end!
+                        if (anim.currentFrame > anim.frameCount) anim.currentFrame = 1; 
+                    }
                 }
             }
 
@@ -2204,6 +2215,32 @@
             
             ctx.beginPath(); ctx.arc(0, 0, bey.radius * scale, 0, Math.PI*2);
             ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fill();
+			
+			
+			            // --- PHANTOM WARP VISUALS ---
+            let isTpOut = bey.skillState && bey.skillState.actionState === "TELEPORT_OUT";
+            let isTpIn = bey.skillState && bey.skillState.actionState === "TELEPORT_IN";
+            
+            if (isTpOut || isTpIn) {
+                let progress = 1 - (bey.skillState.tpTimer / 600); // Goes from 0.0 to 1.0
+                if (isTpIn) progress = 1 - progress; // Reverses for teleporting back in
+                
+                // 1. Draw the Expanding Red Beam
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                let beamRadius = bey.radius * 2 + (progress * 25);
+                let grad = ctx.createRadialGradient(0, 0, 0, 0, 0, beamRadius);
+                grad.addColorStop(0, `rgba(255, 0, 0, ${1 - progress})`);
+                grad.addColorStop(1, `rgba(255, 0, 0, 0)`);
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(0, 0, beamRadius, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+
+                // 2. Apply the Silhouette Filter!
+                // brightness(0) turns it pitch black. opacity fades it out to invisible!
+                ctx.filter = `brightness(0) opacity(${1 - progress})`;
+            }
+			
 
             ctx.rotate(bey.rotation);
 
@@ -2216,6 +2253,54 @@
                 if (bey.images.bc) ctx.drawImage(bey.images.bc, -renderSize/2, -renderSize/2, renderSize, renderSize);
             }
             ctx.restore();
+			
+			// REMOVE THE FILTER so it doesn't affect other elements on the canvas!
+            ctx.filter = 'none'; 
+
+            ctx.restore(); // <--- Ends the rendering block for the physical Beyblade
+
+            // =======================================================
+            // ---> 2. MODULAR ANIMATION OVERLAY (BOOST DASH) <---
+            // =======================================================
+            if (bey.activeOverlayAnim) {
+                let anim = bey.activeOverlayAnim;
+                let img = getAnimFrame(anim);
+                
+                // Track the last known angle so it doesn't snap to 0 when stopped
+                let currentSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+                if (currentSpeed > 0.1) {
+                    bey.lastMoveAngle = Math.atan2(bey.vy, bey.vx);
+                }
+                
+                // Add 90 degrees (Math.PI / 2) because your art faces NORTH!
+                let drawAngle = (bey.lastMoveAngle || 0) + (Math.PI / 2);
+
+                ctx.save();
+                // Move to the Beyblade's actual 3D altitude!
+                ctx.translate(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY - renderZ);
+                ctx.rotate(drawAngle);
+                
+                // Blend mode to make fireballs look hot and glowy!
+                ctx.globalCompositeOperation = 'screen'; 
+                
+                // 1. Check if the attack requested a specific opacity, otherwise default to 1.0 (fully solid)
+                let maxOpacity = anim.opacity !== undefined ? anim.opacity : 1.0;
+                
+                // 2. Calculate the smooth fade-out at the end (goes from 1.0 down to 0.0)
+                let fade = Math.min(1.0, anim.duration / 200); 
+                
+                // 3. Multiply them together! 
+                // If maxOpacity is 0.65, it stays at 0.65 until the very end, then fades to 0!
+                ctx.globalAlpha = fade * maxOpacity;
+                
+                // Draw it roughly 2.2x the size of the Beyblade so it engulfs it
+                let overlaySize = renderSize * 2.2; 
+                if (img && img.complete) {
+                    ctx.drawImage(img, -overlaySize/2, -overlaySize/2, overlaySize, overlaySize);
+                }
+                
+				ctx.restore();
+            }
 
             if (bey.wobbleFactor > 0.5 && !isFallen) {
                 ctx.beginPath(); ctx.arc(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY, bey.radius * scale, 0, Math.PI * 2);
