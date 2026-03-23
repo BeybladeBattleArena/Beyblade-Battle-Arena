@@ -2315,6 +2315,46 @@ function drawBey(bey) {
                 ctx.fillStyle = bey.visualTextColor; ctx.font = 'bold 16px Arial';
                 ctx.fillText(bey.visualText, bey.x - 40, bey.y - 30);
             }
+        } // <--- THIS is the end of drawBey
+
+        // ==========================================
+        // ---> THE MISSING RENDERING BLOCK! <---
+        // ==========================================
+        // --- DYNAMIC Z-SORTING (Depth rendering) ---
+        let renderQueue = [playerBey, cpuBey];
+        
+        renderQueue.sort((a, b) => {
+            let aZ = (a.z || 0) + (a.skillState ? (a.skillState.z || 0) : 0);
+            let bZ = (b.z || 0) + (b.skillState ? (b.skillState.z || 0) : 0);
+            return aZ - bZ;
+        });
+
+        // Loop through the sorted array and draw them
+        renderQueue.forEach(bey => drawBey(bey));
+        
+        // Draw the explosion particles
+        for (let i = 0; i < burstParticles.length; i++) {
+            let bp = burstParticles[i];
+            bp.x += bp.vx; bp.y += bp.vy;
+            bp.vx *= bp.friction; bp.vy *= bp.friction; 
+            bp.rotation += bp.rotSpeed; bp.rotSpeed *= bp.friction; 
+            
+            ctx.save();
+            ctx.translate(bp.x, bp.y); ctx.rotate(bp.rotation);
+            ctx.drawImage(bp.img, -bp.size/2, -bp.size/2, bp.size, bp.size);
+            ctx.restore();
+        }
+
+        // Draw the spark particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life -= p.decay; 
+            if (p.life <= 0) { particles.splice(i, 1); } 
+            else {
+                ctx.globalAlpha = p.life; ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+                ctx.globalAlpha = 1.0; 
+            }
         }
 
     function checkRoundCondition() {
