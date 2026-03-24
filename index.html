@@ -106,8 +106,78 @@
 		
     <script type="module">
         import { GlossaryDB } from './encyclopedia.js';
-        import { auth } from './firebase-config.js';
-        import { signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { auth, db } from './firebase-config.js';
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Initialize PlayerData so pages don't crash while we wait for Firestore
+        window.PlayerData = window.PlayerData || {};
+        window.currentRoute = 'login.html'; // Track where we are in the SPA
+
+        // --- GLOBAL AUTHENTICATION & DATA FETCHING ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log("User detected! UID:", user.uid);
+                
+                // 1. Store the core auth data
+                window.PlayerData.uid = user.uid;
+                window.PlayerData.accountName = user.displayName || "Blader";
+                window.CurrentUser = user; // Legacy support if needed
+
+                // 2. Fetch the save file from Firestore
+                try {
+                    const userRef = doc(db, "users", user.uid);
+                    const userSnap = await getDoc(userRef);
+
+                    if (userSnap.exists()) {
+                        const data = userSnap.data();
+                        
+                        // Merge the database save into the global window object
+                        window.PlayerData.activeEpisode = data.activeEpisode || null;
+                        window.PlayerData.activeStage = data.activeStage || 0;
+                        window.PlayerData.episodeProgress = data.episodeProgress || {};
+                        window.PlayerData.completedEpisodes = data.completedEpisodes || [];
+                        window.PlayerData.bp = data.bp || 0;
+                        window.PlayerData.unlockedOpponents = data.unlockedOpponents || [];
+                        
+                        // Update the Top Info Bar UI immediately!
+                        let bpDisplay = document.getElementById('player-bp-display');
+                        let nameDisplay = document.getElementById('player-name-display');
+                        let rightInfo = document.getElementById('info-right');
+                        
+                        if (bpDisplay) bpDisplay.innerText = window.PlayerData.bp;
+                        if (nameDisplay) nameDisplay.innerText = window.PlayerData.accountName;
+                        if (rightInfo) rightInfo.style.opacity = '1';
+
+                    } else {
+                        console.log("No Firestore save found for this user. Creating a fresh profile.");
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data from Firestore:", error);
+                }
+
+                // 3. Backup to LocalStorage for pages that load too fast
+                localStorage.setItem('playerData', JSON.stringify(window.PlayerData));
+
+                // 4. If they are sitting on the login screen, Auto-Route them to the main menu!
+                if (window.currentRoute === 'login.html') {
+                    window.navigateTo('home-menu.html');
+                }
+
+            } else {
+                // User is signed out. Wipe the data.
+                console.log("No user signed in.");
+                window.PlayerData = {};
+                window.CurrentUser = null;
+                localStorage.removeItem('playerData');
+                document.getElementById('info-right').style.opacity = '0';
+                
+                // If they aren't on the login screen, kick them out
+                if (window.currentRoute !== 'login.html') {
+                    window.navigateTo('login.html');
+                }
+            }
+        });
 
 // --- NEW: THE GLOBAL AUDIO ENGINE ---
 window.AudioManager = {
@@ -184,6 +254,7 @@ window.AudioManager = {
 
 // --- Standard Navigation Logic Follows ---
         async function navigateTo(pageUrl) {
+		window.currentRoute = pageUrl; // <-- Added this to track the route!
             try {
                 const response = await fetch(pageUrl);
                 const html = await response.text();
@@ -204,7 +275,10 @@ window.AudioManager = {
         window.navigateTo = navigateTo;
 
         window.onload = () => {
-            navigateTo('login.html'); 
+            // Only force navigation to login if Firebase hasn't already routed us
+            if (!window.PlayerData || !window.PlayerData.uid) {
+                navigateTo('login.html'); 
+            }
         };
 
         // --- Account Controls ---
