@@ -183,6 +183,7 @@ window.TokyoEpisodes = {
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: "Yeah! Let's go!",
+						action: "advance_stage",
                         nextStage: 7
                     }
 			// "Complete 100% End Episode"		
@@ -195,10 +196,10 @@ window.TokyoEpisodes = {
                     speaker: "", // Blank speaker plate
                     text: "A New Spin on Life complete! Congratulations!",    // Blank text
                     action: "end_episode" // Triggers the popup when they click Next
+                    }
                 }
-                
             }
-        },
+        }, 
         
         rewards: { bp: 500, 
 		unlockOpponents: ["opp_miko1", "opp_toma1"], 
