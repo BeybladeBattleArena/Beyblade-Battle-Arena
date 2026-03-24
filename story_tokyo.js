@@ -1,10 +1,9 @@
-// story_tokyo.js
 window.TokyoEpisodes = {
     "ep_tokyo_tutorial": {
         id: "ep_tokyo_tutorial",
         title: "A New Spin on Life",
-		tags: ["Toma", "Miko", "Tutorial", "Tokyo"],
-		isNewEpisode: false,
+        tags: ["Toma", "Miko", "Tutorial", "Tokyo"],
+        isNewEpisode: false,
         locale: "nikotama",
         prereqs: [], // Unlocked immediately
         
@@ -12,13 +11,13 @@ window.TokyoEpisodes = {
             // STAGE 0: The First Login (Internal Monologue)
             0: {
                 type: "vn_scene",
-                bg: "./images/maps/tokyo/Nikotama.png", // Show the map blurry in the background
+                bg: "./images/maps/tokyo/Nikotama.png",
                 dialogue: {
                     "start": { 
                         speaker: "Me", 
-                        present: [], // No portraits on screen, it's just your thoughts
+                        present: [], 
                         text: "I should head to the park to meet up with Toma and Miko. They'll be excited to see that I finally got a Beyblade!", 
-                        action: "advance_stage", // Tells the engine to move to Stage 1 when you click next
+                        action: "advance_stage",
                         nextStage: 1
                     }
                 }
@@ -26,7 +25,7 @@ window.TokyoEpisodes = {
 
             // STAGE 1: The Map Exploration
             1: {
-				currentStageObjective: "Head to the Yoyogi Park BeyStadium.",
+                currentStageObjective: "Head to the Yoyogi Park BeyStadium.",
                 type: "pin_injection",
                 targetMap: "nikotama",
                 pin: { 
@@ -40,7 +39,7 @@ window.TokyoEpisodes = {
 
             // STAGE 2: Meeting the Best Friends & Miko's Tutorial
             2: {
-				currentStageObjective: "Complete Miko's Tutorial!",
+                currentStageObjective: "Complete Miko's Tutorial!",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
@@ -54,8 +53,8 @@ window.TokyoEpisodes = {
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "It looks so cool! Have you figured out how to launch it yet?",
-                        "I could show you how!"
+                            "It looks so cool! Have you figured out how to launch it yet?",
+                            "I could show you how!"
                         ],
                         next: "toma_reaction"
                     },
@@ -63,8 +62,8 @@ window.TokyoEpisodes = {
                         speaker: "Toma", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"],
                         text: [
-                        "Miko, why don't you teach <player> the basics of the sport?",
-                        "You two should have a practice battle!"
+                            "Miko, why don't you teach <player> the basics of the sport?",
+                            "You two should have a practice battle!"
                         ],
                         next: "miko_reaction2"
                     },
@@ -79,7 +78,7 @@ window.TokyoEpisodes = {
 
             // STAGE 3: Toma Tags In, Toma's Battle Tutorial
             3: {
-				currentStageObjective: "Complete Toma's Tutorial!",
+                currentStageObjective: "Complete Toma's Tutorial!",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
@@ -87,17 +86,17 @@ window.TokyoEpisodes = {
                         speaker: "Toma", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "You're totally a natural, <player>. 'Bout time you picked up the sport!",
-                        "I'll pick up where Miko left off and teach you about Beybattles!"
+                            "You're totally a natural, <player>. 'Bout time you picked up the sport!",
+                            "I'll pick up where Miko left off and teach you about Beybattles!"
                         ],
                         action: "start_tutorial2"
                     }
                 }
             },
 
-			// STAGE 4: Tutorial Wrap Up and the Real Battles
+            // STAGE 4: Tutorial Wrap Up and the Real Battles
             4: {
-				currentStageObjective: "Chat with Toma and Miko, then defeat Miko.",
+                currentStageObjective: "Chat with Toma and Miko, then defeat Miko.",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
@@ -111,41 +110,42 @@ window.TokyoEpisodes = {
                         speaker: "Toma", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "You're telling me you don't carry a bag of at least 30 balloons on you at all times, Miko?"],
+                            "You're telling me you don't carry a bag of at least 30 balloons on you at all times, Miko?"
+                        ],
                         next: "miko_doesnotballoon"
-                    }, // <--- REMOVED PREMATURE CLOSING BRACKET
+                    },
                     "miko_doesnotballoon": { 
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
-                        text: [
-                        "..."],
-                        next: "toma_suggestsbattle" // <--- MATCHED POINTER TO KEY BELOW
-                    }, // <--- ADDED MISSING COMMA
+                        text: ["..."],
+                        next: "toma_suggestsbattle" 
+                    },
                     "toma_suggestsbattle": { 
                         speaker: "Toma", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "At any rate, now that <gender> can Blade like us, it's time for <player> to Blade WITH us!",
-                        "How about a Beybattle?"
+                            "At any rate, now that <gender> can Blade like us, it's time for <player> to Blade WITH us!",
+                            "How about a Beybattle?"
                         ],
                         next: "miko_wantstobattle"
-                    }, // <--- ADDED MISSING COMMA
+                    },
                     "miko_wantstobattle": { 
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "Ooh, ooh! It's my turn, next! We might be close friends, <player>, but once we launch our Beys, we become rivals!",
-                        "Show me what you can do!"
+                            "Ooh, ooh! It's my turn, next! We might be close friends, <player>, but once we launch our Beys, we become rivals!",
+                            "Show me what you can do!"
                         ],
                         action: "start_battle",
                         battleId: "opp_miko1",
-						nextStage: 5
+                        nextStage: 5
                     }
                 }
             },
-			// STAGE 5: Post-Miko Battle & Toma's Turn
+
+            // STAGE 5: Post-Miko Battle & Toma's Turn
             5: {
-				currentStageObjective: "Chat with Toma and Miko, then defeat Toma.",
+                currentStageObjective: "Chat with Toma and Miko, then defeat Toma.",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
@@ -159,18 +159,19 @@ window.TokyoEpisodes = {
                         speaker: "Toma", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: [
-                        "Don't get a big head just yet, <player>.",
-                        "I'm just as strong as Miko. Let's see if you can handle my setup!"
+                            "Don't get a big head just yet, <player>.",
+                            "I'm just as strong as Miko. Let's see if you can handle my setup!"
                         ],
                         action: "start_battle",
                         battleId: "opp_toma1", 
-                        nextStage: 6 // Tells the Arena to return to Stage 6!
+                        nextStage: 6 
                     }
                 }
             },
-			// STAGE 6: The Final Wrap-Up
+
+            // STAGE 6: The Final Wrap-Up
             6: {
-				currentStageObjective: "Finish the conversation and collect your rewards!",
+                currentStageObjective: "Finish the conversation and collect your rewards!",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
@@ -180,34 +181,36 @@ window.TokyoEpisodes = {
                         text: "Okay, yeah... you're definitely ready for the local tournaments, and on day 1... Then, let's go make a name for ourselves!",
                         next: "miko_adds"
                     },
-					    "miko_adds": { 
+                    "miko_adds": { 
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: "Yeah! Let's go!",
-						action: "advance_stage",
+                        action: "advance_stage",
                         nextStage: 7
                     }
-				}
-			}
-			// "Complete 100% End Episode"		
-			7: {
-				currentStageObjective: "Finish the conversation and collect your rewards!",
+                } 
+            },
+
+            // STAGE 7: Complete 100% End Episode
+            7: {
+                currentStageObjective: "Finish the conversation and collect your rewards!",
                 type: "vn_scene",
                 bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
                 dialogue: {
-                "start": {
-                    speaker: "", // Blank speaker plate
-                    text: "A New Spin on Life complete! Congratulations!",    // Blank text
-                    action: "end_episode" // Triggers the popup when they click Next
+                    "start": {
+                        speaker: "", 
+                        text: "A New Spin on Life complete! Congratulations!",  
+                        action: "end_episode" 
                     }
                 }
             }
         }, 
         
-        rewards: { bp: 500, 
-		unlockOpponents: ["opp_miko1", "opp_toma1"], 
-		unlockLocations: [], 
-		unlockMessage: "Miko and Toma are now available to battle in Free Battle!"
-		}
+        rewards: { 
+            bp: 500, 
+            unlockOpponents: ["opp_miko1", "opp_toma1"], 
+            unlockLocations: [], 
+            unlockMessage: "Miko and Toma are now available to battle in Free Battle!"
+        }
     }
 };
