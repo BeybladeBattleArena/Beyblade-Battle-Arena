@@ -1619,16 +1619,17 @@
     function triggerBurst(bey, impactSpeed, dirX, dirY) {
         bey.isBursted = true;
         const partsList = ['bb', 'sg', 'wd', 'sar', 'ar', 'bc'];
+        
         partsList.forEach(partKey => {
-
-
-            // --- DRAW THE BEYBLADE IMAGES ---
-            if (bey.images) {
+            // Check if the object exists AND if it's a valid HTMLImageElement before drawing!
+            let imgData = bey.images ? bey.images[partKey] : null;
+            if (imgData instanceof HTMLImageElement && imgData.complete && imgData.naturalWidth !== 0) {
                 let spread = (Math.random() - 0.5) * 1.5; 
                 let angle = Math.atan2(dirY, dirX) + spread;
                 let speed = Math.random() * 6 + 4 + (impactSpeed * 0.3);
+                
                 burstParticles.push({
-                    img: bey.images[partKey],
+                    img: imgData,
                     x: bey.x, y: bey.y,
                     vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
                     rotation: bey.rotation,
@@ -1637,7 +1638,6 @@
                     friction: 0.92 
                 });
             }
-			ctx.filter = 'none';
         });
         
         for(let i=0; i<30; i++) {
