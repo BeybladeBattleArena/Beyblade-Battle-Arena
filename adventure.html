@@ -251,7 +251,9 @@
                 episodeProgress: window.PlayerData.episodeProgress || {},
                 completedEpisodes: window.PlayerData.completedEpisodes || [],
                 bp: window.PlayerData.bp || 0,
-                unlockedOpponents: window.PlayerData.unlockedOpponents || []
+                unlockedOpponents: window.PlayerData.unlockedOpponents || [],
+				// SAVE THE LOCALE TO FIRESTORE
+                currentRegion: window.PlayerData.currentRegion || "Tokyo"
             });
             
             console.log("Adventure progress safely secured in Firestore!");
@@ -284,9 +286,23 @@
                 }
             }
         }
-        // -----------------------------------
-
-        window.StoryDB = { ...(window.TokyoEpisodes || {}) };
+        
+		// ==========================================
+        // ---> THE FIX: UNPACK THE UID FROM STORAGE <---
+        // ==========================================
+        let storedData = localStorage.getItem("playerData");
+        if (storedData) {
+            let parsedData = JSON.parse(storedData);
+            window.PlayerData = Object.assign({}, parsedData, window.PlayerData || {});
+        } else if (!window.PlayerData) {
+            window.PlayerData = {};
+        }
+        // ==========================================
+        
+        // Dynamically load the database based on their saved Firebase Locale!
+        let activeRegion = window.PlayerData.currentRegion || "Tokyo";
+        let regionDatabase = window[`${activeRegion}Episodes`] || {};
+        window.StoryDB = { ...regionDatabase };
         if (!window.PlayerData) window.PlayerData = {};
         
         if (!window.PlayerData.episodeProgress) window.PlayerData.episodeProgress = {};
