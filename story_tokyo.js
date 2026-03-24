@@ -3,7 +3,8 @@ window.TokyoEpisodes = {
     "ep_tokyo_tutorial": {
         id: "ep_tokyo_tutorial",
         title: "A New Spin on Life",
-		tags: ["Toma", "Miko", "Tutorial"],
+		tags: ["Toma", "Miko", "Tutorial", "Tokyo"],
+		isNewEpisode: false,
         locale: "nikotama",
         prereqs: [], // Unlocked immediately
         
@@ -186,6 +187,8 @@ window.TokyoEpisodes = {
 						action: "advance_stage",
                         nextStage: 7
                     }
+				}
+			}
 			// "Complete 100% End Episode"		
 			7: {
 				currentStageObjective: "Finish the conversation and collect your rewards!",
