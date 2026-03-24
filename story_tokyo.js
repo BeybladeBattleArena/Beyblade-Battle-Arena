@@ -183,13 +183,24 @@ window.TokyoEpisodes = {
                         speaker: "Miko", 
                         present: ["Toma_Tsukishiro.png", "Miko_Nanami.png"], 
                         text: "Yeah! Let's go!",
-                        action: "end_episode" // This pays out the 450 BP!
+                        nextStage: 7
                     }
+			// "Complete 100% End Episode"		
+			7: {
+				currentStageObjective: "Finish the conversation and collect your rewards!",
+                type: "vn_scene",
+                bg: "./images/dialogue_backgrounds/yoyogi_park.png", 
+                dialogue: {
+                "start": {
+                    speaker: "", // Blank speaker plate
+                    text: "A New Spin on Life complete! Congratulations!",    // Blank text
+                    action: "end_episode" // Triggers the popup when they click Next
                 }
+                
             }
         },
         
-        rewards: { bp: 450, 
+        rewards: { bp: 500, 
 		unlockOpponents: ["opp_miko1", "opp_toma1"], 
 		unlockLocations: [], 
 		unlockMessage: "Miko and Toma are now available to battle in Free Battle!"
