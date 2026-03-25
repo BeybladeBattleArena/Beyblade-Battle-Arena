@@ -345,7 +345,8 @@
 
         if (currentStageData.type === "pin_injection") {
             document.getElementById('vn-overlay').style.display = 'none';
-            activePins = [ currentStageData.pin ]; 
+            // THE FIX: Check if it's a 'pins' array, otherwise fallback to the single 'pin' setup
+            activePins = currentStageData.pins ? currentStageData.pins : [ currentStageData.pin ]; 
             renderMapPins();
         } 
         else if (currentStageData.type === "vn_scene") {
@@ -385,11 +386,40 @@
         for (let epId in window.StoryDB) {
             let epData = window.StoryDB[epId];
             
-            let totalStages = Object.keys(epData.stages).length;
+            // --- THE FIX: PREREQUISITE CHECKER ---
+            let prereqsMet = true;
+            if (epData.prereqs && epData.prereqs.length > 0) {
+                for (let reqId of epData.prereqs) {
+                    if (!window.PlayerData.completedEpisodes.includes(reqId)) {
+                        prereqsMet = false;
+                        break; // Stop checking, they failed the requirements
+                    }
+                }
+            }
+            
+            // If they haven't beaten the required episodes, completely hide this episode!
+            if (!prereqsMet) continue; 
+            // -------------------------------------
+
+            // 1. Look for a defined story length, otherwise fallback to the total number of stage objects
+            let totalStages = epData.mainStoryLength || Object.keys(epData.stages).length - 1; // -1 to exclude the 0 stage
+            
             let savedStage = window.PlayerData.episodeProgress[epId] || 0;
             let isComplete = window.PlayerData.completedEpisodes.includes(epId) || savedStage === "COMPLETED";
             
-            let compPct = isComplete ? 100 : Math.floor((savedStage / totalStages) * 100);
+            // 2. Default the math variable to the current stage ID
+            let mathStage = savedStage; 
+            
+            // 3. THE OVERRIDE: If the current stage explicitly defines its progress value, use that instead!
+            if (!isComplete && epData.stages[savedStage] && epData.stages[savedStage].progressValue !== undefined) {
+                mathStage = epData.stages[savedStage].progressValue;
+            }
+
+            // 4. Calculate the real percentage
+            let compPct = isComplete ? 100 : Math.floor((mathStage / totalStages) * 100);
+            
+            // Failsafe to prevent weird math like 115% if you change your JSON later
+            compPct = Math.max(0, Math.min(99, compPct));
             
             let stageObj = epData.stages[savedStage] ? epData.stages[savedStage].currentStageObjective : "Explore the area.";
             if (isComplete) stageObj = "Objective Complete!";
@@ -611,6 +641,29 @@
         textPageIndex = 0;
 
         if (lineData.action === "advance_stage") {
+            loadStage(lineData.nextStage);
+            return;
+        }
+		
+		if (lineData.action === "rng_branch") {
+            let roll = Math.random(); // Generates a decimal between 0.0 and 1.0
+            if (roll <= lineData.chance) {
+                loadStage(lineData.successStage);
+            } else {
+                loadStage(lineData.failStage);
+            }
+            return;
+        }
+
+        if (lineData.action === "grant_bp") {
+            window.PlayerData.bp = (window.PlayerData.bp || 0) + lineData.amount;
+            if (window.savePlayerData) window.savePlayerData(); // Save it to Firebase immediately!
+            
+            // Optional: Play a nice sound effect!
+            // let coinSfx = new Audio('./audio/sounds/coin.wav');
+            // coinSfx.volume = 0.5;
+            // coinSfx.play().catch(e=>{});
+
             loadStage(lineData.nextStage);
             return;
         }

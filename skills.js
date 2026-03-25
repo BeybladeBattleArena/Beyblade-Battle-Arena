@@ -87,6 +87,11 @@ window.SkillsDB = {
             desc: "While current RPM is above 80% of this beyblade's maximum, gain a 10% boost to Attack and an 8% boost to Speed, but reduce Defense by 8%.",
             apply: function(bey) {} 
         },
+		"Alter Approach": {
+            name: "Alter Approach",
+            desc: "Depending on manually prepared settings before the match starts, gain either 4% attack and 3% speed or gain 2% defense, 3% stamina, and 4% endurance.",
+            apply: function(bey) {} 
+        },
         "Centrifugal Synergy": {
             name: "Centrifugal Synergy",
             desc: "The dual-axis spin grants exceptional stability, increasing Endurance by 8.",
@@ -114,9 +119,20 @@ window.SkillsDB = {
                 bey.maxRpm *= 1.10;
             }
         },
+		"Launcher: Range Boost": {
+            name: "Launcher: Range Boost",
+            desc: "Upgrades the launch range from 42.5% to 55%.",
+            apply: function(bey) {
+            }
+        },
         "Special Launch: Marvelous Launch": {
             name: "Marvelous Launch",
             desc: "Expands the sweet spots on the Ripcord gauge and unlocks an exclusive 'Marvelous' power tier.",
+            apply: function(bey) {} 
+        }
+		"Special Launch: Power Shoot": {
+            name: "Power Shoot",
+            desc: "For every 1% of launch range beyond the standard 42.5%, gain 1% additional attack and 0.5% additional endurance for 15 seconds, and gain 1% additional RPM on launch.",
             apply: function(bey) {} 
         }
     },
@@ -173,6 +189,11 @@ window.SkillsDB = {
         "Cross Smash": {
             name: "Cross Smash", cd: 6,
             desc: "A devastating, concentrated blow utilizing the secondary contact points of a Sub-Attack Ring.",
+            execute: function() {}
+        },
+		"Cross Lance": {
+            name: "Cross Lance", cd: 6,
+            desc: "A devastating, concentrated spike attack utilizing the secondary contact points of a Sub-Attack Ring.",
             execute: function() {}
         },
         "Concentrate Defense": {

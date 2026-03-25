@@ -61,7 +61,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Starter", "Delta", "Wing", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/DeltaWing.png",  
-            stats: { attack: 25, defense: 10, endurance: 12, recoil: 14, weight: 14, recoilReduction: 5 },
+            stats: { attack: 21, defense: 10, endurance: 12, recoil: 14, weight: 14, recoilReduction: 5 },
 			passives: ["Wing Guard"], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -127,7 +127,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Dragoon", "Cross", "Spike", "Dragon", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossDragon.png", 
-            stats: { attack: 34, defense: 9, recoil: 25, weight: 10, recoilReduction: 2 },
+            stats: { attack: 28, defense: 9, recoil: 22, weight: 10, recoilReduction: 2 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 			
@@ -173,7 +173,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Tri-Cutter", "Spike", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/TriCutter.png",
-            stats: { attack: 18, defense: 14, recoil: 24, weight: 9, mobility: 5, speed: 4, stamina: 2 },
+            stats: { attack: 18, defense: 14, recoil: 19, weight: 9, mobility: 5, speed: 4, stamina: 2 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 						
@@ -211,7 +211,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Wing Cross", "Wing", "Spin Steal"], 
 			fallbackImage: "./images/beyblade_parts/AR/WingCross.png",
-            stats: { attack: 18, defense: 4, recoil: 18, weight: 13, mobility: 2, endurance: 3, stamina: 2 },
+            stats: { attack: 18, defense: 4, recoil: 18, weight: 13, mobility: 2, endurance: 3, stamina: 4 },
 			passives: ["Spin Steal"], 
 			attacks: [],
 						
@@ -241,7 +241,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Fossil", "Jaw", "Rex", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/FossilJaw.png",  
-            stats: { attack: 31, defense: 8, recoil: 15, weight: 18, recoilReduction: 4, endurance: 5, speed: -2 },
+            stats: { attack: 30, defense: 7, recoil: 19, weight: 18, recoilReduction: 4, endurance: 3, speed: -2 },
 			passives: [], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -263,7 +263,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Howling", "Fang", "Upper Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/HowlingFang.png",  
-            stats: { attack: 28, defense: 8, recoil: 11, weight: 14, recoilReduction: 4, endurance: 6, stamina: 2 },
+            stats: { attack: 26, defense: 10, recoil: 11, weight: 14, mobility: 1, recoilReduction: 4, endurance: 6, stamina: 2 },
 			passives: [], 
 			attacks: [{ name: "Upper Attack", cd: 6 }],
 			
@@ -285,7 +285,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Hex", "Hexa", "Strike", "Hexa-Strike", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/HexaStrike.png",  
-            stats: { attack: 22, defense: 8, recoil: 11, weight: 14, recoilReduction: 1, endurance: 10 },
+            stats: { attack: 22, defense: 7, recoil: 11, weight: 14, recoilReduction: 1, endurance: 10 },
 			passives: [], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -315,7 +315,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Sand", "Strike", "Barrage Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/Sandstrike.png",  
-            stats: { attack: 20, defense: 12, recoil: 9, weight: 13, recoilReduction: 2, mobility: 5, speed: 7 },
+            stats: { attack: 21, defense: 11, recoil: 10, weight: 13, recoilReduction: 2, mobility: 5, speed: 5 },
 			passives: [], 
 			attacks: [{ name: "Barrage Attack", cd: 5 }],
 			
@@ -337,7 +337,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Lunar", "Gallop", "Barrage Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/LunarGallop.png",  
-            stats: { attack: 22, defense: 8, recoil: 9, weight: 17, recoilReduction: 2, mobility: -2, speed: 5 },
+            stats: { attack: 22, defense: 9, endurance: 1, stamina: 1, recoil: 9, weight: 17, recoilReduction: 2, mobility: -2, speed: 5 },
 			passives: [], 
 			attacks: [{ name: "Barrage Attack", cd: 5 }],
 			
@@ -359,7 +359,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Master", "of", "Ifrit", "Flames", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/MasterOfFlames.png",  
-            stats: { attack: 26, defense: 4, stamina: 2, endurance: 9, recoil: 13, weight: 16, mobility: 3, speed: 3 },
+            stats: { attack: 26, defense: 4, stamina: 2, endurance: 9, recoil: 16, weight: 16, mobility: 3, speed: 3 },
 			passives: [], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -389,9 +389,9 @@ window.equipmentDB = {
             type: "Attack Ring", 
 			subRing: true,
 			subRingType: "Free",
-            tags: ["Great", "Dragon", "Sub-Attack Ring"], 
+            tags: ["Great", "Dragon", "Sub-Attack Ring", "SAR", "Sub"], 
 			fallbackImage: "./images/beyblade_parts/AR/GreatDragon.png",  
-            stats: { attack: 20, recoil: 4, weight: 13, recoilReduction: 2, mobility: 2, speed: 4 },
+            stats: { attack: 20, recoil: 8, defense: 5, weight: 13, recoilReduction: 2, mobility: 2, speed: 4 },
 			passives: [], 
 			attacks: [],
 			
@@ -413,7 +413,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Petal", "Swirl", "Upper Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/PetalSwirl_SakuraBlossom.png",  
-            stats: { attack: 28, recoil: 3, defense: 1, endurance: 1, weight: 15, mobility: 3, speed: 3 },
+            stats: { attack: 25, recoil: 10, stamina: 5, defense: 3, endurance: 3, weight: 15, mobility: 2, speed: 3 },
 			passives: [], 
 			attacks: [{ name: "Upper Attack", cd: 6 }],
 			
@@ -443,7 +443,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Feral", "Crescent", "Sharp Shooter"], 
 			fallbackImage: "./images/beyblade_parts/AR/FeralCrescent.png",  
-            stats: { attack: 26, defense: 8, balance: 4, weight: 15, recoilReduction: 3, mobility: 1, endurance: 4, stamina: 3 },
+            stats: { attack: 26, defense: 8, recoil: 11, balance: 5, weight: 15, recoilReduction: 3, mobility: 3, endurance: 4, stamina: 3 },
 			passives: [], 
 			attacks: [{ name: "Sharp Shooter", cd: 6 }],
 			
@@ -465,7 +465,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Cross", "Talon", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossTalon.png",  
-            stats: { attack: 24, balance: 6, weight: 13, recoilReduction: 3, mobility: 2, endurance: 2, speed: 1, stamina: 3 },
+            stats: { attack: 23, balance: 6, recoil: 9, weight: 13, recoilReduction: 3, mobility: 3, endurance: 5, speed: 1, stamina: 3 },
 			passives: [], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -495,7 +495,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Cross", "Fox", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossFox.png",  
-            stats: { attack: 30, defense: 6, recoil: 20, balance: 1, weight: 12, stamina: 1, recoilReduction: 1 },
+            stats: { attack: 27, defense: 6, recoil: 20, balance: 2, weight: 12, stamina: 4, mobility: 1, speed: 2, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 			
@@ -517,7 +517,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["As", "Survivor", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
-            stats: { attack: 24, hp: 10, defense: 8, recoil: 3, balance: 1, weight: 15, mobility: 1, recoilReduction: 1 },
+            stats: { attack: 21, hp: 30, defense: 10, recoil: 5, balance: 6, weight: 15, mobility: 2, recoilReduction: 3 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
@@ -539,7 +539,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Quad", "Horn", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/QuadHorn.png",  
-            stats: { attack: 21, hp: 20, defense: 4, endurance: 2, balance: 1, weight: 13, mobility: 1, recoilReduction: 2 },
+            stats: { attack: 21, hp: 20, defense: 6, recoil: 18, endurance: 5, balance: 1, weight: 13, mobility: 1, recoilReduction: 2 },
 			passives: [], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -561,7 +561,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Burst", "Ox", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/BurstOx.png",  
-            stats: { attack: 20, hp: 15, defense: 3, endurance: 2, balance: 2, weight: 17, speed: -2, mobility: -1, recoilReduction: 3 },
+            stats: { attack: 23, hp: 20, defense: 11, stamina: 6, recoil: 17, endurance: 4, balance: 4, weight: 17, speed: -2, mobility: -1, recoilReduction: 4 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
@@ -583,7 +583,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Chainblade", "Wyvern", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/ChainbladeWyvern.png",  
-            stats: { attack: 27, stamina: 4, balance: 1, weight: 14, mobility: 1, recoil: 19, recoilReduction: 1 },
+            stats: { attack: 27, hp: 20, endurance: 3, stamina: 4, balance: 2, weight: 14, mobility: 5, speed: 2, recoil: 19, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 			
@@ -605,7 +605,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Basilisk", "Eye", "Barrage Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/BasiliskEye.png",  
-            stats: { attack: 19, stamina: 9, balance: 3, weight: 15, mobility: 2, endurance: 4, defense: 3 },
+            stats: { attack: 19, stamina: 10, recoil: 15, balance: 4, weight: 15, mobility: 2, endurance: 5, defense: 4 },
 			passives: [], 
 			attacks: [{ name: "Barrage Attack", cd: 5 }],
 			
@@ -627,7 +627,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Protoshell", "Shield", "Concentrate Defense"], 
 			fallbackImage: "./images/beyblade_parts/AR/Protoshell_Shield.png",  
-            stats: { attack: 23, stamina: 2, balance: 2, weight: 16, mobility: -1, endurance: -1, defense: 7, recoil: 8 },
+            stats: { attack: 22, stamina: 4, balance: 2, weight: 16, mobility: -1, endurance: 2, defense: 12, recoil: 8 },
 			passives: [], 
 			attacks: [{ name: "Concentrate Defense", cd: 7 }],
 			
@@ -657,7 +657,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Wing", "Cutter", "Sharp Shooter"], 
 			fallbackImage: "./images/beyblade_parts/AR/WingCutter.png",  
-            stats: { attack: 26, stamina: 1, weight: 14, mobility: 3, speed: 2, endurance: 1, recoil: 2, recoilReduction: 1 },
+            stats: { attack: 25, stamina: 1, weight: 14, mobility: 4, speed: 4, endurance: 3, recoil: 15, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Sharp Shooter", cd: 6 }],
 			
@@ -679,7 +679,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Mythic", "Horn", "Sharp Shooter"], 
 			fallbackImage: "./images/beyblade_parts/AR/MythicHorn.png",  
-            stats: { attack: 22, stamina: 6, weight: 14, mobility: 2, endurance: 3, balance: 2, recoilReduction: 1 },
+            stats: { attack: 22, stamina: 6, weight: 14, mobility: 2, recoil: 16, endurance: 4, balance: 3, recoilReduction: 3 },
 			passives: [], 
 			attacks: [{ name: "Sharp Shooter", cd: 6 }],
 			
@@ -701,7 +701,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Imperial", "Rising", "Upper Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/ImperialRising.png",  
-            stats: { attack: 26, weight: 15, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
+            stats: { attack: 26, weight: 15, speed: 3, mobility: 5, endurance: 3, defense: 7, recoil: 17, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Upper Attack", cd: 6 }],
 			
@@ -717,6 +717,224 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_24", // Generalized ID
+            name: "Dragon Head", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Dragon", "Head", "Smash Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/DragonHead.png",  
+            stats: { attack: 26, weight: 13, speed: 5, mobility: 4, defense: 4, stamina: 3, recoil: 17, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Smash Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "dragon_head",
+                    styleName: "Dragon Head", 
+                    styleColorSample: "#fbfaf0", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/DragonHead.png", 
+                    topDownImage: "./images/beyblade_parts/AR/DragonHead.png" 
+                },
+				{ 
+                    styleId: "dragon_head_gunmetal",
+                    styleName: "Imperial Rising", 
+                    styleColorSample: "#78746f", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/AR/DragonHead_Gunmetal.png", 
+                    topDownImage: "./images/beyblade_parts/AR/DragonHead_Gunmetal.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_25", // Generalized ID
+            name: "Jungle Guardian", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Jungle", "Guardian", "Smash Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/JungleGuardian.png",  
+            stats: { attack: 24, hp: 20, weight: 15, speed: -1, mobility: 4, defense: 5, endurance: 1, stamina: 9, recoil: 18, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Smash Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "jungle_guardian",
+                    styleName: "Jungle Guardian", 
+                    styleColorSample: "#2a8d36", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/JungleGuardian.png", 
+                    topDownImage: "./images/beyblade_parts/AR/JungleGuardian.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_26", // Generalized ID
+            name: "Roaring Venom", // Generalized Name
+            type: "Attack Ring", 
+			subRing: true,
+			subRingType: "Free",
+            tags: ["Roaring", "Venom", "Sub-Attack Ring", "SAR", "Sub"], 
+			fallbackImage: "./images/beyblade_parts/AR/RoaringVenom.png",  
+            stats: { attack: 21, weight: 13, speed: 4, balance: 1, mobility: 2, defense: 3, endurance: 4, recoil: 10, recoilReduction: 1 },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "roaring_venom",
+                    styleName: "Roaring Venom", 
+                    styleColorSample: "#bcb3a3", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/RoaringVenom.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RoaringVenom.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_27", // Generalized ID
+            name: "Rolling Hammer", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Rolling", "Hammer", "Concentrate Defense"], 
+			fallbackImage: "./images/beyblade_parts/AR/RollingHammer_Violet.png",  
+            stats: { attack: 22, weight: 14, speed: 1, balance: 4, mobility: 2, defense: 7, endurance: 5, recoil: 14, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Concentrate Defense", cd: 7 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "rolling_hammer_violet",
+                    styleName: "Rolling Hammer (Violet)", 
+                    styleColorSample: "#61516f", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/RollingHammer_Violet.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RollingHammer_Violet.png" 
+                },
+				{ 
+                    styleId: "rolling_hammer_citrus",
+                    styleName: "Rolling Hammer (Citrus)", 
+                    styleColorSample: "#3fb146", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/RollingHammer_Citrus.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RollingHammer_Citrus.png" 
+                },
+				{ 
+                    styleId: "rolling_hammer_gray",
+                    styleName: "Rolling Hammer (Gray)", 
+                    styleColorSample: "#595959", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/RollingHammer_Gray.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RollingHammer_Gray.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_28", // Generalized ID
+            name: "Tidal Chaos", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Sonic", "Adventure", "Chaos", "Perfect", "Tidal"], 
+			fallbackImage: "./images/beyblade_parts/AR/TidalChaos.png",  
+            stats: { attack: 24, hp: 30, weight: 16, speed: -1, mobility: -1, defense: 3, endurance: 10, stamina: 9, recoil: 17, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Smash Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "tidal_chaos",
+                    styleName: "Tidal Chaos", 
+                    styleColorSample: "#4d8fab", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/AR/TidalChaos.png", 
+                    topDownImage: "./images/beyblade_parts/AR/TidalChaos.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_29", // Generalized ID
+            name: "Tiger Claw", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Tiger", "Claw", "Barrage Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/TigerClaw.png",  
+            stats: { attack: 22, hp: 15, weight: 13, speed: 2, mobility: 4, defense: 4, endurance: 5, stamina: 3, recoil: 15, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "tiger_claw",
+                    styleName: "Tiger Claw", 
+                    styleColorSample: "#abaaa9", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/TigerClaw.png", 
+                    topDownImage: "./images/beyblade_parts/AR/TigerClaw.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_30", // Generalized ID
+            name: "Upper Dragoon", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon.png",  
+            stats: { attack: 23, hp: 20, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 4, endurance: 2, stamina: 3, recoil: 16 },
+			passives: [], 
+			attacks: [{ name: "Upper Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "upperdragoon",
+                    styleName: "Upper Dragoon", 
+                    styleColorSample: "#f5b702", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/UpperDragoon.png", 
+                    topDownImage: "./images/beyblade_parts/AR/UpperDragoon.png" 
+                },
+				{ 
+                    styleId: "upperdragoon_bronze",
+                    styleName: "Upper Dragoon (Bronze)", 
+                    styleColorSample: "#a37642", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/AR/UpperDragoon_Bronze.png", 
+                    topDownImage: "./images/beyblade_parts/AR/UpperDragoon_Bronze.png" 
+                },
+				{ 
+                    styleId: "upperdragoon_white",
+                    styleName: "Upper Dragoon (White)", 
+                    styleColorSample: "#efefeb", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/UpperDragoon_White.png", 
+                    topDownImage: "./images/beyblade_parts/AR/UpperDragoon_White.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_31", // Generalized ID
+            name: "Upper Dragoon Spin Cutter Mod", // Generalized Name
+            type: "Attack Ring", 
+            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Carlos", "Illegal", "Modification", "Mod", "Spin Cutter"], 
+			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon_SpinCutterMod.png",  
+            stats: { attack: 18, hp: 10, weight: 10, speed: 3, mobility: 3, defense: -1, endurance: 4, stamina: 4, recoil: 18, recoilReduction: 1 },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "upperdragoon_spincuttermod",
+                    styleName: "Upper Dragoon Spin Cutter Mod", 
+                    styleColorSample: "#f5b702", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/AR/UpperDragoon_SpinCutterMod.png", 
+                    topDownImage: "./images/beyblade_parts/AR/UpperDragoon_SpinCutterMod.png" 
+                },
+            ]
+},
     ],
 	
 	
@@ -728,9 +946,9 @@ window.equipmentDB = {
 			subRingType: "Free",
             tags: ["Wing", "Blade", "Free", "Cross Smash"], 
 			fallbackImage: "./images/beyblade_parts/SAR/WingBlade_Orange.png",  
-            stats: { weight: 3, hp: 20, attack: 14, stamina: 1, endurance: 2, speed: 1, recoilReduction: 3 },
+            stats: { weight: 3, hp: 20, attack: 6, recoil: 7, stamina: 1, endurance: 2, speed: 1, recoilReduction: 2 },
 			passives: [], 
-			attacks: [{ name: "Cross Smash", cd: 5 }],
+			attacks: [{ name: "Cross Smash", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -749,6 +967,29 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/SAR/WingBlade_Teal.png", 
                     topDownImage: "./images/beyblade_parts/SAR/WingBlade_Teal.png" 
+                },
+            ]
+},
+{ 
+            id: "sar_02", // Generalized ID
+            name: "Venom Tail", // Generalized Name
+            type: "subAttackRing", 
+			subRingType: "Free",
+            tags: ["Venom", "Tail", "Free", "Cross Lance"], 
+			fallbackImage: "./images/beyblade_parts/SAR/VenomTail.png",  
+            stats: { weight: 4, attack: 6, recoil: 9, stamina: 2, balance: -1, endurance: -1, mobility: 1, speed: 1, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Cross Lance", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "venomtail",
+                    styleName: "Venom Tail (Roaring Venom)", 
+                    styleColorSample: "#2f1834", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/SAR/VenomTail.png", 
+                    topDownImage: "./images/beyblade_parts/SAR/VenomTail.png" 
                 },
             ]
 },
@@ -796,6 +1037,30 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/WD/SixWide.png", 
                     topDownImage: "./images/beyblade_parts/WD/SixWide.png" 
+                },
+				{ 
+                    styleId: "six_wide_blue",
+                    styleName: "Six Wide Blue", 
+                    styleColorSample: "#244875", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/WD/SixWide_Blue.png", 
+                    topDownImage: "./images/beyblade_parts/WD/SixWide_Blue.png" 
+                },
+				{ 
+                    styleId: "six_wide_green",
+                    styleName: "Six Wide Green", 
+                    styleColorSample: "#255917", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/WD/SixWide_Green.png", 
+                    topDownImage: "./images/beyblade_parts/WD/SixWide_Green.png" 
+                },
+				{ 
+                    styleId: "six_wide_powderfinish_pewter",
+                    styleName: "Six Wide Powder Finish Pewter", 
+                    styleColorSample: "#8598aa", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/WD/SixWide_PowderedFinish_Pewter.png", 
+                    topDownImage: "./images/beyblade_parts/WD/SixWide_PowderedFinish_Pewter.png" 
                 },
             ]
 },
@@ -1145,6 +1410,28 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "wd_18", // Generalized ID
+            name: "Spin Cutter", // Generalized Name
+            type: "Weight Disk", 
+            tags: ["Spin", "Cutter", "Illegal", "Modification", "Mod"], 
+			fallbackImage: "./images/beyblade_parts/WD/SpinCutter.png",
+            stats: {  weight: 49, hp: 20, rpm: 120, attack: 10, defense: 2, stamina: -3, endurance: 1, speed: -3, mobility: -2, recoil: 7 },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "spincutter",
+                    styleName: "Spin Cutter", 
+                    styleColorSample: "#757170", 
+                    styleRarity: 5,
+                    image: "./images/beyblade_parts/WD/SpinCutter.png", 
+                    topDownImage: "./images/beyblade_parts/WD/SpinCutter.png" 
+                },
+            ]
+},
          ],
     spinGears: [
 { 
@@ -1300,11 +1587,35 @@ window.equipmentDB = {
                 },
 				{ 
                     styleId: "SG_basic_green2",
-                    styleName: "Right Spin Gear Blue (Draciel Metal Ball Defenser)", 
+                    styleName: "Right Spin Gear Green (Draciel Metal Ball Defenser)", 
                     styleColorSample: "#279b3e", 
                     styleRarity: 1,
                     image: "./images/beyblade_parts/SG/StandardSG_Right_MetalBallDefenserGreen_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_MetalBallDefenserGreen_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_gray",
+                    styleName: "Right Spin Gear Gray (Driger Manual Balancer)", 
+                    styleColorSample: "#abaaa9", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_DrigerManualBalancerGray_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_DrigerManualBalancerGray_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_yellow",
+                    styleName: "Right Spin Gear Yellow", 
+                    styleColorSample: "#f5b702", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_KidDragoonYellow_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_KidDragoonYellow_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_bronze",
+                    styleName: "Right Spin Gear Bronze", 
+                    styleColorSample: "#a37642", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/SG/StandardSG_Right_KidDragoonBronze_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Right_KidDragoonBronze_topdown.png" 
                 },
             ]
 },
@@ -1338,6 +1649,30 @@ window.equipmentDB = {
                     styleRarity: 5,
                     image: "./images/beyblade_parts/SG/StandardSG_Left_Luminia_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/StandardSG_Left_Luminia_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_crossmanticore",
+                    styleName: "Left Spin Gear Beige (Cross Manticore)", 
+                    styleColorSample: "#2f1834", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SG/StandardSG_Left_CrossManticore_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Left_CrossManticore_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_dragoongripattack_white",
+                    styleName: "Left Spin Gear White (Dragoon Grip Attacker)", 
+                    styleColorSample: "#fbfaf0", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSG_Left_DragoonGripAttackerWhite_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Left_DragoonGripAttackerWhite_topdown.png" 
+                },
+				{ 
+                    styleId: "SG_basic_dragoongripattack_gunmetal",
+                    styleName: "Left Spin Gear Gunmetal (Dragoon Grip Attacker)", 
+                    styleColorSample: "#78746f", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/SG/StandardSG_Left_DragoonGripAttackerGunmetal_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSG_Left_DragoonGripAttackerGunmetal_topdown.png" 
                 },
             ]
 },
@@ -1476,7 +1811,7 @@ window.equipmentDB = {
                     styleId: "semiflat_base_cyan",
                     styleName: "Semi-Flat Base Cyan (Gekiryu-oh)", 
                     styleColorSample: "#1a93b7", 
-                    styleRarity: 2,
+                    styleRarity: 1,
                     image: "./images/beyblade_parts/BB/SemiFlat_GekiryuohCyan_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/SemiFlat_GekiryuohCyan_topdown.png" 
                 },
@@ -1484,7 +1819,7 @@ window.equipmentDB = {
                     styleId: "semiflat_base_magenta",
                     styleName: "Semi-Flat Base Magenta (Vortex Fang)", 
                     styleColorSample: "#964f77", 
-                    styleRarity: 4,
+                    styleRarity: 3,
                     image: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/SemiFlat_VortexFangMagenta_topdown.png" 
                 },
@@ -1559,6 +1894,22 @@ window.equipmentDB = {
                     styleRarity: 4,
                     image: "./images/beyblade_parts/BB/FlatBase_MegaroArmBlack_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/FlatBase_MegaroArmBlack_topdown.png" 
+                },
+				{ 
+                    styleId: "flatbase_yellow",
+                    styleName: "Flat Base Yellow", 
+                    styleColorSample: "#f5b702", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/FlatBase_KidDragoonYellow_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/FlatBase_KidDragoonYellow_topdown.png" 
+                },
+				{ 
+                    styleId: "flatbase_bronze",
+                    styleName: "Flat Base Bronze", 
+                    styleColorSample: "#a37642", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/BB/FlatBase_KidDragoonBronze_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/FlatBase_KidDragoonBronze_topdown.png" 
                 },
             ]
 },
@@ -1928,7 +2279,7 @@ window.equipmentDB = {
             type: "Blade Base",
 			contactTipType: "Metal",
 			contactTipShape: "Flat",
-            tags: ["Auto", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal" ], 
+            tags: ["Auto", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal"], 
 			fallbackImage: "./images/beyblade_parts/BB/AutoChangeBase_sideview.png",  
             stats: {  rpm: 115, speed: 10, endurance: 1, attack: 1, grip: 22, balance: 14, mobility: 13, recoil: 1, weight: 15  },
 			passives: ["Mode Change"], 
@@ -1941,7 +2292,7 @@ window.equipmentDB = {
                     styleName: "Auto Change Base", 
                     styleColorSample: "#4667ce", 
                     styleRarity: 2,
-                    image: "./images/beyblade_parts/BB/AutoChangeBase_sideview.png", 
+                    image: "./images/beyblade_parts/BB/AutoChangeBase_sideview_animated.gif", 
                     topDownImage: "./images/beyblade_parts/BB/AutoChangeBase_topdown.png" 
                 },
             ]
@@ -1967,6 +2318,70 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/BB/MetalBallBase_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/MetalBallBase_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_18", // Generalized ID
+            name: "Grip Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Rubber",
+			contactTipShape: "Flat",
+            tags: ["Grip", "Base", "Flat", "Tip", "Rubber"], 
+			fallbackImage: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerWhite_sideview.png",  
+            stats: {  rpm: 120, speed: 11, endurance: -2, stamina: -2, attack: 4, grip: 29, mobility: 13, recoil: 2, weight: 13  },
+			passives: ["Hyper Aggression"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "gripbase_dragoonwhite",
+                    styleName: "Grip Base White", 
+                    styleColorSample: "#fbfaf0", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerWhite_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerWhite_topdown.png" 
+                },
+				{ 
+                    styleId: "gripbase_crossmanticorebeige",
+                    styleName: "Grip Base Beige", 
+                    styleColorSample: "#2f1834", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/BB/GripBase_CrossManticore_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/GripBase_CrossManticore_topdown.png" 
+                },
+				{ 
+                    styleId: "gripbase_dragoongunmetal",
+                    styleName: "Grip Base Gunmetal", 
+                    styleColorSample: "#78746f", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerGunmetal_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerGunmetal_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_19", // Generalized ID
+            name: "Manual Balancer", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Plastic",
+			contactTipShape: "Flat",
+            tags: ["Manual", "Change", "Balancer", "Flat", "Sharp", "Tip", "Plastic" ], 
+			fallbackImage: "./images/beyblade_parts/BB/ManualBalancer_sideview.png",  
+            stats: {  rpm: 130, hp: 10, defense: -1, stamina: 1, endurance: 3, grip: 24, mobility: 3, attack: 3, recoilReduction: 2, weight: 15  },
+			passives: ["Alter Approach"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "manual_balancer",
+                    styleName: "Manual Balancer", 
+                    styleColorSample: "#abaaa9", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/ManualBalancer_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/ManualBalancer_topdown.png" 
                 },
             ]
 },
@@ -2053,6 +2468,41 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png" 
                 }
+            ]
+        }
+		{ 
+            id: "launcher_02", 
+            name: "Range Shooter", 
+            type: "Launcher",
+            tags: ["Launcher", "EZ", "Standard", "RPM Boost"], 
+            fallbackImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_green.png",  
+            passives: ["Launcher: Range Boost"], 
+            specialLaunch: ["Power Shoot"],
+            styles: [
+                { 
+                    styleId: "range_shooter_orange",
+                    styleName: "Range Shooter Orange", 
+                    styleColorSample: "#ed920a", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_orange.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_orange.png" 
+                },
+				{ 
+                    styleId: "range_shooter_blue",
+                    styleName: "Range Shooter Blue", 
+                    styleColorSample: "#115eff", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_blue.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_blue.png" 
+                },
+				{ 
+                    styleId: "range_shooter_green",
+                    styleName: "Range Shooter Green", 
+                    styleColorSample: "#00bd00", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_green.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_green.png" 
+                },
             ]
         }
     ], // <-- CRITICAL FIX: Added this closing bracket for the launchers array!
