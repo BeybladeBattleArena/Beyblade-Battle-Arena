@@ -19,9 +19,9 @@ window.stadiumsDB = [
                 desc: "A standard arena featuring three distinct ring-out pockets.",
                 physics: { friction: 0.99, radiusMod: 0.9 },
                 ringOutZones: [
-                    { start: 4.5, end: 4.9 }, // Top
-                    { start: 0.5, end: 1.0 }, // Bottom right
-                    { start: 2.1, end: 2.6 }  // Bottom left
+                    { start: 4.41, end: 5.01 }, // Top
+                    { start: 0.22, end: 0.82 }, // Bottom right
+                    { start: 2.32, end: 2.92 }  // Bottom left
                 ],
                 visuals: { wall: { color: "#222" }, ramp: { color: "#2a2a2a" }, basin: { color: "#333" }, lines: "#555", pocketLines: "#111" }
             },
@@ -54,6 +54,7 @@ window.stadiumsDB = [
                     floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors
+                    trimColor: "#2d2196",
                     wallColor: "#404f93",  // The inner vertical drop
                     ledgeColor: "#4a5bab", // The flat top of the stadium rim
                 }
@@ -65,15 +66,16 @@ window.stadiumsDB = [
                 desc: "Standard, official style arena in Blue. Features 3 Wall Pockets, allowing for ring outs.",
                 physics: { friction: 0.99, radiusMod: 0.9 },
                 ringOutZones: [
-                    { start: 4.5, end: 4.9 }, // Top
-                    { start: 0.5, end: 1.0 }, // Bottom right
-                    { start: 2.1, end: 2.6 }  // Bottom left
+                    { start: 4.41, end: 5.01 }, // Top
+                    { start: 0.22, end: 0.82 }, // Bottom right
+                    { start: 2.32, end: 2.92 }  // Bottom left
                 ], 
                 visuals: {
                     // 1:1 perfectly square image!
                     floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors
+					trimColor: "#2d2196",
                     wallColor: "#404f93",  // The inner vertical drop
                     ledgeColor: "#4a5bab", // The flat top of the stadium rim
                 }
