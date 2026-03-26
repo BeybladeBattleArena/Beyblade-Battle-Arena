@@ -34,7 +34,7 @@ window.opponentsDB = [
 		bitChip: "bc_05",
 		attackRing: "ar_12",
 		weightDisk: "wd_07",
-		spinGear: "sg_01",
+		spinGear: { id: "sg_01", styleID: "SG_basic_pink" },
 		bladeBase: "bb_10",
         alwaysUnlocked: false,
         arenaStyle: 1, 
@@ -85,7 +85,7 @@ window.opponentsDB = [
         stats: { 
             hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
         passives: [],
-        attacks: [{ name: "Smash Attack", cd: 5 }],
+        attacks: [{ name: "Sharp Shooter", cd: 6 }],
         ultimate: null, 
         dialogue: [
             "No way I'm losin' to you this time, <player>!",
