@@ -1995,8 +1995,8 @@
 			
 			if (bey.skillState.actionState === "SPIN_BURST_CHARGE") {
                 // 1. Anchor the Beyblade (Rapid friction brake)
-                bey.vx *= 0.1; 
-                bey.vy *= 0.1;
+                bey.vx *= 0.5; 
+                bey.vy *= 0.5;
                 bey.skillState.chargeTimer -= dt;
 
                 if (bey.skillState.chargeTimer <= 0) {
@@ -2012,7 +2012,7 @@
                     let blowbackForce = 4.5; // How far the Beyblade gets pushed back
                     
                     // DAMAGE FORMULA: 70 Base + (Attack * 0.8) + (Stamina * 0.5) + (Current RPM * 0.005)
-                    let dmg = 70 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
+                    let dmg = 15 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
                     // ---------------------------
 
                     // Calculate Shot Direction
@@ -2036,7 +2036,7 @@
                         anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
                     });
                 }
-                return; // SKIP NORMAL PHYSICS WHILE ANCHORED!
+             
             }
 
 			if (bey.activeAuraDuration > 0) {
