@@ -1628,6 +1628,7 @@
                     }
                     originalExecute.call(this, skillName, attacker, defender, jX, jY); // Pass to standard skills
                 };
+			}
 				
                 if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
                 if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
