@@ -199,6 +199,52 @@ window.opponentsDB = [
             }
         }
     },
+	
+	
+	{
+        id: "opp_carlos1",
+        name: "Carlos",
+        portrait: "Carlos.png",
+        dialogueBG: "beystadium_park.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Spin Cutter",
+        bitBeast: "None",
+		bitChip: "bc_04",
+		attackRing: "ar_32",
+		weightDisk: "wd_18",
+		spinGear: { id: "sg_05", styleId: "SG_basic_yellow" },
+		bladeBase: { id: "bb_03", styleId: "flatbase_yellow" },
+        alwaysUnlocked: true,
+        arenaStyle: 2, 
+        stats: { 
+            hp: 136, rpm: 1200, attack: 29, defense: 10, stamina: 16, speed: 12, weight: 75, mobility: 2, grip: 24, balance: 9, recoil: 17, recoilReduction: 4, spiritCharge: 5, cdr: 1 },
+        passives: [],
+        attacks: [{ name: "Smash Attack", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Looking to take me on?",
+            "Sure, I've got some time to kill. You ready to get crushed?"
+        ],
+        winDialogue: [
+            "Way to go, loser. Don't cry too hard, though.",
+            "Nobody ever beats me, hahaha!"
+        ],
+        loseDialogue: [
+            "You beat Spin Cutter? But I modified it to be unbeatable...",
+            "Maybe you aren't some nobody after all.",
+			"Hey, keep this battle between us, okay? No one in the Blade Sharks has to know about this."
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
+                engine.executeAttack("Smash Attack", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
+	
 
     {
         id: "opp_max1",
