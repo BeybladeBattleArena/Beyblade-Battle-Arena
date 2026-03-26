@@ -1938,7 +1938,7 @@
                     enemy.currentHp = Math.max(0, enemy.currentHp);
 
                     // Add impact knockback to the enemy!
-                    let knockbackForce = 8; // TWEAKABLE: Increase this if you want them to fly further!
+                    let knockbackForce = 5; // TWEAKABLE: Increase this if you want them to fly further!
                     let pSpeed = Math.max(0.1, Math.sqrt(proj.vx**2 + proj.vy**2));
                     enemy.vx += (proj.vx / pSpeed) * knockbackForce; 
                     enemy.vy += (proj.vy / pSpeed) * knockbackForce;
