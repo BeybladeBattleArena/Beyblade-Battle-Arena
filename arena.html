@@ -1082,25 +1082,27 @@
         // 1.5 DRAW THE BASIN (Static or Spinning)
         // ==========================================
         let isSpinning = window.activeStadium.physics.basinSpinSpeed && window.stadiumImages.basin && window.stadiumImages.basin.complete;
-        
+        let basinSize = window.activeStadium.physics.basinRadius || 0.3; // Grab the dynamic size!
+
         if (isSpinning) {
-            // ROTATE THE CAMERA!
             ctx.save();
             ctx.translate(cx, cy);
             ctx.rotate(window.basinAngle || 0);
             
-            ctx.beginPath(); ctx.arc(0, 0, maxRadius * 0.3, 0, Math.PI * 2);
-            ctx.clip(); // Mask the spinning image to a perfect circle
-            ctx.drawImage(window.stadiumImages.basin, -maxRadius * 0.3, -maxRadius * 0.3, maxRadius * 0.6, maxRadius * 0.6);
+            // Mask the spinning area to your custom size
+            ctx.beginPath(); ctx.arc(0, 0, maxRadius * basinSize, 0, Math.PI * 2);
+            ctx.clip(); 
+           
+			ctx.drawImage(window.stadiumImages.basin, -maxRadius, -maxRadius, maxRadius * 2, maxRadius * 2);
+            
             ctx.restore();
             
             // Draw the rim line around the spinning basin
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); 
+            ctx.beginPath(); ctx.arc(cx, cy, maxRadius * basinSize, 0, Math.PI * 2); 
             ctx.strokeStyle = window.activeStadium.visuals.lines || '#444';
             ctx.lineWidth = 2; ctx.stroke();
         } else if (!window.stadiumImages.floor) {
-            // Only paint the classic basin if we aren't using a 1:1 floor (which already has it painted on)
-            fillZone(maxRadius * 0.3, window.activeStadium.visuals.basin, window.stadiumImages.basin);
+            fillZone(maxRadius * basinSize, window.activeStadium.visuals.basin, window.stadiumImages.basin);
             ctx.stroke();
         }
 
@@ -1109,9 +1111,8 @@
             ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); 
             ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = 2; ctx.stroke();
             
-            // The basin line is already drawn above if spinning, but if static:
             if (!isSpinning) {
-                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * basinSize, 0, Math.PI * 2); ctx.stroke();
             }
         }
 
@@ -2300,6 +2301,8 @@
             let relY = bey.y - cy;
 			let currentDist = Math.sqrt(relX * relX + relY * relY);
             
+			let basinSize = window.activeStadium.physics.basinRadius || 0.3;
+			
             // If the floor is spinning AND we are inside the 30% basin radius...
             if (spinSpeed !== 0 && currentDist <= maxRadius * 0.3) {
                 // Calculate the tangential vector (sweeping in a circle)

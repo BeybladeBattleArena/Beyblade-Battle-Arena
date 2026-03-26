@@ -94,7 +94,8 @@ window.stadiumsDB = [
                     friction: 0.99, 
                     radiusMod: 0.9,
                     basinSpinSpeed: 0.002, // Positive = Clockwise, Negative = Counter-Clockwise
-                    basinGrip: 0.05        // How strongly the spinning floor pushes the Beyblade
+                    basinGrip: 0.05,        // How strongly the spinning floor pushes the Beyblade
+					basinRadius: 0.3 // DEFAULT IS 0.3 (30%). Tweak this if your basin is wider!
                 },
                 ringOutZones: [
                     { start: 5.8, end: 0.5 }, // Right pocket (Wraps over 0)
@@ -118,7 +119,8 @@ window.stadiumsDB = [
                     friction: 0.99, 
                     radiusMod: 0.9,
                     basinSpinSpeed: 0.002, // Positive = Clockwise, Negative = Counter-Clockwise
-                    basinGrip: 0.05        // How strongly the spinning floor pushes the Beyblade
+                    basinGrip: 0.05,        // How strongly the spinning floor pushes the Beyblade
+					basinRadius: 0.3 // DEFAULT IS 0.3 (30%). Tweak this if your basin is wider!
                 },
                 ringOutZones: [
                     { start: 5.30, end: 5.70 }, // Top Right
