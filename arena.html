@@ -781,7 +781,8 @@
 
         // 1. Did they pass us a style object? Extract the ID and the requested style!
         if (typeof partData === 'object' && partData.id && !partData.topDownImage) {
-            requestedStyleId = partData.styleId;
+            // THE FIX: Check for BOTH 'styleId' and 'styleID' so it never fails on a typo!
+            requestedStyleId = partData.styleId || partData.styleID; 
             partData = partData.id; // Convert to string so the DB can find it
         }
 
@@ -792,9 +793,9 @@
 
         if (!partObj) return '';
 
-        // 3. THE FIX: If they requested a specific style, search the styles array for it!
+        // 3. THE FIX: Search the styles array using 'styleId', not just 'id'!
         if (requestedStyleId && partObj.styles) {
-            let foundStyle = partObj.styles.find(s => s.id === requestedStyleId);
+            let foundStyle = partObj.styles.find(s => s.styleId === requestedStyleId || s.id === requestedStyleId);
             if (foundStyle && foundStyle.topDownImage) return foundStyle.topDownImage;
         }
 
