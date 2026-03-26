@@ -777,10 +777,28 @@
     function resolveImageUrl(partData, category) {
         if (!partData) return '';
         let partObj = partData;
+        let requestedStyleId = null;
+
+        // 1. Did they pass us a style object? Extract the ID and the requested style!
+        if (typeof partData === 'object' && partData.id && !partData.topDownImage) {
+            requestedStyleId = partData.styleId;
+            partData = partData.id; // Convert to string so the DB can find it
+        }
+
+        // 2. Look up the base part in the database
         if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
             partObj = window.equipmentDB[category].find(p => p.id === partData);
         }
+
         if (!partObj) return '';
+
+        // 3. THE FIX: If they requested a specific style, search the styles array for it!
+        if (requestedStyleId && partObj.styles) {
+            let foundStyle = partObj.styles.find(s => s.id === requestedStyleId);
+            if (foundStyle && foundStyle.topDownImage) return foundStyle.topDownImage;
+        }
+
+        // 4. Fallbacks (Active style, first style, or base image)
         if (partObj.activeStyle && partObj.activeStyle.topDownImage) return partObj.activeStyle.topDownImage;
         if (partObj.styles && partObj.styles.length > 0 && partObj.styles[0].topDownImage) return partObj.styles[0].topDownImage;
         return partObj.topDownImage || partObj.fallbackImage || partObj.image || '';
@@ -1119,8 +1137,10 @@
                 if (!partData) return;
                 
                 let partObj = partData;
-                if (typeof partData === 'string' && window.equipmentDB && categories[key]) {
-                    partObj = window.equipmentDB[categories[key]].find(p => p.id === partData);
+                let partId = typeof partData === 'string' ? partData : partData.id;
+                if (partId && window.equipmentDB && categories[key]) {
+                    let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
+                    if (found) partObj = found;
                 }
                 
                 if (partObj && partObj.stats) {
@@ -1147,8 +1167,10 @@
                 if (!partData) return;
                 
                 let partObj = partData;
-                if (typeof partData === 'string' && window.equipmentDB && categories[key]) {
-                    partObj = window.equipmentDB[categories[key]].find(p => p.id === partData);
+                let partId = typeof partData === 'string' ? partData : partData.id;
+                if (partId && window.equipmentDB && categories[key]) {
+                    let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
+                    if (found) partObj = found;
                 }
                 
                 if (partObj) {
@@ -1380,11 +1402,10 @@
 
             let cpuBbObj = null;
             if (cpuData.bladeBase) {
-                if (typeof cpuData.bladeBase === 'string') {
-                    if (window.equipmentDB && window.equipmentDB.bladeBases) {
-                        cpuBbObj = window.equipmentDB.bladeBases.find(b => b.id === cpuData.bladeBase);
-                    }
-                } else { cpuBbObj = cpuData.bladeBase; }
+                let bbId = typeof cpuData.bladeBase === 'string' ? cpuData.bladeBase : cpuData.bladeBase.id;
+                if (window.equipmentDB && window.equipmentDB.bladeBases) {
+                    cpuBbObj = window.equipmentDB.bladeBases.find(b => b.id === bbId) || cpuData.bladeBase;
+                }
             }
             cpuBey.tipShape = cpuBbObj ? cpuBbObj.contactTipShape || "Semi-Flat" : "Semi-Flat";
             cpuBey.tipType = cpuBbObj ? cpuBbObj.contactTipType || "Plastic" : "Plastic";
@@ -1393,11 +1414,10 @@
             cpuBey.rotation = 0; cpuBey.spinDir = 1; 
             
             if (cpuData.spinGear) {
-                if (typeof cpuData.spinGear === 'string') {
-                    if (window.equipmentDB && window.equipmentDB.spinGears) {
-                        let sgObj = window.equipmentDB.spinGears.find(s => s.id === cpuData.spinGear);
-                        if (sgObj && sgObj.spinDirection === 'Left') cpuBey.spinDir = -1;
-                    }
+                let sgId = typeof cpuData.spinGear === 'string' ? cpuData.spinGear : cpuData.spinGear.id;
+                if (window.equipmentDB && window.equipmentDB.spinGears) {
+                    let sgObj = window.equipmentDB.spinGears.find(s => s.id === sgId);
+                    if (sgObj && sgObj.spinDirection === 'Left') cpuBey.spinDir = -1;
                 } else if (cpuData.spinGear.spinDirection === 'Left') {
                     cpuBey.spinDir = -1;
                 }
