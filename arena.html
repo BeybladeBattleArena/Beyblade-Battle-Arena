@@ -1934,11 +1934,11 @@
             if (hitWall || hitEnemy || proj.anim.currentFrame > proj.anim.frameCount) {
                 if (hitEnemy) {
                     enemy.currentHp -= proj.damage;
-                    enemy.currentRpm -= proj.damage * 1.5; // Stun/Drain effect
+                    enemy.currentRpm -= proj.damage * 1.2; // Stun/Drain effect
                     enemy.currentHp = Math.max(0, enemy.currentHp);
 
                     // Add impact knockback to the enemy!
-                    let knockbackForce = 6; // TWEAKABLE: Increase this if you want them to fly further!
+                    let knockbackForce = 8; // TWEAKABLE: Increase this if you want them to fly further!
                     let pSpeed = Math.max(0.1, Math.sqrt(proj.vx**2 + proj.vy**2));
                     enemy.vx += (proj.vx / pSpeed) * knockbackForce; 
                     enemy.vy += (proj.vy / pSpeed) * knockbackForce;
@@ -1950,7 +1950,7 @@
                     // Spawn Hit Effect!
                     activeHitEffects.push({
                         x: proj.x, y: proj.y, angle: proj.angle,
-                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst_hiteffect', ext: '.png', frameCount: 6, currentFrame: 1, timer: 0, frameSpeed: 40 }
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst_hiteffect', ext: '.png', frameCount: 6, currentFrame: 1, timer: 0, frameSpeed: 30 }
                     });
                 }
                 activeProjectiles.splice(i, 1); // Delete Projectile
@@ -2008,11 +2008,11 @@
                     shootSfx.volume = 0.6; shootSfx.play().catch(e=>{});
 
                     // --- TWEAKABLE VARIABLES ---
-                    let projSpeed = 1.0;  // How fast the projectile moves (Multiplied by dt)
-                    let blowbackForce = 4.5; // How far the Beyblade gets pushed back
+                    let projSpeed = 1.5;  // How fast the projectile moves (Multiplied by dt)
+                    let blowbackForce = 3; // How far the Beyblade gets pushed back
                     
-                    // DAMAGE FORMULA: 70 Base + (Attack * 0.8) + (Stamina * 0.5) + (Current RPM * 0.005)
-                    let dmg = 15 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
+                    // DAMAGE FORMULA: 12 Base + (Attack * 0.8) + (Stamina * 0.5) + (Current RPM * 0.005)
+                    let dmg = 12 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
                     // ---------------------------
 
                     // Calculate Shot Direction
@@ -2033,7 +2033,7 @@
                         damage: dmg,
                         owner: bey,
                         radius: 40, // Projectile Hitbox Size
-                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 15 } // frameSpeed controls dissipation time!
                     });
                 }
              
