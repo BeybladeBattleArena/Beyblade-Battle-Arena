@@ -2301,7 +2301,7 @@
 			let currentDist = Math.sqrt(relX * relX + relY * relY);
             
             // If the floor is spinning AND we are inside the 30% basin radius...
-            if (spinSpeed !== 0 && distFromCenter <= maxRadius * 0.3) {
+            if (spinSpeed !== 0 && currentDist <= maxRadius * 0.3) {
                 // Calculate the tangential vector (sweeping in a circle)
                 let tangX = -relY;
                 let tangY = relX;
