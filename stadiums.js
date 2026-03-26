@@ -70,7 +70,7 @@ window.stadiumsDB = [
                     { start: 2.1, end: 2.6 }  // Bottom left
                 ], 
                 visuals: {
-                    1:1 perfectly square image!
+                    // 1:1 perfectly square image!
                     floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors
