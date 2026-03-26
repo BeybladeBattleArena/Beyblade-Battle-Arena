@@ -2469,7 +2469,7 @@ window.equipmentDB = {
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png" 
                 }
             ]
-        }
+        },
 		{ 
             id: "launcher_02", 
             name: "Range Shooter", 
