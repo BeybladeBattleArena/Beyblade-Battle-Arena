@@ -1092,29 +1092,6 @@
         }
     });
 
-            if (safeX <= width * 0.425) {
-                playerLaunchSite = { x: safeX, y: safeY };
-                
-                gameState = "COUNTDOWN";
-                drawArena(); 
-                
-                instruction.innerText = "Pull! Tap when the arrow hits the sweet spot!";
-                instruction.style.color = "#00ffff";
-                startCountdown();
-            } else {
-                instruction.innerText = "You must launch on YOUR side of the arena (Left 42.5%)!";
-                instruction.style.color = "#ff4444";
-                setTimeout(() => { 
-                    if (gameState === "SELECT_LAUNCH") {
-                        instruction.innerText = "Tap the arena on your side (Left 42.5%) to choose your launch site!"; 
-                        instruction.style.color = "#00ffff"; 
-                    }
-                }, 1500);
-            }
-        } else if (gameState === "MINIGAME") {
-            processLaunchTap();
-        }
-    });
 
     function startCountdown() {
         let count = 3; 
