@@ -139,6 +139,26 @@
     #zone-marvelous { background: rgba(0, 255, 255, 0.9); box-shadow: 0 0 15px cyan; display: none; z-index: 7;} 
 
 
+/* --- NEW LAUNCHER SPARKS --- */
+    .launcher-spark {
+        position: absolute;
+        width: 4px; height: 12px;
+        background: #fff;
+        border-radius: 2px;
+        box-shadow: 0 0 8px #ffaa00, 0 0 15px #ff0000;
+        pointer-events: none;
+        z-index: 20;
+        opacity: 1;
+        transform-origin: top center;
+        animation: sparkFall 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    @keyframes sparkFall {
+        0% { transform: translateY(0) rotate(var(--angle)); opacity: 1; }
+        100% { transform: translateY(100px) rotate(var(--angle)); opacity: 0; }
+    }
+    .launch-subtext { font-size: 24px; font-weight: bold; text-shadow: 2px 2px 5px #000; display: block; margin-top: 10px; }
+
+
 	/* --- DYNAMIC MATCH FINISH UI --- */
     .finish-title {
         font-family: 'Orbitron', sans-serif; font-size: 75px; font-weight: 900; font-style: italic;
@@ -950,29 +970,131 @@
     const countText = document.getElementById('countdown-text');
     const launcherUI = document.getElementById('launcher-container');
 
+    const overlay = document.getElementById('minigame-overlay');
+    const instruction = document.getElementById('instruction-text');
+    const countText = document.getElementById('countdown-text');
+    const launcherUI = document.getElementById('launcher-container');
+
+    // --- NEW TACTILE DRAG VARIABLES ---
+    let isDraggingRipcord = false;
+    let dragStartX = 0;
+    let pullStartTime = 0;
+    let lastSparkTime = 0;
+
+    function updateRipcordDOM() {
+        document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
+    }
+
+    function createSpark() {
+        let spark = document.createElement('div');
+        spark.className = 'launcher-spark';
+        // Position it right at the exit hole of the launcher
+        spark.style.right = '140px'; 
+        spark.style.top = '120px';
+        // Randomize the spray angle slightly
+        let angle = (Math.random() - 0.5) * 45; 
+        spark.style.setProperty('--angle', `${angle}deg`);
+        launcherUI.appendChild(spark);
+        setTimeout(() => { if (spark.parentNode) spark.parentNode.removeChild(spark); }, 400);
+    }
+
     overlay.addEventListener('pointerdown', (e) => {
         if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
+
+        let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : width/2);
+        let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : height/2);
 
         if (gameState === "SELECT_LAUNCH") {
             const cx = width / 2; const cy = height / 2;
             const maxRadius = Math.min(width, height) / 2 * 0.9; 
             
-            let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : cx - 100);
-            let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : cy);
-
             let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
             
             if (dist > maxRadius * 0.85) {
                 instruction.innerText = "Aim closer to the inside of the stadium!";
                 instruction.style.color = "#ff4444";
-                setTimeout(() => { 
-                    if (gameState === "SELECT_LAUNCH") {
-                        instruction.innerText = "Tap the arena on your side (Left 42.5%) to choose your launch site!"; 
-                        instruction.style.color = "#00ffff"; 
-                    }
-                }, 1500);
                 return;
             }
+
+            if (safeX <= width * window.playerMaxLaunchPct) {
+                playerLaunchSite = { x: safeX, y: safeY };
+                gameState = "COUNTDOWN";
+                drawArena(); 
+                
+                instruction.innerText = "Get ready to pull...";
+                instruction.style.color = "#00ffff";
+                startCountdown();
+            } else {
+                instruction.innerText = "You must launch on YOUR side of the arena!";
+                instruction.style.color = "#ff4444";
+            }
+        } 
+        else if (gameState === "WAITING_FOR_PULL") {
+            isDraggingRipcord = true;
+            dragStartX = safeX;
+            pullStartTime = performance.now();
+            
+            // Shift left by 12 pixels to prep for the pull!
+            currentNativePixel = ripcordData.launcherLoadTo + 12;
+            updateRipcordDOM();
+            instruction.innerText = "PULL!!";
+            instruction.style.color = "#ffaa00";
+        }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+        if (!isDraggingRipcord || gameState !== "WAITING_FOR_PULL") return;
+        
+        let currentX = e.clientX !== undefined ? e.clientX : (e.touches ? e.touches[0].clientX : dragStartX);
+        let dx = currentX - dragStartX; // Pulling right is positive
+
+        if (dx > 0) {
+            let dragTimeSec = (performance.now() - pullStartTime) / 1000;
+            if (dragTimeSec <= 0) dragTimeSec = 0.01; // Prevent divide by zero
+            
+            // CAP SPEED: Old auto-pull was ~150px/sec. Max physical pull allowed is 1.5x (225px/sec)
+            let maxNativeAllowed = dragTimeSec * 225; 
+            let nativeMoved = dx / SCALE;
+
+            if (nativeMoved > maxNativeAllowed) nativeMoved = maxNativeAllowed;
+
+            currentNativePixel = (ripcordData.launcherLoadTo + 12) - nativeMoved;
+
+            // Generate sparks if pulling over 95% of old speed (144px/sec)
+            let currentSpeed = nativeMoved / dragTimeSec;
+            if (currentSpeed >= 144 && performance.now() - lastSparkTime > 40) {
+                createSpark();
+                lastSparkTime = performance.now();
+            }
+
+            if (currentNativePixel < 0) currentNativePixel = 0; // Don't pull past the end
+            updateRipcordDOM();
+        }
+    });
+
+    window.addEventListener('pointerup', (e) => {
+        if (!isDraggingRipcord || gameState !== "WAITING_FOR_PULL") return;
+        isDraggingRipcord = false;
+
+        // If they barely pulled it (less than 10 pixels), snap it back to start
+        if (currentNativePixel > ripcordData.launcherLoadTo - 10) {
+            currentNativePixel = ripcordData.launcherLoadTo;
+            updateRipcordDOM();
+            instruction.innerText = "Hold and drag to pull the ripcord!";
+            instruction.style.color = "#00ffff";
+        } else {
+            // THEY FIRED IT! Calculate final speed tier
+            let dragTimeSec = (performance.now() - pullStartTime) / 1000;
+            let nativeMoved = (ripcordData.launcherLoadTo + 12) - currentNativePixel;
+            let finalSpeed = nativeMoved / dragTimeSec;
+
+            let speedTier = "NORMAL";
+            if (finalSpeed < 105) speedTier = "WEAK";       // < 70%
+            else if (finalSpeed >= 144) speedTier = "HIGH"; // > 96%
+
+            processLaunchTap(speedTier);
+        }
+    });
 
             if (safeX <= width * 0.425) {
                 playerLaunchSite = { x: safeX, y: safeY };
@@ -1010,39 +1132,20 @@
             count--;
             if (count > 0) {
                 countText.innerText = `${count}...`;
-                
                 let countSFX = new Audio(`./audio/sounds/Countdown${count}.wav`); 
                 countSFX.volume = 0.4; 
-                countSFX.play().catch(e => console.log("SFX blocked by browser:", e));
+                countSFX.play().catch(e => {});
                 
                 if (count === 1) launcherUI.style.display = 'block';
             } else {
                 clearInterval(countInterval);
-                countText.innerText = "LET IT RIP!";
-                
-                let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
-                letItRipSFX.volume = 0.45; 
-                letItRipSFX.play().catch(e => console.log("SFX blocked by browser:", e));
-
-                gameState = "MINIGAME";
-                startRipcordPull();
+                countText.innerText = "";
+                instruction.innerText = "Click and Drag the ripcord to launch!";
+                gameState = "WAITING_FOR_PULL"; // Engine stops and waits for the player!
             }
         }, 1000);
     }
 
-    function startRipcordPull() {
-        let nativePullSpeed = 2.5; 
-        function animateRipcord() {
-            if (gameState !== "MINIGAME") return; 
-            currentNativePixel -= nativePullSpeed; 
-            
-            document.getElementById('ripcord-wrapper').style.left = (READ_HEAD_OFFSET - (currentNativePixel * SCALE)) + 'px';
-            
-            if (currentNativePixel <= 0) { processLaunchTap(true); return; }
-            ripcordAnimation = requestAnimationFrame(animateRipcord);
-        }
-        animateRipcord();
-    }
 
     function resetRoundTutorial() {
         document.getElementById('launcher-container').style.display = 'none';
@@ -1056,66 +1159,76 @@
         drawArena(); 
     }
 
-    function processLaunchTap(missed = false) {
+    function processLaunchTap(speedTier = "NORMAL") {
         gameState = "LAUNCHING"; 
-        cancelAnimationFrame(ripcordAnimation);
         
         if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
             window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
         }
 
-        if (missed) {
-            playerStartRpmMod = 0.8; countText.innerText = "AWFUL LAUNCH!"; countText.style.color = "#888";
-        } else {
-            let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
-            let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
+        let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
+        let hitTooth = (currentNativePixel - ripcordData.tailPixelLength) / pxPerTooth;
 
-            let gRange = [...ripcordData.goodRange];
-            let grRange = [...ripcordData.greatRange];
-            if (hasMarvelousLaunch) {
-                gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2;
-                grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1;
+        let gRange = [...ripcordData.goodRange];
+        let grRange = [...ripcordData.greatRange];
+        if (hasMarvelousLaunch) {
+            gRange[0] = Math.max(0, gRange[0] - 2); gRange[1] += 2;
+            grRange[0] = Math.max(0, grRange[0] - 1); grRange[1] += 1;
+        }
+
+        let launchMsg = ""; let subMsg = ""; let msgColor = "#fff";
+        window.playerHighSpeedBonus = false; // Reset the flag
+
+        if (speedTier === "WEAK") {
+            playerStartRpmMod = 0.70; 
+            launchMsg = "WEAK LAUNCH!"; 
+            subMsg = "Pull the ripcord faster!"; 
+            msgColor = "#888";
+        } else {
+            // Standard placement math
+            if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
+                playerStartRpmMod = 1.15; launchMsg = "MARVELOUS LAUNCH!"; msgColor = "cyan";
+            } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
+                playerStartRpmMod = 1.05; launchMsg = "GREAT LAUNCH!"; msgColor = "red"; 
+            } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
+                playerStartRpmMod = 1.0; launchMsg = "GOOD LAUNCH!"; msgColor = "orange"; 
+            } else if (hitTooth > gRange[1]) { 
+                playerStartRpmMod = 0.95; launchMsg = "MEDIOCRE LAUNCH!"; msgColor = "#ccc";
+            } else { 
+                playerStartRpmMod = 0.90; launchMsg = "POOR LAUNCH!"; msgColor = "#888";
             }
 
-            if (hasMarvelousLaunch && ripcordData.marvelRange && hitTooth >= ripcordData.marvelRange[0] && hitTooth <= ripcordData.marvelRange[1]) {
-                playerStartRpmMod = 1.15; countText.innerText = "MARVELOUS LAUNCH!"; countText.style.color = "cyan";
-            } else if (hitTooth >= grRange[0] && hitTooth <= grRange[1]) { 
-                playerStartRpmMod = 1.05; countText.innerText = "GREAT LAUNCH!"; countText.style.color = "red"; 
-            } else if (hitTooth >= gRange[0] && hitTooth <= gRange[1]) { 
-                playerStartRpmMod = 1.0; countText.innerText = "GOOD LAUNCH!"; countText.style.color = "orange"; 
-            } else if (hitTooth > gRange[1]) { 
-                playerStartRpmMod = 0.95; countText.innerText = "MEDIOCRE LAUNCH!"; 
-            } else { 
-                playerStartRpmMod = 0.90; countText.innerText = "POOR LAUNCH!"; 
+            // Apply High Speed Bonuses on top!
+            if (speedTier === "HIGH") {
+                playerStartRpmMod += 0.05;
+                window.playerHighSpeedBonus = true; // Flag for Battle Engine
+                subMsg = "<span style='color:gold'>High Speed Bonus! +5% RPM & Boosted Stats!</span>";
             }
         }
 
-		if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
+        countText.innerHTML = `${launchMsg}<br><span class="launch-subtext">${subMsg}</span>`;
+        countText.style.color = msgColor;
+
+        let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
+        letItRipSFX.volume = 0.45; 
+        letItRipSFX.play().catch(e => {});
+
+        // Process tutorials...
+        if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {
             TutorialManager.phase = 1; 
-            setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000);
+            setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1500);
             return; 
         } else if (TutorialManager.isActive && TutorialManager.tutorialType === "combat") {
-            
             if (TutorialManager.combatPhase === 0) {
-                // First launch of the combat tutorial
-                setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1000);
+                setTimeout(() => { TutorialManager.handleLaunch(playerStartRpmMod); }, 1500);
             } else {
-                // THE FIX: Mid-tutorial relaunch! DO NOT call startBattleEngine again!
                 setTimeout(() => {
                     overlay.style.display = 'none';
                     document.getElementById('ui-layer').style.display = 'block';
-                    
-                    // Manually drop the player in while the engine is already running
                     playerBey.currentRpm = playerBey.maxRpm * playerStartRpmMod;
-                    playerBey.x = playerLaunchSite.x;
-                    playerBey.y = playerLaunchSite.y;
-                    playerBey.targetX = playerLaunchSite.x;
-                    playerBey.targetY = playerLaunchSite.y;
-                    playerBey.z = 300;
-                    playerBey.vz = 0;
-                    playerBey.isLanded = false;
-                    playerBey.ringOut = false; 
-                    
+                    playerBey.x = playerLaunchSite.x; playerBey.y = playerLaunchSite.y;
+                    playerBey.targetX = playerLaunchSite.x; playerBey.targetY = playerLaunchSite.y;
+                    playerBey.z = 300; playerBey.vz = 0; playerBey.isLanded = false; playerBey.ringOut = false; 
                     gameState = "DROP_IN";
                 }, 1500);
             }
@@ -1383,6 +1496,19 @@
                 maxHp: pMaxHp, maxRpm: pMaxRpm, currentHp: pMaxHp, currentRpm: safeNum(pMaxRpm * startRpmMod, 3000),
                 skillState: { actionState: 'IDLE' }
             };
+			
+			
+			if (window.playerHighSpeedBonus) {
+                playerBey.tempAttack = (playerBey.stats.attack || 0) * 0.03;
+                playerBey.tempDefense = (playerBey.stats.defense || 0) * 0.03;
+                playerBey.tempEndurance = (playerBey.stats.endurance || 0) * 0.03;
+                playerBey.tempStamina = (playerBey.stats.stamina || 0) * 0.03;
+                
+                // Ignite them with a bright white/yellow aura that will expire after 15 seconds!
+                playerBey.activeAura = "rgba(255, 255, 200, 0.5)";
+                playerBey.activeAuraDuration = 15000;
+            }
+			
             
             if (TutorialManager.isActive && TutorialManager.tutorialType === "basics") {
                 cpuBey = { 
