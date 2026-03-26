@@ -1938,7 +1938,10 @@
                     enemy.currentHp = Math.max(0, enemy.currentHp);
 
                     // Add impact knockback to the enemy!
-                    enemy.vx += proj.vx * 0.3; enemy.vy += proj.vy * 0.3;
+                    let knockbackForce = 6; // TWEAKABLE: Increase this if you want them to fly further!
+                    let pSpeed = Math.max(0.1, Math.sqrt(proj.vx**2 + proj.vy**2));
+                    enemy.vx += (proj.vx / pSpeed) * knockbackForce; 
+                    enemy.vy += (proj.vy / pSpeed) * knockbackForce;
 
                     if (enemy.currentHp <= 0) triggerBurst(enemy, Math.sqrt(proj.vx**2 + proj.vy**2), proj.vx, proj.vy);
                 }
@@ -2006,7 +2009,7 @@
 
                     // --- TWEAKABLE VARIABLES ---
                     let projSpeed = 1.0;  // How fast the projectile moves (Multiplied by dt)
-                    let blowbackForce = 8; // How far the Beyblade gets pushed back
+                    let blowbackForce = 4.5; // How far the Beyblade gets pushed back
                     
                     // DAMAGE FORMULA: 70 Base + (Attack * 0.8) + (Stamina * 0.5) + (Current RPM * 0.005)
                     let dmg = 70 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
@@ -2029,7 +2032,7 @@
                         angle: Math.atan2(dy, dx) + (Math.PI / 2), // +90 deg because art faces North
                         damage: dmg,
                         owner: bey,
-                        radius: 20, // Projectile Hitbox Size
+                        radius: 40, // Projectile Hitbox Size
                         anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
                     });
                 }
@@ -2643,7 +2646,7 @@
             let img = getAnimFrame(proj.anim);
             if (img && img.complete) {
                 ctx.save(); ctx.translate(proj.x, proj.y); ctx.rotate(proj.angle);
-                ctx.drawImage(img, -40, -40, 80, 80); // TWEAKABLE: Size of projectile
+                ctx.drawImage(img, -80, -80, 160, 160); // TWEAKABLE: Size of projectile
                 ctx.restore();
             }
         });
@@ -2651,7 +2654,7 @@
             let img = getAnimFrame(effect.anim);
             if (img && img.complete) {
                 ctx.save(); ctx.translate(effect.x, effect.y); ctx.rotate(effect.angle);
-                ctx.drawImage(img, -50, -50, 100, 100); // TWEAKABLE: Size of Hit Effect
+                ctx.drawImage(img, -100, -100, 200, 200); // TWEAKABLE: Size of Hit Effect
                 ctx.restore();
             }
         });
