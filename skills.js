@@ -122,14 +122,13 @@ window.SkillsDB = {
 		"Launcher: Range Boost": {
             name: "Launcher: Range Boost",
             desc: "Upgrades the launch range from 42.5% to 55%.",
-            apply: function(bey) {
-            }
+            apply: function(bey) {}
         },
         "Special Launch: Marvelous Launch": {
             name: "Marvelous Launch",
             desc: "Expands the sweet spots on the Ripcord gauge and unlocks an exclusive 'Marvelous' power tier.",
             apply: function(bey) {} 
-        }
+        },
 		"Special Launch: Power Shoot": {
             name: "Power Shoot",
             desc: "For every 1% of launch range beyond the standard 42.5%, gain 1% additional attack and 0.5% additional endurance for 15 seconds, and gain 1% additional RPM on launch.",

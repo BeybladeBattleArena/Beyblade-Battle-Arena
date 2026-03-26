@@ -674,7 +674,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_22", // Generalized ID
+            id: "ar_23", // Generalized ID
             name: "Mythic Horn", // Generalized Name
             type: "Attack Ring", 
             tags: ["Mythic", "Horn", "Sharp Shooter"], 
@@ -696,7 +696,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_23", // Generalized ID
+            id: "ar_24", // Generalized ID
             name: "Imperial Rising", // Generalized Name
             type: "Attack Ring", 
             tags: ["Imperial", "Rising", "Upper Attack"], 
@@ -718,7 +718,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_24", // Generalized ID
+            id: "ar_25", // Generalized ID
             name: "Dragon Head", // Generalized Name
             type: "Attack Ring", 
             tags: ["Dragon", "Head", "Smash Attack"], 
@@ -748,7 +748,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_25", // Generalized ID
+            id: "ar_26", // Generalized ID
             name: "Jungle Guardian", // Generalized Name
             type: "Attack Ring", 
             tags: ["Jungle", "Guardian", "Smash Attack"], 
@@ -770,7 +770,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_26", // Generalized ID
+            id: "ar_27", // Generalized ID
             name: "Roaring Venom", // Generalized Name
             type: "Attack Ring", 
 			subRing: true,
@@ -794,7 +794,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_27", // Generalized ID
+            id: "ar_28", // Generalized ID
             name: "Rolling Hammer", // Generalized Name
             type: "Attack Ring", 
             tags: ["Rolling", "Hammer", "Concentrate Defense"], 
@@ -832,7 +832,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_28", // Generalized ID
+            id: "ar_29", // Generalized ID
             name: "Tidal Chaos", // Generalized Name
             type: "Attack Ring", 
             tags: ["Sonic", "Adventure", "Chaos", "Perfect", "Tidal"], 
@@ -854,7 +854,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_29", // Generalized ID
+            id: "ar_30", // Generalized ID
             name: "Tiger Claw", // Generalized Name
             type: "Attack Ring", 
             tags: ["Tiger", "Claw", "Barrage Attack"], 
@@ -876,7 +876,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_30", // Generalized ID
+            id: "ar_31", // Generalized ID
             name: "Upper Dragoon", // Generalized Name
             type: "Attack Ring", 
             tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack"], 
@@ -914,7 +914,7 @@ window.equipmentDB = {
             ]
 },
 { 
-            id: "ar_31", // Generalized ID
+            id: "ar_32", // Generalized ID
             name: "Upper Dragoon Spin Cutter Mod", // Generalized Name
             type: "Attack Ring", 
             tags: ["Upper", "Dragoon", "Dragon", "Kid", "Carlos", "Illegal", "Modification", "Mod", "Spin Cutter"], 
@@ -1372,7 +1372,7 @@ window.equipmentDB = {
             type: "Weight Disk", 
             tags: ["Ten", "Balance"], 
 			fallbackImage: "./images/beyblade_parts/WD/TenBalance.png",
-            stats: {  weight: 33, hp: 40, rpm: 125, attack: 3, defense: 2, balance: 1, stamina: 2, endurance: 1, recoil: 2, },
+            stats: {  weight: 33, hp: 40, rpm: 125, attack: 3, defense: 2, balance: 1, stamina: 2, endurance: 1, recoil: 2 },
 			passives: [], 
 			attacks: [],
 			
