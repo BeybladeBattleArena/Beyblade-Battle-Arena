@@ -781,9 +781,15 @@
 
         // 1. Did they pass us a style object? Extract the ID and the requested style!
         if (typeof partData === 'object' && partData.id && !partData.topDownImage) {
-            // THE FIX: Check for BOTH 'styleId' and 'styleID' so it never fails on a typo!
-            requestedStyleId = partData.styleId || partData.styleID; 
-            partData = partData.id; // Convert to string so the DB can find it
+            // Check for styleID, styleId, style, or anything else
+            requestedStyleId = partData.styleID || partData.styleId || partData.style; 
+            
+            // Clean the string (removes accidental spaces from opponents.js)
+            if (typeof requestedStyleId === 'string') {
+                requestedStyleId = requestedStyleId.trim().toLowerCase(); 
+            }
+            
+            partData = partData.id; // Convert to string so the DB can find the base part
         }
 
         // 2. Look up the base part in the database
@@ -791,12 +797,23 @@
             partObj = window.equipmentDB[category].find(p => p.id === partData);
         }
 
-        if (!partObj) return '';
+        if (!partObj) {
+            console.error(`[IMAGE PARSER] Critical Error: Base part '${partData}' not found in equipment.js!`);
+            return '';
+        }
 
-        // 3. THE FIX: Search the styles array using 'styleId', not just 'id'!
+        // 3. Search the styles array (CASE-INSENSITIVE)
         if (requestedStyleId && partObj.styles) {
-            let foundStyle = partObj.styles.find(s => s.styleId === requestedStyleId || s.id === requestedStyleId);
-            if (foundStyle && foundStyle.topDownImage) return foundStyle.topDownImage;
+            let foundStyle = partObj.styles.find(s => {
+                let sId = s.styleId || s.id || "";
+                return sId.toLowerCase() === requestedStyleId;
+            });
+            
+            if (foundStyle && foundStyle.topDownImage) {
+                return foundStyle.topDownImage;
+            } else {
+                console.warn(`[IMAGE PARSER] Found part '${partObj.id}', but couldn't find style '${requestedStyleId}'. Falling back to default!`);
+            }
         }
 
         // 4. Fallbacks (Active style, first style, or base image)
