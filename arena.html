@@ -628,7 +628,12 @@
                         "I've pumped up a few balloon targets for you to pop! Let's say... 15 balloons total. Go ahead and pop 'em.",
                         "But watch yourself, I switched the stadium style on you! Now you've got some openings in the stadium walls to watch out for while you shred the red menace!"
                     ], () => {
-                        arenaStyle = 1; // CHANGE TO DANGER POCKETS!
+                        // --- THE FIX: USE THE NEW DATABASE RESOLVER! ---
+                        window.activeStadium = resolveStadium({ 
+                            stadiumType: "Basic", 
+                            stadiumId: "basic_threepockets" 
+                        }); 
+                        
                         this.combatPhase = 10;
                         document.getElementById('balloon-tally').style.display = 'block';
                         this.spawnBalloons(1);
@@ -1086,8 +1091,16 @@
         // 2. DYNAMIC 3D WALLS & LEDGES
         // ==========================================
         let wallColor = window.activeStadium.visuals.wallColor || (window.stadiumImages.floor ? 'transparent' : '#111');
+        
+        // --- NEW: THE FLOOR TRIM (Baseboard) ---
+        // This draws a thin seal slightly inward (radiusOffset: -2) to perfectly bridge the floor and the wall!
+        let trimColor = window.activeStadium.visuals.trimColor || wallColor;
+        drawWallSegments(trimColor, 6, -2);
+
+        // Draw the vertical Inner Wall
         drawWallSegments(wallColor, 8, 2);
 
+        // Draw the flat Outer Ledge
         let ledgeColor = window.activeStadium.visuals.ledgeColor || 'transparent';
         drawWallSegments(ledgeColor, 20, 14);
 
