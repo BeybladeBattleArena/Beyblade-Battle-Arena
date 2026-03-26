@@ -57,7 +57,7 @@ window.stadiumsDB = [
                     wallColor: "#404f93",  // The inner vertical drop
                     ledgeColor: "#4a5bab", // The flat top of the stadium rim
                 }
-            }
+            },
 			{
                 stadiumId: "offblue_threepockets",
                 name: "Tri-Pocket Battle Zone",
