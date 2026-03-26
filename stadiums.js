@@ -50,7 +50,7 @@ window.stadiumsDB = [
                 physics: { friction: 0.99, radiusMod: 0.9 },
                 ringOutZones: [], 
                 visuals: {
-                    1:1 perfectly square image!
+                    // 1:1 perfectly square image!
                     floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors

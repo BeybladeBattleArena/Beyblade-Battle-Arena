@@ -295,7 +295,7 @@ window.opponentsDB = [
         beyName: "Copycat", // Placeholder
         bitBeast: "Unknown", // Placeholder
         alwaysUnlocked: true,
-        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" },, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" }, 
         stats: {}, // Placeholder
         passives: [],
         attacks: [],
