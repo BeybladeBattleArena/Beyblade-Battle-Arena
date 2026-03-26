@@ -15,7 +15,7 @@ window.opponentsDB = [
 		spinGear: "sg_01",
 		bladeBase: "bb_11",
         alwaysUnlocked: false,
-        arenaStyle: 3, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_nopockets" }, 
         stats: { 
             hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
         passives: [],
@@ -37,7 +37,7 @@ window.opponentsDB = [
 		spinGear: { id: "sg_01", styleId: "SG_basic_pink" },
 		bladeBase: "bb_10",
         alwaysUnlocked: false,
-        arenaStyle: 1, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" }, 
         stats: { 
             hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
         passives: [],
@@ -81,7 +81,7 @@ window.opponentsDB = [
 		spinGear: "sg_01",
 		bladeBase: "bb_11",
         alwaysUnlocked: false,
-        arenaStyle: 1,
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" },
         stats: { 
             hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
         passives: [],
@@ -125,7 +125,7 @@ window.opponentsDB = [
 		spinGear: "sg_01",
 		bladeBase: "bb_15",
         alwaysUnlocked: true,
-        arenaStyle: 1, 
+        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
         stats: { 
             hp: 800, rpm: 4500, attack: 25, defense: 19, stamina: 17, speed: 12, weight: 62, mobility: 11, grip: 21, balance: 10, recoil: 11, recoilReduction: 7, spiritCharge: 5, cdr: 2 },
         passives: [],
@@ -170,7 +170,7 @@ window.opponentsDB = [
 		spinGear: "sg_05",
 		bladeBase: "bb_09",
         alwaysUnlocked: false,
-        arenaStyle: 1, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" },
         stats: { 
             hp: 116, rpm: 1170, attack: 21, defense: 12, stamina: 17, speed: 12, weight: 61, mobility: 10, grip: 21, balance: 10, recoil: 15, recoilReduction: 5, spiritCharge: 5, cdr: 1 },
         passives: [],
@@ -215,7 +215,7 @@ window.opponentsDB = [
 		spinGear: { id: "sg_01", styleId: "SG_basic_yellow" },
 		bladeBase: { id: "bb_03", styleId: "flatbase_yellow" },
         alwaysUnlocked: true,
-        arenaStyle: 2, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_twopockets" }, 
         stats: { 
             hp: 136, rpm: 1200, attack: 29, defense: 10, stamina: 16, speed: 12, weight: 75, mobility: 2, grip: 24, balance: 9, recoil: 17, recoilReduction: 4, spiritCharge: 5, cdr: 1 },
         passives: [],
@@ -295,7 +295,7 @@ window.opponentsDB = [
         beyName: "Copycat", // Placeholder
         bitBeast: "Unknown", // Placeholder
         alwaysUnlocked: true,
-        arenaStyle: 1, 
+        arenaStyle: { stadiumType: "Basic", stadiumId: "basic_threepockets" },, 
         stats: {}, // Placeholder
         passives: [],
         attacks: [],

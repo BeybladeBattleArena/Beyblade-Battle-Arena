@@ -346,7 +346,65 @@
     }
 
     const cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
-    let arenaStyle = cpuData.arenaStyle || Math.floor(Math.random() * 3) + 1;
+    // --- NEW: DYNAMIC NESTED STADIUM RESOLVER ---
+    function resolveStadium(arenaRequest) {
+        // 1. The Failsafe (If the DB breaks, the game still boots)
+        let fallbackStadium = { 
+            physics: { friction: 0.99, radiusMod: 0.9 }, ringOutZones: [], 
+            visuals: { wall: {color:"#222"}, ramp: {color:"#2a2a2a"}, basin: {color:"#333"}, lines: "#555", pocketLines: "#111" } 
+        };
+
+        if (!window.stadiumsDB) return fallbackStadium;
+
+        // 2. The Randomizer (If the Opponent didn't specify an arena)
+        if (!arenaRequest || !arenaRequest.stadiumType) {
+            let basicCategory = window.stadiumsDB.find(c => c.stadiumType === "Basic");
+            if (basicCategory && basicCategory.styles && basicCategory.styles.length > 0) {
+                // Pick a random Basic stadium so free-play feels varied!
+                let randomIdx = Math.floor(Math.random() * basicCategory.styles.length);
+                return basicCategory.styles[randomIdx];
+            }
+            return fallbackStadium;
+        }
+
+        // 3. Search for the exact requested Type and ID!
+        let typeCategory = window.stadiumsDB.find(c => c.stadiumType === arenaRequest.stadiumType);
+        if (typeCategory && typeCategory.styles) {
+            let exactStyle = typeCategory.styles.find(s => s.stadiumId === arenaRequest.stadiumId);
+            
+            // If we found it, return it!
+            if (exactStyle) return exactStyle;
+            
+            // If the ID was typed wrong, default to the first style in that category to prevent a crash
+            console.warn(`[STADIUM PARSER] Could not find stadiumId '${arenaRequest.stadiumId}'. Defaulting to first in category.`);
+            return typeCategory.styles[0]; 
+        }
+
+        console.warn(`[STADIUM PARSER] Could not find stadiumType '${arenaRequest.stadiumType}'. Falling back.`);
+        return fallbackStadium;
+    }
+
+    // Set the stadium based on the CPU's request!
+    window.activeStadium = resolveStadium(cpuData.arenaStyle);
+
+    // Preload Textures and Full Floors
+    window.stadiumImages = { wall: null, ramp: null, basin: null, floor: null };
+    if (window.activeStadium && window.activeStadium.visuals) {
+        
+        // Load traditional repeating textures
+        ['wall', 'ramp', 'basin'].forEach(part => {
+            if (window.activeStadium.visuals[part] && window.activeStadium.visuals[part].imgUrl) {
+                let img = new Image(); img.src = window.activeStadium.visuals[part].imgUrl;
+                window.stadiumImages[part] = img;
+            }
+        });
+
+        // Load the new 1:1 Custom Floor!
+        if (window.activeStadium.visuals.floorImgUrl) {
+            let fImg = new Image(); fImg.src = window.activeStadium.visuals.floorImgUrl;
+            window.stadiumImages.floor = fImg;
+        }
+    }
 
     document.getElementById('top-info-bar').style.display = 'none';
 
@@ -938,22 +996,100 @@
     function drawArena() {
         ctx.clearRect(0, 0, width, height);
         const cx = width / 2; const cy = height / 2;
-        const maxRadius = Math.min(width, height) / 2 * 0.9; 
+        const maxRadius = Math.min(width, height) / 2 * (window.activeStadium.physics.radiusMod || 0.9); 
 
-        ctx.beginPath(); ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2); ctx.fillStyle = '#222'; ctx.fill(); ctx.lineWidth = 10; ctx.strokeStyle = '#555'; ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); ctx.fillStyle = '#2a2a2a'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#444'; ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); ctx.fillStyle = '#333'; ctx.fill(); ctx.stroke();
-
-        ctx.strokeStyle = '#111'; 
-        ctx.lineWidth = 12;
-        if (arenaStyle === 1) {
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius, -Math.PI/2 - 0.2, -Math.PI/2 + 0.2); ctx.stroke();
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius, Math.PI/4 - 0.2, Math.PI/4 + 0.2); ctx.stroke();
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius, 3*Math.PI/4 - 0.2, 3*Math.PI/4 + 0.2); ctx.stroke();
-        } else if (arenaStyle === 2) {
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius, -0.4, 0.4); ctx.stroke();
-            ctx.beginPath(); ctx.arc(cx, cy, maxRadius, Math.PI - 0.4, Math.PI + 0.4); ctx.stroke();
+        // ==========================================
+        // HELPER 1: Paints Solid Colors or Repeating Textures
+        // ==========================================
+        function fillZone(radius, visualData, imgObj) {
+            ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2); 
+            if (imgObj && imgObj.complete && imgObj.naturalWidth !== 0) {
+                ctx.save(); ctx.translate(cx, cy); ctx.fillStyle = ctx.createPattern(imgObj, 'repeat'); ctx.fill(); ctx.restore();
+            } else {
+                ctx.fillStyle = visualData ? visualData.color || '#222' : '#222'; ctx.fill();
+            }
         }
+
+        // ==========================================
+        // HELPER 2: Paints 3D Walls while skipping pockets
+        // ==========================================
+        function drawWallSegments(color, lineWidth, radiusOffset) {
+            if (!color || color === 'transparent') return; 
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = "butt"; 
+
+            let drawRadius = maxRadius + radiusOffset;
+            let pockets = window.activeStadium.ringOutZones || [];
+            
+            if (pockets.length === 0) {
+                ctx.beginPath(); ctx.arc(cx, cy, drawRadius, 0, Math.PI * 2); ctx.stroke();
+                return;
+            }
+
+            let flatPockets = [];
+            pockets.forEach(p => {
+                if (p.start > p.end) {
+                    flatPockets.push({start: p.start, end: Math.PI * 2});
+                    flatPockets.push({start: 0, end: p.end});
+                } else {
+                    flatPockets.push({start: p.start, end: p.end});
+                }
+            });
+
+            flatPockets.sort((a, b) => a.start - b.start);
+
+            let cursor = 0;
+            flatPockets.forEach(p => {
+                if (cursor < p.start) {
+                    ctx.beginPath(); ctx.arc(cx, cy, drawRadius, cursor, p.start); ctx.stroke();
+                }
+                cursor = Math.max(cursor, p.end);
+            });
+
+            if (cursor < Math.PI * 2) {
+                ctx.beginPath(); ctx.arc(cx, cy, drawRadius, cursor, Math.PI * 2); ctx.stroke();
+            }
+        }
+
+        // ==========================================
+        // 1. DRAW THE FLOOR (1:1 Custom OR Classic)
+        // ==========================================
+        if (window.stadiumImages.floor && window.stadiumImages.floor.complete) {
+            // -- 1:1 CUSTOM IMAGE MODE --
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxRadius, 0, Math.PI * 2);
+            ctx.clip(); 
+            ctx.drawImage(window.stadiumImages.floor, cx - maxRadius, cy - maxRadius, maxRadius * 2, maxRadius * 2);
+            ctx.restore();
+
+            if (window.activeStadium.visuals.lines) {
+                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); 
+                ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = 2; ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); ctx.stroke();
+            }
+        } else {
+            // -- CLASSIC SOLID/TEXTURED MODE --
+            fillZone(maxRadius, window.activeStadium.visuals.wall, window.stadiumImages.wall);
+            ctx.lineWidth = 10; ctx.strokeStyle = window.activeStadium.visuals.lines || '#555'; ctx.stroke();
+            
+            fillZone(maxRadius * 0.65, window.activeStadium.visuals.ramp, window.stadiumImages.ramp);
+            ctx.lineWidth = 2; ctx.strokeStyle = window.activeStadium.visuals.lines || '#444'; ctx.stroke();
+            
+            fillZone(maxRadius * 0.3, window.activeStadium.visuals.basin, window.stadiumImages.basin);
+            ctx.stroke();
+        }
+
+        // ==========================================
+        // 2. DYNAMIC 3D WALLS & LEDGES
+        // ==========================================
+        let wallColor = window.activeStadium.visuals.wallColor || (window.stadiumImages.floor ? 'transparent' : '#111');
+        drawWallSegments(wallColor, 8, 2);
+
+        let ledgeColor = window.activeStadium.visuals.ledgeColor || 'transparent';
+        drawWallSegments(ledgeColor, 20, 14);
 
         if (gameState === "SELECT_LAUNCH") {
             let launchPct = window.playerMaxLaunchPct || 0.425;
@@ -2156,7 +2292,9 @@
                 else if (distFromCenter > rampRadius) { bey.vx += dirToCenterX * 0.068; bey.vy += dirToCenterY * 0.068; }
             }
 
-            let friction = 0.99 - (gripStat * 0.0002) - (bey.wobbleFactor * 0.02); 
+            // Use the stadium's custom friction!
+            let stadiumFriction = window.activeStadium.physics ? window.activeStadium.physics.friction : 0.99;
+            let friction = stadiumFriction - (gripStat * 0.0002) - (bey.wobbleFactor * 0.02); 
             if (bey.currentRpm <= 0) friction *= 0.90; 
 
             bey.vx *= friction; bey.vy *= friction;
@@ -2166,15 +2304,21 @@
             
             if (newDist + bey.radius > maxRadius) {
                 let hitGap = false;
-                
                 if (bey.z <= 0 && gameState === "BATTLE" && Date.now() - battleStartTime > 500) {
                     let angle = Math.atan2(bey.y - cy, bey.x - cx);
                     if (angle < 0) angle += Math.PI * 2; 
-                    
-                    if (arenaStyle === 1) { 
-                        if ((angle > 4.5 && angle < 4.9) || (angle > 0.5 && angle < 1.0) || (angle > 2.1 && angle < 2.6)) hitGap = true;
-                    } else if (arenaStyle === 2) { 
-                        if ((angle > 5.8 || angle < 0.5) || (angle > 2.7 && angle < 3.5)) hitGap = true;
+
+                    // --- NEW: DYNAMIC RING-OUT MATH ---
+                    if (window.activeStadium.ringOutZones) {
+                        for (let zone of window.activeStadium.ringOutZones) {
+                            if (zone.start > zone.end) {
+                                // Handles pockets that wrap across the 0-degree line (like basicStadium_3)
+                                if (angle >= zone.start || angle <= zone.end) hitGap = true;
+                            } else {
+                                // Standard pockets
+                                if (angle >= zone.start && angle <= zone.end) hitGap = true;
+                            }
+                        }
                     }
                 }
 
