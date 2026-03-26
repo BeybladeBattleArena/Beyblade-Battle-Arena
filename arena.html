@@ -1069,12 +1069,6 @@
             ctx.clip(); 
             ctx.drawImage(window.stadiumImages.floor, cx - maxRadius, cy - maxRadius, maxRadius * 2, maxRadius * 2);
             ctx.restore();
-
-            if (window.activeStadium.visuals.lines) {
-                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); 
-                ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = 2; ctx.stroke();
-                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); ctx.stroke();
-            }
         } else {
             // -- CLASSIC SOLID/TEXTURED MODE --
             fillZone(maxRadius, window.activeStadium.visuals.wall, window.stadiumImages.wall);
@@ -1082,9 +1076,43 @@
             
             fillZone(maxRadius * 0.65, window.activeStadium.visuals.ramp, window.stadiumImages.ramp);
             ctx.lineWidth = 2; ctx.strokeStyle = window.activeStadium.visuals.lines || '#444'; ctx.stroke();
+        }
+
+        // ==========================================
+        // 1.5 DRAW THE BASIN (Static or Spinning)
+        // ==========================================
+        let isSpinning = window.activeStadium.physics.basinSpinSpeed && window.stadiumImages.basin && window.stadiumImages.basin.complete;
+        
+        if (isSpinning) {
+            // ROTATE THE CAMERA!
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(window.basinAngle || 0);
             
+            ctx.beginPath(); ctx.arc(0, 0, maxRadius * 0.3, 0, Math.PI * 2);
+            ctx.clip(); // Mask the spinning image to a perfect circle
+            ctx.drawImage(window.stadiumImages.basin, -maxRadius * 0.3, -maxRadius * 0.3, maxRadius * 0.6, maxRadius * 0.6);
+            ctx.restore();
+            
+            // Draw the rim line around the spinning basin
+            ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); 
+            ctx.strokeStyle = window.activeStadium.visuals.lines || '#444';
+            ctx.lineWidth = 2; ctx.stroke();
+        } else if (!window.stadiumImages.floor) {
+            // Only paint the classic basin if we aren't using a 1:1 floor (which already has it painted on)
             fillZone(maxRadius * 0.3, window.activeStadium.visuals.basin, window.stadiumImages.basin);
             ctx.stroke();
+        }
+
+        // Draw faint translucent zone lines over the 1:1 art if requested
+        if (window.stadiumImages.floor && window.activeStadium.visuals.lines) {
+            ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); 
+            ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = 2; ctx.stroke();
+            
+            // The basin line is already drawn above if spinning, but if static:
+            if (!isSpinning) {
+                ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.3, 0, Math.PI * 2); ctx.stroke();
+            }
         }
 
         // ==========================================
@@ -2001,8 +2029,20 @@
     }
 
     function updatePhysics(dt) {
+        // --- NEW: ROTATING STADIUM TRACKER ---
+        let spinSpeed = window.activeStadium.physics.basinSpinSpeed || 0;
+        let basinGrip = window.activeStadium.physics.basinGrip || 0;
+        
+        if (spinSpeed !== 0 && !roundConcluding) {
+            window.basinAngle = (window.basinAngle || 0) + (spinSpeed * dt);
+        }
+        // -------------------------------------
+
+
         let inputX = 0; let inputY = 0;
         
+		
+		
         if (roundConcluding) {
             joyX = 0; joyY = 0;
         } else {
@@ -2253,6 +2293,24 @@
             let rpmRatio = bey.currentRpm / bey.maxRpm;
             let balanceStat = safeNum(bey.stats.balance, 0); 
             bey.wobbleFactor = rpmRatio > 0.45 ? 0 : (1.0 - (rpmRatio / 0.45)) * (1 - Math.min(0.8, balanceStat * 0.005));
+
+
+            // --- NEW: TANGENTIAL SPINNING FLOOR FORCE ---
+            let relX = bey.x - cx; 
+            let relY = bey.y - cy;
+            
+            // If the floor is spinning AND we are inside the 30% basin radius...
+            if (spinSpeed !== 0 && distFromCenter <= maxRadius * 0.3) {
+                // Calculate the tangential vector (sweeping in a circle)
+                let tangX = -relY;
+                let tangY = relX;
+                
+                // The further from the exact center you are, the faster you get swept!
+                bey.vx += tangX * spinSpeed * basinGrip;
+                bey.vy += tangY * spinSpeed * basinGrip;
+            }
+            // --------------------------------------------
+
 
             if (bey.currentRpm > 0) {
                 let spinSpeed = (bey.currentRpm * dt) / 25000; 

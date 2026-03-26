@@ -81,5 +81,60 @@ window.stadiumsDB = [
                 }
             }
         ]
+    },
+	{
+        stadiumType: "Center Vortex",
+        styles: [
+            {
+                stadiumId: "centervortex_twopockets",
+                name: "Cyclone Double Danger",
+                size: "average",
+                desc: "With the center of the stadium constantly spinning, keep an eye out for the large left and right ring-out areas!",
+                physics: { 
+                    friction: 0.99, 
+                    radiusMod: 0.9,
+                    basinSpinSpeed: 0.002, // Positive = Clockwise, Negative = Counter-Clockwise
+                    basinGrip: 0.05        // How strongly the spinning floor pushes the Beyblade
+                },
+                ringOutZones: [
+                    { start: 5.8, end: 0.5 }, // Right pocket (Wraps over 0)
+                    { start: 2.7, end: 3.5 }  // Left pocket 
+					],
+                visuals: {
+                    floorImgUrl: "./images/stadiums/center_vortex/floor_centervortex.png", 
+                    // The dynamic 3D rim colors
+					trimColor: "#1b1a1a",
+                    wallColor: "#636263",  // The inner vertical drop
+                    ledgeColor: "#525252", // The flat top of the stadium rim
+					basin: { imgUrl: "./images/stadiums/center_vortex/spinningbasin_centervortex.png" }
+                }
+            },
+			{
+                stadiumId: "centervortex_quadpockets",
+                name: "Cyclone Frenetic Foursome",
+                size: "average",
+                desc: "You'll have to keep your eyes peeled in all directions while the center vortex causes spinning chaos!",
+                physics: { 
+                    friction: 0.99, 
+                    radiusMod: 0.9,
+                    basinSpinSpeed: 0.002, // Positive = Clockwise, Negative = Counter-Clockwise
+                    basinGrip: 0.05        // How strongly the spinning floor pushes the Beyblade
+                },
+                ringOutZones: [
+                    { start: 5.30, end: 5.70 }, // Top Right
+                    { start: 0.59, end: 0.99 }, // Bottom Right
+                    { start: 2.16, end: 2.56 }, // Bottom Left
+                    { start: 3.73, end: 4.13 }  // Top Left
+                ],
+                visuals: {
+                    floorImgUrl: "./images/stadiums/center_vortex/floor_centervortex.png", 
+                    // The dynamic 3D rim colors
+					trimColor: "#1b1a1a",
+                    wallColor: "#636263",  // The inner vertical drop
+                    ledgeColor: "#525252", // The flat top of the stadium rim
+					basin: { imgUrl: "./images/stadiums/center_vortex/spinningbasin_centervortex.png" }
+                }
+            }
+        ]
     }
 ];

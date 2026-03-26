@@ -125,7 +125,7 @@ window.opponentsDB = [
 		spinGear: "sg_01",
 		bladeBase: "bb_15",
         alwaysUnlocked: true,
-        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
+        arenaStyle: { stadiumType: "Center Vortex", stadiumId: "centervortex_quadpockets" }, 
         stats: { 
             hp: 800, rpm: 4500, attack: 25, defense: 19, stamina: 17, speed: 12, weight: 62, mobility: 11, grip: 21, balance: 10, recoil: 11, recoilReduction: 7, spiritCharge: 5, cdr: 2 },
         passives: [],
