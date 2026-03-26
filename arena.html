@@ -2298,6 +2298,7 @@
             // --- NEW: TANGENTIAL SPINNING FLOOR FORCE ---
             let relX = bey.x - cx; 
             let relY = bey.y - cy;
+			let currentDist = Math.sqrt(relX * relX + relY * relY);
             
             // If the floor is spinning AND we are inside the 30% basin radius...
             if (spinSpeed !== 0 && distFromCenter <= maxRadius * 0.3) {
