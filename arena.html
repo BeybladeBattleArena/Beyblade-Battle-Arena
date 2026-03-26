@@ -1621,7 +1621,7 @@
                             attacker.skillState.shootDirY = (jX !== 0 || jY !== 0) ? jY : Math.sin(attacker.rotation);
                             attacker.isRpmFlashing = true;
                             
-                            let chargeSfx = new Audio('./audio/sounds/spinburst_chargeup.wav');
+                            let chargeSfx = new Audio('./audio/sounds/Spinburst_chargeup.wav');
                             chargeSfx.volume = 0.5; chargeSfx.play().catch(e=>{});
                         }
                         return; // Stop normal execution
@@ -1947,7 +1947,7 @@
                     // Spawn Hit Effect!
                     activeHitEffects.push({
                         x: proj.x, y: proj.y, angle: proj.angle,
-                        anim: { basePath: './images/beyblade_parts/arena_props/effects/spinburst_hiteffect', ext: '.png', frameCount: 6, currentFrame: 1, timer: 0, frameSpeed: 40 }
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst_hiteffect', ext: '.png', frameCount: 6, currentFrame: 1, timer: 0, frameSpeed: 40 }
                     });
                 }
                 activeProjectiles.splice(i, 1); // Delete Projectile
@@ -2001,7 +2001,7 @@
                     bey.skillState.actionState = "IDLE";
                     bey.isRpmFlashing = false;
 
-                    let shootSfx = new Audio('./audio/sounds/spinburst_shoot.wav');
+                    let shootSfx = new Audio('./audio/sounds/Spinburst_shoot.wav');
                     shootSfx.volume = 0.6; shootSfx.play().catch(e=>{});
 
                     // --- TWEAKABLE VARIABLES ---
@@ -2030,7 +2030,7 @@
                         damage: dmg,
                         owner: bey,
                         radius: 20, // Projectile Hitbox Size
-                        anim: { basePath: './images/beyblade_parts/arena_props/effects/spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/Spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
                     });
                 }
                 return; // SKIP NORMAL PHYSICS WHILE ANCHORED!
