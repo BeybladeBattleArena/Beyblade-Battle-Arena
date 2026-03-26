@@ -1112,7 +1112,7 @@ window.SkillEngine = {
             
             attacker.activeAura = "rgba(0, 150, 255, 1.0)"; 
             attacker.activeAuraDuration = 600;
-            attacker.tempRecoilReduction = 2; 
+            attacker.tempRecoilReduction = 3; 
             attacker.tempDefense = 30; 
         }
 		else if (attackName === "Meteor Dash") {
@@ -1191,10 +1191,49 @@ window.SkillEngine = {
             attacker.tempDefense = 20; 
         }
         else if (attackName === "Cross Smash") {
-            attacker.vx += dirX * 14;
-            attacker.vy += dirY * 14;
-            attacker.activeAura = "rgba(255, 165, 0, 0.8)";
+            let dashX = 0; 
+            let dashY = 0;
+
+            if (inputX !== 0 || inputY !== 0) {
+                dashX = inputX;
+                dashY = inputY;
+            } 
+            else {
+                dashX = dirX;
+                dashY = dirY;
+            }
+
+            let dashPower = 6; 
+            attacker.vx += dashX * dashPower;
+            attacker.vy += dashY * dashPower;
+            
+            attacker.activeAura = "rgba(3, 66, 215, 0.8)"; 
             attacker.activeAuraDuration = 600;
+			attacker.tempAttack = 2
+            attacker.tempRecoilReduction = 1; 
+            attacker.tempDefense = 22;
+        }
+		else if (attackName === "Cross Lance") {
+            let dashX = 0; 
+            let dashY = 0;
+
+            if (inputX !== 0 || inputY !== 0) {
+                dashX = inputX;
+                dashY = inputY;
+            } 
+            else {
+                dashX = dirX;
+                dashY = dirY;
+            }
+			
+			let dashPower = 6; 
+            attacker.vx += dashX * dashPower;
+            attacker.vy += dashY * dashPower;
+            attacker.currentHp -= 3; 
+            attacker.activeAura = "rgba(176, 0, 0, 0.8)";
+            attacker.activeAuraDuration = 600;
+			attacker.tempAttack = 3; 
+            attacker.tempDefense = 15; 
         }
         else if (attackName === "Barrage Attack") {
 			attacker.skillState.barrageDashesLeft = 4;
@@ -1222,6 +1261,7 @@ window.SkillEngine = {
             attacker.activeAura = "rgba(139, 69, 19, 0.8)";
             attacker.activeAuraDuration = 600;
 			attacker.tempAttack = weightMod;
+			attacker.tempEndurance = 3;
         }
 else if (attackName === "Sharp Shooter") {
             // 1. Predict where the opponent is GOING to be (heading them off)
@@ -1261,7 +1301,7 @@ else if (attackName === "Sharp Shooter") {
             }, 300);
         }
 		else if (attackName === "Cyclone Loop") {
-            let dashPower = 16; // Very fast initial burst
+            let dashPower = 14; // Very fast initial burst
             
             // Dash toward the joystick input, or default to the opponent
             let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
