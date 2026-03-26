@@ -185,6 +185,11 @@ window.SkillsDB = {
             desc: "Execute a tight offensive loop in the same direction as the beyblade's spin.",
             execute: function() {}
         },
+		"Spin Burst": {
+            name: "Spin Burst", cd: 8,
+            desc: "Charge the force of the beyblade's spin energy into a projectile force. Beware, you are anchored while this skill charges. This skill is powered using RPM.",
+			//no internal function, this is handled entirely by arena.html; tweak skill variables there
+        },
         "Cross Smash": {
             name: "Cross Smash", cd: 6,
             desc: "A devastating, concentrated blow utilizing the secondary contact points of a Sub-Attack Ring.",

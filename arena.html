@@ -1342,6 +1342,7 @@
 
     let playerBey, cpuBey; let lastTime = null; 
     let particles = []; let burstParticles = [];
+	let activeProjectiles = []; let activeHitEffects = [];
 	window.particles = particles;	
 	
 	// --- MODULAR ANIMATION CACHE ---
@@ -1601,7 +1602,33 @@
             burstParticles = [];
 
             if (window.SkillEngine) {
+                activeProjectiles = []; activeHitEffects = []; // Clear old bullets
+            
+            if (window.SkillEngine) {
                 window.SkillEngine.init(playerBey, cpuBey);
+                
+                // Monkey-Patch the engine to handle Spin Burst dynamically
+                let originalExecute = window.SkillEngine.executeAttack;
+                window.SkillEngine.executeAttack = function(skillName, attacker, defender, jX, jY) {
+                    if (skillName === "Spin Burst") {
+                        if (attacker.currentRpm >= 70 && attacker.skillState.actionState !== "SPIN_BURST_CHARGE") {
+                            attacker.currentRpm -= 70; // TWEAKABLE: RPM Cost
+                            attacker.skillState.actionState = "SPIN_BURST_CHARGE";
+                            attacker.skillState.chargeTimer = 800; // TWEAKABLE: Charge Time in MS
+                            
+                            // Determine Shoot Direction (Prioritize Joystick, fallback to visual rotation)
+                            attacker.skillState.shootDirX = (jX !== 0 || jY !== 0) ? jX : Math.cos(attacker.rotation);
+                            attacker.skillState.shootDirY = (jX !== 0 || jY !== 0) ? jY : Math.sin(attacker.rotation);
+                            attacker.isRpmFlashing = true;
+                            
+                            let chargeSfx = new Audio('./audio/sounds/spinburst_chargeup.wav');
+                            chargeSfx.volume = 0.5; chargeSfx.play().catch(e=>{});
+                        }
+                        return; // Stop normal execution
+                    }
+                    originalExecute.call(this, skillName, attacker, defender, jX, jY); // Pass to standard skills
+                };
+				
                 if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
                 if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
             }
@@ -1775,7 +1802,12 @@
             rpmTextEl.innerText = Math.max(0, Math.floor(bey.currentRpm));
             
             const currentHue = rpmRatio * 120;
-            const currentColor = `hsl(${currentHue}, 100%, 50%)`;
+            let currentColor = `hsl(${currentHue}, 100%, 50%)`;
+            // --- NEW: SPIN BURST BLUE FLASH ---
+            if (bey.isRpmFlashing) {
+                let pulse = (Math.sin(performance.now() * 0.015) + 1) / 2; // Pulses between 0 and 1
+                currentColor = `rgba(0, 200, 255, ${0.5 + pulse * 0.5})`; // High-tech Cyan/Blue
+            }
             rpmWrapperEl.style.color = currentColor;
             rpmWrapperEl.style.textShadow = `0 0 8px ${currentColor}`;
         }
@@ -1873,6 +1905,63 @@
         const basinRadius = maxRadius * 0.3; const rampRadius = maxRadius * 0.65;
 
         TutorialManager.update(dt, playerBey, cx, cy);
+		
+		for (let i = activeProjectiles.length - 1; i >= 0; i--) {
+            let proj = activeProjectiles[i];
+            proj.x += proj.vx * (dt * 0.06); 
+            proj.y += proj.vy * (dt * 0.06);
+
+            proj.anim.timer += dt;
+            if (proj.anim.timer >= proj.anim.frameSpeed) {
+                proj.anim.timer = 0; proj.anim.currentFrame++;
+            }
+
+            let hitEnemy = false; let hitWall = false;
+
+            // Check Wall Collision
+            let distFromCenter = Math.sqrt((proj.x - cx)**2 + (proj.y - cy)**2);
+            if (distFromCenter > maxRadius * 0.85) hitWall = true;
+
+            // Check Enemy Collision
+            let enemy = proj.owner === playerBey ? cpuBey : playerBey;
+            if (!hitWall && !enemy.isGhost && !enemy.isBursted && !enemy.ringOut) {
+                let pDist = Math.sqrt((proj.x - enemy.x)**2 + (proj.y - enemy.y)**2);
+                if (pDist < proj.radius + enemy.radius) hitEnemy = true;
+            }
+
+            // Did it hit something, or did the animation finish?
+            if (hitWall || hitEnemy || proj.anim.currentFrame > proj.anim.frameCount) {
+                if (hitEnemy) {
+                    enemy.currentHp -= proj.damage;
+                    enemy.currentRpm -= proj.damage * 1.5; // Stun/Drain effect
+                    enemy.currentHp = Math.max(0, enemy.currentHp);
+
+                    // Add impact knockback to the enemy!
+                    enemy.vx += proj.vx * 0.3; enemy.vy += proj.vy * 0.3;
+
+                    if (enemy.currentHp <= 0) triggerBurst(enemy, Math.sqrt(proj.vx**2 + proj.vy**2), proj.vx, proj.vy);
+                }
+
+                if (hitWall || hitEnemy) {
+                    // Spawn Hit Effect!
+                    activeHitEffects.push({
+                        x: proj.x, y: proj.y, angle: proj.angle,
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/spinburst_hiteffect', ext: '.png', frameCount: 6, currentFrame: 1, timer: 0, frameSpeed: 40 }
+                    });
+                }
+                activeProjectiles.splice(i, 1); // Delete Projectile
+            }
+        }
+        
+        // Update Hit Effect Animations
+        for (let i = activeHitEffects.length - 1; i >= 0; i--) {
+            let eff = activeHitEffects[i];
+            eff.anim.timer += dt;
+            if (eff.anim.timer >= eff.anim.frameSpeed) {
+                eff.anim.timer = 0; eff.anim.currentFrame++;
+            }
+            if (eff.anim.currentFrame > eff.anim.frameCount) activeHitEffects.splice(i, 1);
+        }
 
         // --- BALLOON COLLISION LOGIC ---
         if (activeBalloons.length > 0 && playerBey.z <= 0 && !playerBey.isBursted) {
@@ -1899,6 +1988,52 @@
 
         function processBey(bey, isPlayer) {
             if (!bey || bey.isBursted) return;
+			
+			if (bey.skillState.actionState === "SPIN_BURST_CHARGE") {
+                // 1. Anchor the Beyblade (Rapid friction brake)
+                bey.vx *= 0.1; 
+                bey.vy *= 0.1;
+                bey.skillState.chargeTimer -= dt;
+
+                if (bey.skillState.chargeTimer <= 0) {
+                    // 2. FIRE THE PROJECTILE!
+                    bey.skillState.actionState = "IDLE";
+                    bey.isRpmFlashing = false;
+
+                    let shootSfx = new Audio('./audio/sounds/spinburst_shoot.wav');
+                    shootSfx.volume = 0.6; shootSfx.play().catch(e=>{});
+
+                    // --- TWEAKABLE VARIABLES ---
+                    let projSpeed = 1.0;  // How fast the projectile moves (Multiplied by dt)
+                    let blowbackForce = 8; // How far the Beyblade gets pushed back
+                    
+                    // DAMAGE FORMULA: 70 Base + (Attack * 0.8) + (Stamina * 0.5) + (Current RPM * 0.005)
+                    let dmg = 70 + ((bey.stats.attack || 0) * 0.8) + ((bey.stats.stamina || 0) * 0.5) + (bey.currentRpm * 0.005);
+                    // ---------------------------
+
+                    // Calculate Shot Direction
+                    let dx = bey.skillState.shootDirX; let dy = bey.skillState.shootDirY;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist === 0) { dx = 0; dy = -1; dist = 1; } // Failsafe (Shoot North)
+                    let dirX = dx/dist; let dirY = dy/dist;
+
+                    // 3. Apply Blowback (Push in opposite direction)
+                    bey.vx = -dirX * blowbackForce;
+                    bey.vy = -dirY * blowbackForce;
+
+                    // 4. Spawn the Projectile
+                    activeProjectiles.push({
+                        x: bey.x, y: bey.y,
+                        vx: dirX * projSpeed, vy: dirY * projSpeed,
+                        angle: Math.atan2(dy, dx) + (Math.PI / 2), // +90 deg because art faces North
+                        damage: dmg,
+                        owner: bey,
+                        radius: 20, // Projectile Hitbox Size
+                        anim: { basePath: './images/beyblade_parts/arena_props/effects/spinburst', ext: '.png', frameCount: 13, currentFrame: 1, timer: 0, frameSpeed: 30 } // frameSpeed controls dissipation time!
+                    });
+                }
+                return; // SKIP NORMAL PHYSICS WHILE ANCHORED!
+            }
 
 			if (bey.activeAuraDuration > 0) {
                 bey.activeAuraDuration -= dt;
@@ -2500,6 +2635,26 @@
 
         // Loop through the sorted array and draw them
         renderQueue.forEach(bey => drawBey(bey));
+		
+		// --- DRAW PROJECTILES & HIT EFFECTS ---
+        ctx.globalCompositeOperation = 'screen';
+        activeProjectiles.forEach(proj => {
+            let img = getAnimFrame(proj.anim);
+            if (img && img.complete) {
+                ctx.save(); ctx.translate(proj.x, proj.y); ctx.rotate(proj.angle);
+                ctx.drawImage(img, -40, -40, 80, 80); // TWEAKABLE: Size of projectile
+                ctx.restore();
+            }
+        });
+        activeHitEffects.forEach(effect => {
+            let img = getAnimFrame(effect.anim);
+            if (img && img.complete) {
+                ctx.save(); ctx.translate(effect.x, effect.y); ctx.rotate(effect.angle);
+                ctx.drawImage(img, -50, -50, 100, 100); // TWEAKABLE: Size of Hit Effect
+                ctx.restore();
+            }
+        });
+        ctx.globalCompositeOperation = 'source-over'; // Reset blend mode
         
         for (let i = 0; i < burstParticles.length; i++) {
             let bp = burstParticles[i];

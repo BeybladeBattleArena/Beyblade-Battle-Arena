@@ -227,7 +227,8 @@ window.opponentsDB = [
         ],
         winDialogue: [
             "Way to go, loser. Don't cry too hard, though.",
-            "Nobody ever beats me, hahaha!"
+            "Nobody ever beats me, hahaha!",
+			"...What do you mean, not tournament legal?"
         ],
         loseDialogue: [
             "You beat Spin Cutter? But I modified it to be unbeatable...",
