@@ -34,7 +34,7 @@ window.opponentsDB = [
 		bitChip: "bc_05",
 		attackRing: "ar_12",
 		weightDisk: "wd_07",
-		spinGear: { id: "sg_01", styleID: "SG_basic_pink" },
+		spinGear: { id: "sg_01", styleId: "SG_basic_pink" },
 		bladeBase: "bb_10",
         alwaysUnlocked: false,
         arenaStyle: 1, 
