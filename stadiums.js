@@ -51,7 +51,7 @@ window.stadiumsDB = [
                 ringOutZones: [], 
                 visuals: {
                     1:1 perfectly square image!
-                    floorImgUrl: "./images/stadiums/official_blue/floor._offblue.png", 
+                    floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors
                     wallColor: "#404f93",  // The inner vertical drop
@@ -71,7 +71,7 @@ window.stadiumsDB = [
                 ], 
                 visuals: {
                     1:1 perfectly square image!
-                    floorImgUrl: "./images/stadiums/official_blue/floor._offblue.png", 
+                    floorImgUrl: "./images/stadiums/official_blue/floor_offblue.png", 
                     
                     // The dynamic 3D rim colors
                     wallColor: "#404f93",  // The inner vertical drop
