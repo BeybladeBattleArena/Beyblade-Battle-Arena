@@ -138,5 +138,28 @@ window.stadiumsDB = [
                 }
             }
         ]
-    }
+    },
+	{
+        stadiumType: "Super Duel",
+        styles: [
+            {
+                stadiumId: "superduel_nowalls",
+                name: "Super Duel Stadium",
+                size: "average",
+                desc: "A dangerous stadium with no walls, meant for strong contenders.",
+                physics: { friction: 0.99, radiusMod: 0.9 },
+                ringOutZones: [
+                    { start: 0, end: 6.29 }
+				],					
+                visuals: {
+                    // 1:1 perfectly square image!
+                    floorImgUrl: "./images/stadiums/super_duel/floor_superduel.png", 
+                    
+                    // The dynamic 3D rim colors
+                    lines: "rgba(211, 13, 13, 0.8)", 
+                    pocketLines: "transparent" // Hide the red danger lines since the whole edge is danger
+                }
+            }
+        ]
+    },
 ];
