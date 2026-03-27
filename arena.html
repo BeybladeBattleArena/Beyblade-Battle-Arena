@@ -2181,6 +2181,31 @@
         }
 
         function processBey(bey, isPlayer) {
+		// ==========================================
+        // --- NEW: THE ABYSS FALL (RING OUT) OVERRIDE ---
+        // ==========================================
+        if (bey.ringOut) {
+            // 1. Fade to black/transparent
+            if (bey.opacity === undefined) bey.opacity = 1;
+            bey.opacity -= dt * 0.001; // Fades out over 1 second
+            bey.opacity = Math.max(0, bey.opacity);
+
+            // 2. Shrink to simulate falling down a pit!
+            if (bey.scale === undefined) bey.scale = 1;
+            bey.scale -= dt * 0.0008; 
+            bey.scale = Math.max(0.3, bey.scale);
+
+            // 3. Continue exact trajectory off the screen
+            bey.x += bey.vx * (dt * 0.06);
+            bey.y += bey.vy * (dt * 0.06);
+
+            // 4. Keep it visually spinning while it falls
+            bey.rotation += (bey.currentRpm * 0.0002) * dt;
+
+            // CRITICAL: Stop reading the rest of the physics function! 
+            // (Skips gravity, friction, and wall collisions!)
+            return; 
+        }
             if (!bey || bey.isBursted) return;
 			
 			if (bey.skillState.actionState === "SPIN_BURST_CHARGE") {
@@ -2678,6 +2703,8 @@
 
             ctx.save();
             ctx.translate(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY - renderZ);
+			if (bey.opacity !== undefined) ctx.globalAlpha = bey.opacity;
+			if (bey.scale !== undefined) ctx.scale(bey.scale, bey.scale);
             
             let rpmRatio = bey.maxRpm > 0 ? bey.currentRpm / bey.maxRpm : 0;
             let windFactor = 0;
