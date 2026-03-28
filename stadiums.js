@@ -26,7 +26,7 @@ window.stadiumsDB = [
                 visuals: { wall: { color: "#222" }, ramp: { color: "#2a2a2a" }, basin: { color: "#333" }, lines: "#555", pocketLines: "#111" }
             },
             {
-                stadiumId: "basic_twopocket",
+                stadiumId: "basic_twopockets",
                 name: "Basic Stadium: Dual Chasm",
                 size: "average",
                 desc: "An aggressive arena with two massive side-pockets.",
