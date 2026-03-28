@@ -2567,6 +2567,8 @@
                 let baseBounce = impactSpeed * 0.8 + 4.5; 
 				pKnockbackMod *= (1 - safeNum(playerBey.stats.knockbackResist, 0));
                 cKnockbackMod *= (1 - safeNum(cpuBey.stats.knockbackResist, 0));
+				pKnockbackMod *= (1 + safeNum(cpuBey.stats.knockbackPower, 0));
+				cKnockbackMod *= (1 + safeNum(playerBey.stats.knockbackPower, 0));
                 
                 playerBey.vx = -nx * baseBounce * pKnockbackMod; playerBey.vy = -ny * baseBounce * pKnockbackMod;
                 cpuBey.vx = nx * baseBounce * cKnockbackMod; cpuBey.vy = ny * baseBounce * cKnockbackMod;

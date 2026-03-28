@@ -162,4 +162,50 @@ window.stadiumsDB = [
             }
         ]
     },
+	{
+        stadiumType: "Park Satdium",
+        styles: [
+			{
+                stadiumId: "parkstadium_threepockets",
+                name: "Tri-Pocket Battle Zone",
+                size: "average",
+                desc: "Standard, official style arena in the park. Features 3 Wall Pockets, allowing for ring outs.",
+                physics: { friction: 0.99, radiusMod: 0.9 },
+                ringOutZones: [
+                    { start: 4.41, end: 5.01 }, // Top
+                    { start: 0.22, end: 0.82 }, // Bottom right
+                    { start: 2.32, end: 2.92 }  // Bottom left
+                ], 
+                visuals: {
+                    // 1:1 perfectly square image!
+                    floorImgUrl: "./images/stadiums/park_stadium/floor_parkstadium.png", 
+                    
+                    // The dynamic 3D rim colors
+					trimColor: "#4d4d50",
+                    wallColor: "#4d4d52",  // The inner vertical drop
+                    ledgeColor: "#4e5256", // The flat top of the stadium rim
+                }
+            },
+			{
+                stadiumId: "parkstadium_twopockets",
+                name: "Dual-Pocket Battle Zone",
+                size: "average",
+                desc: "An aggressive arena with two massive side-pockets.",
+                physics: { friction: 0.99, radiusMod: 0.9 },
+                ringOutZones: [
+                    { start: 5.8, end: 0.5 }, // Right pocket (Wraps over 0)
+                    { start: 2.7, end: 3.5 }  // Left pocket
+                ],
+                visuals: {
+                    // 1:1 perfectly square image!
+                    floorImgUrl: "./images/stadiums/park_stadium/floor_parkstadium.png", 
+                    
+                    // The dynamic 3D rim colors
+					trimColor: "#4d4d50",
+                    wallColor: "#4d4d52",  // The inner vertical drop
+                    ledgeColor: "#4e5256", // The flat top of the stadium rim
+                }
+            }
+        ]
+    },
 ];

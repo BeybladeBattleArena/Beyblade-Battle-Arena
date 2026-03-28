@@ -49,14 +49,30 @@ window.SkillsDB = {
             desc: "Reflects 8% of incoming HP and RPM damage back at the attacker. Cooldown: 18s.",
             apply: function(bey) {} 
         },
+		"Impact Point": {
+            name: "Impact Point",
+            desc: "Impart an additional 5% knockback when impacting opponents.",
+            apply: function(bey) {
+				bey.stats = bey.stats || {};
+                bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.05; 
+            }				
+        },
+		"Rolling Collision": {
+            name: "Rolling Collision",
+            desc: "Reduce knockback taken by 4% when impacting opponents.",
+            apply: function(bey) {
+				bey.stats = bey.stats || {};
+                bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.04; 
+            }				
+        },
 
         // --- NEW EQUIPMENT PASSIVES ---
         "Wing Guard": {
             name: "Wing Guard",
-            desc: "Increases Defense by 5 and reduces knockback taken.",
+            desc: "Increases Defense by 5 and reduces knockback taken by 2%.",
             apply: function(bey) {
                 bey.stats.defense = (bey.stats.defense || 0) + 5;
-                bey.stats.weight = (bey.stats.weight || 10) + 5; 
+                bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + .02; 
             }
         },
 		"Rollback Drift": {
@@ -205,6 +221,11 @@ window.SkillsDB = {
             desc: "Halts movement completely to brace for impact, massively reducing incoming damage for 2 seconds.",
             execute: function() {}
         },
+		"Concentrate Impact": {
+            name: "Concentrate Impact", cd: 8,
+            desc: "Temporarily boost knockback power by 20% for 1.5 seconds.",
+            execute: function() {}
+        },
         "Meteor Dash": {
             name: "Meteor Dash", cd: 7,
             desc: "Draw out a wellspring of fighting spirit to mow down your foes, but be careful; using this much power has temporary drawbacks.",
@@ -292,6 +313,7 @@ window.SkillEngine = {
 				meteorDebuffTimer: 0,
 				meteorEndPenalty: 0,
                 defenseBoostTimer: 0,
+				impactBoostTimer: 0,
                 barrageDashesLeft: 0,
 				barrageDashTimer: 0,
 				modeChangeActive: false,
@@ -578,6 +600,14 @@ window.SkillEngine = {
                 if (state.defenseBoostTimer <= 0) {
                     bey.stats.defense -= 50; 
                     bey.stats.recoilReduction -= 50;
+                }
+            }
+			
+			if (state.impactBoostTimer > 0) {
+                state.impactBoostTimer -= dt;
+                if (state.impactBoostTimer <= 0) {
+                    bey.stats.recoilReduction -= 20;
+					bey.stats.knockbackPower -= 0.2; 
                 }
             }
 			
@@ -1256,6 +1286,22 @@ window.SkillEngine = {
             attacker.skillState.defenseBoostTimer = 2000;
             attacker.activeAura = "rgba(0, 0, 255, 0.8)";
             attacker.activeAuraDuration = 2000;
+        }
+		else if (attackName === "Concentrate Impact") {
+			attacker.tempSpeed = 1;
+			attacker.tempMobility = 1;
+            attacker.activeAura = "rgba(236, 155, 56, 0.8)";
+            attacker.activeAuraDuration = 1500;
+			
+			// PREVENT DOUBLE-BUFFING: Only apply the math if the buff isn't already active!
+            if (!(attacker.skillState.impactBoostTimer > 0)) {
+                // SAFE MATH: Fallback to 0 if the stat doesn't exist yet
+                attacker.stats.recoilReduction = (attacker.stats.recoilReduction || 0) + 20;
+                attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.2;
+            }
+            
+            // Set (or refresh) the timer
+            attacker.skillState.impactBoostTimer = 1500;
         }
         else if (attackName === "Heavy Ram") {
             let weightMod = (attacker.stats.weight || 10) * 0.3;
