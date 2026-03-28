@@ -2402,7 +2402,7 @@
 
             let newDist = Math.sqrt((bey.x - cx)**2 + (bey.y - cy)**2);
             
-            if (newDist + bey.radius > maxRadius) {
+            if (newDist + bey.radius > maxRadius && newDist < maxRadius * 2 && !bey.isGhost) {
                 let hitGap = false;
                 if (bey.z <= 0 && gameState === "BATTLE" && Date.now() - battleStartTime > 500) {
                     let angle = Math.atan2(bey.y - cy, bey.x - cx);
