@@ -1345,7 +1345,22 @@
         gameState = "LAUNCHING"; 
         
         if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
-            window.AudioManager.playBGM('./audio/music/Spin_It_ForFreeBattle.wav', 5.128125, 0.5);
+            // 1. Define our standard fallback theme and loop point
+            let trackToPlay = './audio/music/Spin_It_ForFreeBattle.wav';
+            let loopPoint = 5.128125;
+
+            // 2. Check if the opponent exists AND has a custom theme
+            if (typeof cpuData !== 'undefined' && cpuData && cpuData.bgmTrack) {
+                trackToPlay = cpuData.bgmTrack;
+                
+                // If they have a custom loop point, grab that too!
+                if (cpuData.bgmLoopPoint !== undefined) {
+                    loopPoint = cpuData.bgmLoopPoint;
+                }
+            }
+
+            // 3. Play the music!
+            window.AudioManager.playBGM(trackToPlay, loopPoint, 0.5);
         }
 
         let pxPerTooth = ripcordData.teethPixelLength / ripcordData.totalTeeth;
