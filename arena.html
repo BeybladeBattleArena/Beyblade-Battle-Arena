@@ -1908,6 +1908,13 @@
             window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
             return; 
         }
+		
+		if (playerBey.skillState.actionState === "TELEPORT_AIM" && skill.name === "Phantom Warp") {
+            window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
+            return; 
+        }
+		
+		
         if (skill.currentCd <= 0 && window.SkillEngine) {
             window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
             let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100);
