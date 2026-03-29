@@ -163,7 +163,7 @@ window.stadiumsDB = [
         ]
     },
 	{
-        stadiumType: "Park Satdium",
+        stadiumType: "Park Stadium",
         styles: [
 			{
                 stadiumId: "parkstadium_threepockets",
