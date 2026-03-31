@@ -269,6 +269,7 @@
         const bbImg = getSafeImage(currentSave.parts.bladeBase, true);
         const sgImg = getSafeImage(currentSave.parts.spinGear, true);
         const wdImg = getSafeImage(currentSave.parts.weightDisk, true);
+		const sarImg = getSafeImage(currentSave.parts.subAttackRing, true);
         const arImg = getSafeImage(currentSave.parts.attackRing, true);
         const bcImg = getSafeImage(currentSave.parts.bitChip, true);
 
@@ -276,8 +277,9 @@
             ${bbImg ? `<img src="${bbImg}" class="hub-part" style="z-index: 1;">` : ''}
             ${sgImg ? `<img src="${sgImg}" class="hub-part" style="z-index: 2;">` : ''}
             ${wdImg ? `<img src="${wdImg}" class="hub-part" style="z-index: 3;">` : ''}
-            ${arImg ? `<img src="${arImg}" class="hub-part" style="z-index: 4;">` : ''}
-            ${bcImg ? `<img src="${bcImg}" class="hub-part" style="z-index: 5;">` : ''}
+			${sarImg ? `<img src="${sarImg}" class="hub-part" style="z-index: 4;">` : ''}
+            ${arImg ? `<img src="${arImg}" class="hub-part" style="z-index: 5;">` : ''}
+            ${bcImg ? `<img src="${bcImg}" class="hub-part" style="z-index: 6;">` : ''}
         `;
     };
 
