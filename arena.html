@@ -340,51 +340,12 @@
     const playerBuild = window.ActiveBey || JSON.parse(localStorage.getItem('activeBey'));
     const savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
     
+		
 	
-// ==========================================
-// --- ARENA DATA RECOVERY & COURSE LOADER ---
-// ==========================================
-
-// 1. RECOVER PLAYER BEYBLADE
-if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
-    let saveIndex = window.PlayerData.featuredBuildIndex || 0;
-    window.ActiveBey = window.PlayerData.saves[saveIndex];
-}
-
-// 2. LOAD COURSE OPPONENT
-if (window.PlayerData && window.PlayerData.activeCourse && window.CoursesDB && window.opponentsDB) {
-    let activeRun = window.PlayerData.activeCourse;
-    let courseData = window.CoursesDB[activeRun.courseId];
-    
-    if (courseData) {
-        let stageData = courseData.stages[activeRun.currentStageIndex];
-        if (stageData && stageData.opponent) {
-            window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
-            
-            window.CourseManager = {
-                isActive: true,
-                courseData: courseData,
-                currentStageIndex: activeRun.currentStageIndex,
-                mode: activeRun.mode
-            };
-        }
+    if (!playerBuild || !savedCpuData) {
+        window.navigateTo('home-menu.html');
+        throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
     }
-}
-
-// ==========================================
-// 3. STRICT VARIABLE ASSIGNMENT
-// These MUST be declared AFTER the recovery block above!
-// ==========================================
-let playerBey = window.ActiveBey;
-let cpuData = window.ActiveOpponent;
-
-// 4. THE SAFETY CHECK
-// Also ensure we are checking that the player actually has 'parts' equipped
-if (!playerBey || !playerBey.parts || !cpuData) {
-    console.error("CRITICAL FAILURE: Missing Beyblade Data.", { playerBey, cpuData });
-    throw new Error("Missing Beyblade data! Aborting arena load and redirecting...");
-}
-// ==========================================
 
     const cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
     // --- NEW: DYNAMIC NESTED STADIUM RESOLVER ---
