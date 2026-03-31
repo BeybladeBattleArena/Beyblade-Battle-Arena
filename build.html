@@ -1,13 +1,20 @@
-<style> 
-
-   /* Header pushed down to account for Shell's BP bar */
+<style>
+    #build-page-root {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+	
+	/* Header pushed down to account for Shell's BP bar */
     .header-bar { left: 0; right: 0; background: #000; padding: 10px; display: flex; justify-content: space-between; border-bottom: 2px solid #333; z-index: 10; }
     
-    .content-wrapper { display: flex; width: 100%; flex: 1; overflow: hidden; min-height: 0; } 
+    .content-wrapper { display: flex; width: 100%; flex: 1 1 auto; min-height: 0; overflow: hidden; } 
     
     /* Layout: Shrunk left panel to 40%, expanded right to 60% */
-    #left-panel { width: 40%; display: flex; flex-direction: column; overflow-y: auto; border-right: 2px solid #333; background: #111; min-height: 0; }
-    #right-panel { width: 60%; padding: 20px; overflow-y: auto; background-color: #1a1a1a; min-height: 0; }
+    #left-panel { width: 42%; display: flex; flex-direction: column; min-height: 0; overflow: hidden; border-right: 2px solid #333; background: #111; }
+    #right-panel { width: 58%; padding: 20px; min-height: 0; overflow-y: auto; overflow-x: hidden; background-color: #1a1a1a; }
     
     /* Tab Navigation Styles (UPDATED FOR TWO ROWS) */
     .tab-row { display: flex; flex-wrap: wrap; background: #000; padding: 5px 5px 0 5px; }
@@ -18,7 +25,7 @@
     .tab-icon { width: 40px; height: 40px; object-fit: contain; }
     
     /* Left Panel Lists */
-    #inventory-list { flex: 1; overflow-y: auto; padding: 10px; min-height: 0; }
+    #inventory-list { flex: 1; overflow-y: auto; padding: 10px; }
     .item-row { padding: 8px 10px; background: #222; margin: 5px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; transition: background 0.2s; }
     .item-row:hover { background: #334455; } 
     .item-row:active { transform: scale(0.98); }
@@ -173,6 +180,8 @@
     }
 </style>
 
+<div id=build-page-root">
+
 <div id="designs-modal-overlay" onclick="window.closeDesignsModal(event)">
     <div id="designs-popover" onclick="event.stopPropagation()">
         <div class="popover-header">
@@ -301,7 +310,48 @@
         </div>
 </div>
 
+</div>
+
 <script type="module">
+
+function fitBuildPageToHost() {
+    const root = document.getElementById('build-page-root');
+    if (!root) return;
+
+    const host = root.parentElement;
+    if (!host) return;
+
+    const hostHeight = host.clientHeight;
+
+    if (hostHeight && hostHeight > 0) {
+        root.style.height = `${hostHeight}px`;
+        return;
+    }
+
+    const rect = root.getBoundingClientRect();
+    const viewportHeight = window.visualViewport
+        ? window.visualViewport.height
+        : window.innerHeight;
+
+    root.style.height = `${Math.max(0, viewportHeight - rect.top)}px`;
+}
+
+requestAnimationFrame(() => {
+    fitBuildPageToHost();
+
+    const root = document.getElementById('build-page-root');
+    if (root && root.parentElement && window.ResizeObserver) {
+        const ro = new ResizeObserver(() => fitBuildPageToHost());
+        ro.observe(root.parentElement);
+    }
+});
+
+window.addEventListener('resize', fitBuildPageToHost);
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitBuildPageToHost);
+}
+
+
 
     window.AudioManager.playBGM('./audio/music/Get_The_Wrench_ForBuildScreen.wav', 10.2934375, 0.4);
     
