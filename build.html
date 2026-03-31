@@ -188,8 +188,15 @@
         object-fit: contain; image-rendering: pixelated;
         transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     }
-    #anim-bb { z-index: 1; } #anim-sg { z-index: 2; } #anim-wd { z-index: 3; } #anim-ar { z-index: 4; } #anim-bc { z-index: 5; }
-    .hyper-spin { animation: beySpin 0.8s ease-in-out forwards; }
+    
+	#anim-bb  { z-index: 1; }
+	#anim-sg  { z-index: 2; }
+	#anim-wd  { z-index: 3; }
+	#anim-sar { z-index: 4; }
+	#anim-ar  { z-index: 5; }
+	#anim-bc  { z-index: 6; }
+   
+   .hyper-spin { animation: beySpin 0.8s ease-in-out forwards; }
     @keyframes beySpin {
         0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
         50%  { transform: scale(1.3) rotate(720deg); filter: brightness(2) drop-shadow(0 0 30px #00ffff); }
@@ -762,17 +769,19 @@ function buildIsSaveReady() {
                 const bbImg = getSafeImage(currentBuild.bladeBase, true);
                 const sgImg = getSafeImage(currentBuild.spinGear, true);
                 const wdImg = getSafeImage(currentBuild.weightDisk, true);
+				const sarImg = getSafeImage(currentBuild.subAttackRing, true);
                 const arImg = getSafeImage(currentBuild.attackRing, true);
                 const bcImg = getSafeImage(currentBuild.bitChip, true);
 
 
                 stack.innerHTML = `
-                    <img src="${bbImg}" id="anim-bb" class="anim-part" style="transform: translateY(120px) scale(0.8); opacity: 0;">
-                    <img src="${sgImg}" id="anim-sg" class="anim-part" style="transform: translateY(60px) scale(0.8); opacity: 0;">
-                    <img src="${wdImg}" id="anim-wd" class="anim-part" style="transform: translateY(0px) scale(0.8); opacity: 0;">
-                    <img src="${arImg}" id="anim-ar" class="anim-part" style="transform: translateY(-60px) scale(0.8); opacity: 0;">
-                    <img src="${bcImg}" id="anim-bc" class="anim-part" style="transform: translateY(-120px) scale(0.8); opacity: 0;">
-                `;
+					<img src="${bbImg}" id="anim-bb" class="anim-part" style="transform: translateY(140px) scale(0.8); opacity: 0;">
+					<img src="${sgImg}" id="anim-sg" class="anim-part" style="transform: translateY(84px) scale(0.8); opacity: 0;">
+					<img src="${wdImg}" id="anim-wd" class="anim-part" style="transform: translateY(28px) scale(0.8); opacity: 0;">
+					${sarImg ? `<img src="${sarImg}" id="anim-sar" class="anim-part" style="transform: translateY(-28px) scale(0.8); opacity: 0;">` : ``}
+					<img src="${arImg}" id="anim-ar" class="anim-part" style="transform: translateY(-84px) scale(0.8); opacity: 0;">
+					<img src="${bcImg}" id="anim-bc" class="anim-part" style="transform: translateY(-140px) scale(0.8); opacity: 0;">
+				`;
 
                 stack.classList.remove('hyper-spin');
 
