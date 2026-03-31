@@ -1224,8 +1224,10 @@
                 return;
             }
 
-            let customRange = (playerBey.stats && playerBey.stats.launchRange) ? playerBey.stats.launchRange : 0.425;
-			let launchPct = window.playerMaxLaunchPct || customRange;
+            let customRange = (typeof playerBey !== 'undefined' && playerBey && playerBey.stats && playerBey.stats.launchRange) ? playerBey.stats.launchRange : 0.425;
+            
+            let launchPct = window.playerMaxLaunchPct !== undefined ? window.playerMaxLaunchPct : customRange;
+            
             if (safeX <= width * launchPct) {
                 playerLaunchSite = { x: safeX, y: safeY };
                 gameState = "COUNTDOWN";
