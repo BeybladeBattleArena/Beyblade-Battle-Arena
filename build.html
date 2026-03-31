@@ -847,6 +847,7 @@
             // Look for special launches on Tools!
             if (part.specialLaunch) {
                 part.specialLaunch.forEach(sl => {
+				let desc = "";
                     passives.push({ name: `Special Launch: ${sl}`, desc: desc, source: originText });
                 });
             }
