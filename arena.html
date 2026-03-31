@@ -1362,6 +1362,9 @@
 
     function processLaunchTap(speedTier = "NORMAL") {
         gameState = "LAUNCHING"; 
+		
+		console.log("Current Max Launch Pct is:", window.playerMaxLaunchPct);
+		console.log("Current Launcher Data is:", playerBuild.parts.launcher);
         
         if (window.AudioManager && currentRound === 1 && !TutorialManager.isActive) {
             // 1. Define our standard fallback theme and loop point
