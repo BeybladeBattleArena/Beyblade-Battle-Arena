@@ -1045,7 +1045,7 @@ window.equipmentDB = {
 			subRingType: "Free",
             tags: ["Venom", "Tail", "Free", "Cross Lance"], 
 			fallbackImage: "./images/beyblade_parts/SAR/VenomTail.png",  
-            stats: { weight: 4, attack: 6, recoil: 9, stamina: 2, balance: -1, endurance: -1, mobility: 1, speed: 1, recoilReduction: 1 },
+            stats: { weight: 4, attack: 6, recoil: 8, stamina: 2, balance: -1, endurance: -1, mobility: 1, speed: 1, recoilReduction: 1 },
 			passives: [], 
 			attacks: [{ name: "Cross Lance", cd: 6 }],
 			
