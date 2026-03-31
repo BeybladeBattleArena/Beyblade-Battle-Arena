@@ -517,7 +517,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["As", "Survivor", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
-            stats: { attack: 21, hp: 30, defense: 10, recoil: 5, balance: 6, weight: 15, mobility: 2, recoilReduction: 3 },
+            stats: { attack: 19, hp: 30, defense: 10, recoil: 10, balance: 6, weight: 15, mobility: 2, recoilReduction: 3 },
 			passives: [], 
 			attacks: [{ name: "Heavy Ram", cd: 5 }],
 			
