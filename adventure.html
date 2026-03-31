@@ -683,11 +683,37 @@
             // 1. Clear the pending scene flag so we don't get stuck in a loop
             window.PlayerData.activeCourse.pendingScene = null;
             
-            // 2. Determine if the Course is completely over, or just moving to the Arena
-            // (If they just finished the Boss Outro, we might flag it as cleared!)
-            if (window.PlayerData.activeCourse.isPendingClear) {
-                // Route to a victory screen or let Arena handle the payout!
+            // ==========================================
+            // 2. THE PERFECT ARENA HANDOFF
+            // ==========================================
+            if (window.PlayerData.activeCourse && window.CoursesDB && window.opponentsDB) {
+                let activeRun = window.PlayerData.activeCourse;
+                let courseData = window.CoursesDB[activeRun.courseId];
+                
+                if (courseData) {
+                    let stageData = courseData.stages[activeRun.currentStageIndex];
+                    
+                    if (stageData && stageData.opponent) {
+                        // A. Find the opponent and strictly assign them to the Arena's global variable!
+                        window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
+                        
+                        // B. Set the Course Manager flag so the Arena knows to use Survival/Exhibition rules!
+                        window.CourseManager = {
+                            isActive: true,
+                            courseData: courseData,
+                            currentStageIndex: activeRun.currentStageIndex,
+                            mode: activeRun.mode
+                        };
+                    }
+                }
             }
+
+            // C. Guarantee the Player's Beyblade is loaded in memory
+            if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
+                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
+                window.ActiveBey = window.PlayerData.saves[saveIndex];
+            }
+            // ==========================================
             
             // 3. Save and punt them back to the Arena
             if (window.savePlayerData) window.savePlayerData();
