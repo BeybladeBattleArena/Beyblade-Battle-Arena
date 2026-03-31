@@ -2472,11 +2472,12 @@ window.equipmentDB = {
             id: "bb_19", // Generalized ID
             name: "Manual Balancer", // Generalized Name
             type: "Blade Base",
+			toggleModify: true,
 			contactTipType: "Plastic",
 			contactTipShape: "Flat",
             tags: ["Manual", "Change", "Balancer", "Flat", "Sharp", "Tip", "Plastic" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ManualBalancer_sideview.png",  
-            stats: {  rpm: 130, hp: 10, defense: -1, stamina: 1, endurance: 3, grip: 24, mobility: 3, attack: 3, recoilReduction: 2, weight: 15  },
+            stats: {  rpm: 130, hp: 10, defense: -1, speed: 1, stamina: 1, endurance: 4, grip: 24, mobility: 3, attack: 3, recoilReduction: 2, weight: 15  },
 			passives: ["Alter Approach"], 
 			attacks: [],
 			

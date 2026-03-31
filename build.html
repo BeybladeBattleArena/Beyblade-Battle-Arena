@@ -946,7 +946,7 @@ function buildIsSaveReady() {
         container.innerHTML = html;
     }
 
-	window.equipItem = function(slot, dbKey, itemId, styleId = null) {
+window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         const baseItem = window.equipmentDB[dbKey].find(i => i.id === itemId);
         let item = JSON.parse(JSON.stringify(baseItem));
         
@@ -959,25 +959,42 @@ function buildIsSaveReady() {
         }
         
         if (slot === 'subAttackRing') {
-    const requiredType = requiredSubRingType();
+            const requiredType = requiredSubRingType();
+            if (!requiredType || item.subRingType !== requiredType) {
+                playNegativeSfx();
+                return;
+            }
+        }
 
-    if (!requiredType) {
-        playNegativeSfx();
-        return;
-    }
+        // --- NEW: INITIALIZE MODIFIABLE PARTS ---
+        // If this part comes fresh from the inventory list, ensure its default state is set.
+        if (item.toggleModify && item.id === 'bb_19') {
+            item.contactTipShape = "Flat";
+            // Ensure passives default to flat
+            if (item.passives) {
+                item.passives = item.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Flat)" : p);
+            }
+        }
 
-    if (item.subRingType !== requiredType) {
-        playNegativeSfx();
-        return;
-    }
-}
+        currentBuild[slot] = item;
 
-currentBuild[slot] = item;
-
-if (slot === 'attackRing') {
-    validateEquippedSubAttackRing();
-}
+        if (slot === 'attackRing') {
+            validateEquippedSubAttackRing();
+        }
         
+        // Pass the rendering job to our new dedicated UI function
+        window.updateInspectorUI(slot);
+        window.renderLeftPanel(); 
+        calculateAndRenderTotals();
+    };
+
+    // ==========================================
+    // --- NEW: DEDICATED INSPECTOR DRAWER ---
+    // ==========================================
+    window.updateInspectorUI = function(slot) {
+        let item = currentBuild[slot];
+        if (!item) return;
+
         const statOrder = [
             "hp", "rpm", "attack", "defense", "stamina", "endurance", 
             "speed", "mobility", "grip", "balance", "weight", 
@@ -1006,17 +1023,23 @@ if (slot === 'attackRing') {
             formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Passives.</div>`;
         }
 
+        // --- NEW: THE MODIFICATION HINT TEXT ---
+        if (item.toggleModify) {
+            formattedStatsHtml += `
+                <div style="grid-column: span 5; color: #ffaa00; font-size: 10px; margin-top: 8px; font-style: italic; display: flex; align-items: center; gap: 5px;">
+                    This part can be manually modified. Use <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="height:12px;"> to modify.
+                </div>
+            `;
+        }
+
         let displayName = item.activeStyle ? item.activeStyle.styleName : item.name;
         let displayImg = getSafeImage(item, false);
 
         let imgBoxStyle = displayImg ? 'background: transparent; border: none; box-shadow: none;' : '';
         let imageHtml = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain;">` : `?`;
 
-        // ==========================================
-        // --- NEW: FEATURE ICONS GENERATION ---
         let featureIconsHtml = '';
 
-        // 1. Blade Base Logic (Integrated vs Open)
         if (slot === 'bladeBase') {
             if (item.contactTipShape) {
                 featureIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="./images/menu_icons/base_image_integratedtip.png"></div>`;
@@ -1025,13 +1048,11 @@ if (slot === 'attackRing') {
             }
         }
 
-        // 2. Attack Ring Sub-Ring Logic (Free vs Locked)
         if (item.subRing === true && item.subRingType) {
             let sarImg = item.subRingType.toLowerCase().includes('free') ? 'sar_image_free.png' : 'sar_image_locked.png';
             featureIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="./images/menu_icons/${sarImg}"></div>`;
         }
 
-        // 3. Tip Shape Logic
         if (item.contactTipShape) {
             let tipImg = '';
             let shape = item.contactTipShape.toLowerCase();
@@ -1045,7 +1066,16 @@ if (slot === 'attackRing') {
                 featureIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="./images/menu_icons/${tipImg}"></div>`;
             }
         }
-        // ==========================================
+
+        // --- NEW: THE MODIFICATION BUTTON ---
+        if (item.toggleModify) {
+            let currentRot = item._toggleRotation || 0; 
+            featureIconsHtml += `
+                <div class="feature-icon-box" style="cursor: pointer; border-color: #ffaa00; background: #332200;" onclick="window.togglePartModification('${slot}')" title="Modify Part">
+                    <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="transform: rotate(${currentRot}deg); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 80%; height: 80%; object-fit: contain;">
+                </div>
+            `;
+        }
 
         document.getElementById('inspect-content').innerHTML = `
             <div class="inspect-layout">
@@ -1065,9 +1095,53 @@ if (slot === 'attackRing') {
                 </div>
             </div>
         `;
+    };
 
-        window.renderLeftPanel(); 
+    // ==========================================
+    // --- NEW: THE MODIFIER ENGINE ---
+    // ==========================================
+    window.togglePartModification = function(slot) {
+        let part = currentBuild[slot];
+        if (!part || !part.toggleModify) return;
+
+        // 1. Advance the rotation by 180 degrees for the UI animation
+        part._toggleRotation = (part._toggleRotation || 0) + 180;
+
+        // 2. Execute Part-Specific Stat Swaps
+        if (part.id === 'bb_19') {
+            if (part.contactTipShape === "Flat") {
+                part.contactTipShape = "Semi-Flat";
+                part.stats.grip = 22;
+                part.stats.balance = 2;
+                part.stats.speed = 1;
+                part.stats.defense = 1;
+                if (part.passives) {
+                    part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Semi-Flat)" : p);
+                }
+            } 
+            else if (part.contactTipShape === "Semi-Flat") {
+                part.contactTipShape = "Flat";
+                part.stats.grip = 24;
+                part.stats.balance = 1;
+                part.stats.speed = 2;
+                part.stats.defense = -1;
+                if (part.passives) {
+                    part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Flat)" : p);
+                }
+            }
+        }
+        
+        // (You can add more 'else if' blocks here for future parts!)
+
+        // 3. Re-render UI to show new stats, tip icon, and update the inventory list sorting!
+        window.updateInspectorUI(slot);
+        window.renderLeftPanel(); // <-- ADDED THIS BACK IN!
         calculateAndRenderTotals();
+        
+        // Optional play a clicking sound
+        const sfx = new Audio('./audio/sounds/ClickIntoPlace.wav');
+        sfx.volume = 0.3;
+        sfx.play().catch(()=>{});
     };
 
     function calculateAndRenderTotals() {
@@ -1100,7 +1174,7 @@ if (slot === 'attackRing') {
             if (part.stats) {
                 for (let stat in part.stats) {
                     if (totals[stat] !== undefined) totals[stat] += part.stats[stat];
-                }
+                } 
             }
             
             if (part.passives) {

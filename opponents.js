@@ -293,7 +293,52 @@ window.opponentsDB = [
             }
         }
     },
-
+	
+	
+		{
+        id: "opp_rei1",
+        name: "Rei",
+        portrait: "Rei.png",
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Driger Manual Balancer",
+        bitBeast: "None",
+		bitChip: "bc_04",
+		attackRing: "ar_30",
+		weightDisk: "wd_01",
+		spinGear: { id: "sg_01", styleId: "SG_basic_gray" },
+		bladeBase: "bb_19",
+        alwaysUnlocked: false,
+        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
+        stats: { 
+            hp: 165, rpm: 1390, attack: 25, defense: 10, stamina: 22, speed: 4, weight: 68, mobility: 7, grip: 24, balance: 5, recoil: 15, recoilReduction: 9, spiritCharge: 8, cdr: 3 },
+        passives: ["Alter Approach (Semi-Flat)"],
+        attacks: [{ name: "Barrage Attack", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Another challenger? Not tryin' to be mean, but I could beat everyone around here with my eyes closed if I really wanted to.",
+            "What makes you any different?",
+            "Don't hold back, I need some entertainment!"
+        ],
+        winDialogue: [
+            "...Well, that was... kinda lame. Better luck next time and all that.",
+            "If you keep improving, you'll eventually be someone I gotta watch out for.", // ADDED COMMA
+            "But for now... guess I'll take a nap?"
+        ],
+        loseDialogue: [
+            "Your power is wild! I'm impressed!", // ADDED COMMA
+            "Next time we meet, I'll be even stronger, so don't you go slacking off, <player>!"
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Barrage Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 135) {
+                engine.executeAttack("Barrage Attack", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
 
 
 

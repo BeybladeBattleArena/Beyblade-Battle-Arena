@@ -103,7 +103,12 @@ window.SkillsDB = {
             desc: "While current RPM is above 80% of this beyblade's maximum, gain a 10% boost to Attack and an 8% boost to Speed, but reduce Defense by 8%.",
             apply: function(bey) {} 
         },
-		"Alter Approach": {
+		"Alter Approach (Flat)": {
+            name: "Alter Approach",
+            desc: "Depending on manually prepared settings before the match starts, gain either 4% attack and 3% speed or gain 2% defense, 3% stamina, and 4% endurance.",
+            apply: function(bey) {} 
+        },
+		"Alter Approach (Semi-Flat)": {
             name: "Alter Approach",
             desc: "Depending on manually prepared settings before the match starts, gain either 4% attack and 3% speed or gain 2% defense, 3% stamina, and 4% endurance.",
             apply: function(bey) {} 
@@ -335,6 +340,25 @@ window.SkillEngine = {
                 
                 airLanceTimer: 0
             };
+	
+	
+            // --- PRE-MATCH PASSIVE BUFFS ---
+            // Applies permanent stat adjustments exactly once before the match begins!
+            // ==========================================
+            if (bey.passives) {
+                if (bey.passives.includes("Alter Approach (Flat)")) {
+                    bey.stats.attack += (bey.stats.attack || 0) * 0.04;
+                    bey.stats.speed += (bey.stats.speed || 0) * 0.03;
+                }
+                
+                if (bey.passives.includes("Alter Approach (Semi-Flat)")) {
+                    bey.stats.defense += (bey.stats.defense || 0) * 0.02;
+                    bey.stats.stamina += (bey.stats.stamina || 0) * 0.03;
+                    bey.stats.endurance += (bey.stats.endurance || 0) * 0.04;
+                }
+            }
+            // ==========================================
+
         });
     },
 
