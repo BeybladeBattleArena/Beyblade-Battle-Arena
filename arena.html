@@ -949,12 +949,11 @@
 		
 		
 		Object.values(playerBuild.parts).forEach(part => {
-			if (part.specialLaunch && part.specialLaunch.includes("Power Shoot")) {
+			if (part && part.specialLaunch && part.specialLaunch.includes("Power Shoot")) {
                 window.hasPowerShoot = true;
             }
 			
-			if ((part.skills && part.skills.includes("Launcher: Range Boost")) || 
-                (part.specialLaunch && part.specialLaunch.includes("Launcher: Range Boost"))) {
+			if (part && part.passives && part.passives.includes("Launcher: Range Boost") {
                 window.playerMaxLaunchPct = 0.55; 
             }
 			
