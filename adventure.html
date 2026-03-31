@@ -264,7 +264,46 @@
     };
 
     function initAdventure() {
-        // --- 1. POST-BATTLE INTERCEPTION ---
+        // ==========================================
+        // --- THE COURSE INTERCEPTOR ---
+        // ==========================================
+        if (window.PlayerData && window.PlayerData.activeCourse && window.PlayerData.activeCourse.pendingScene) {
+            let sceneId = window.PlayerData.activeCourse.pendingScene;
+            let courseScene = window.CourseDialogueDB ? window.CourseDialogueDB[sceneId] : null;
+            
+            if (courseScene) {
+                console.log("Course Scene Detected! Hijacking Adventure Engine...");
+                
+                // 1. Hide the Adventure UI elements
+                document.getElementById('map-container').style.display = 'none';
+                document.querySelector('.back-btn').style.display = 'none';
+                document.getElementById('sidebar-toggle-btn').style.display = 'none';
+                
+                // 2. Setup the VN Overlay
+                let overlay = document.getElementById('vn-overlay');
+                overlay.style.display = 'block';
+                
+                // Optional: Apply the custom background from the JSON to the overlay itself
+                if (courseScene.bg) {
+                    overlay.style.backgroundImage = `url('${courseScene.bg}')`;
+                    overlay.style.backgroundSize = 'cover';
+                    overlay.style.backgroundPosition = 'center';
+                } else {
+                    overlay.style.backgroundColor = '#111'; // Dark fallback
+                }
+
+                // 3. Hijack the global variables to trick the engine!
+                currentStageData = courseScene; 
+                currentLineId = "start";
+                
+                // 4. Start the scene and ABORT normal adventure loading
+                playDialogueLine();
+                return; 
+            }
+        }
+		
+		
+		// --- 1. POST-BATTLE INTERCEPTION ---
         let receiptStr = localStorage.getItem('postMatchReceipt');
         if (receiptStr) {
             let receipt = JSON.parse(receiptStr);
@@ -639,6 +678,22 @@
         }
         
         textPageIndex = 0;
+		
+		if (lineData.action === "return_to_course") {
+            // 1. Clear the pending scene flag so we don't get stuck in a loop
+            window.PlayerData.activeCourse.pendingScene = null;
+            
+            // 2. Determine if the Course is completely over, or just moving to the Arena
+            // (If they just finished the Boss Outro, we might flag it as cleared!)
+            if (window.PlayerData.activeCourse.isPendingClear) {
+                // Route to a victory screen or let Arena handle the payout!
+            }
+            
+            // 3. Save and punt them back to the Arena
+            if (window.savePlayerData) window.savePlayerData();
+            window.navigateTo('arena.html');
+            return;
+        }
 
         if (lineData.action === "advance_stage") {
             loadStage(lineData.nextStage);

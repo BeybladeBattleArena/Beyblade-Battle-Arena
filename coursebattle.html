@@ -1,0 +1,462 @@
+<style>
+    /* Full screen container */
+    #course-hub-container {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        overflow: hidden;
+        display: flex;
+        background: radial-gradient(circle at center, #1a1a2e 0%, #050508 100%);
+        user-select: none;
+        font-family: sans-serif;
+    }
+
+    /* LEFT SIDE: Info & Showcase */
+    #left-panel {
+        width: 45%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 40px;
+        box-sizing: border-box;
+        border-right: 2px solid rgba(0, 170, 255, 0.3);
+        background: rgba(10, 15, 25, 0.8);
+        z-index: 10;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+    }
+
+    /* Top Left: Course Info Box */
+    #course-info-box {
+        background: rgba(0, 0, 0, 0.6);
+        border: 2px solid #444;
+        border-radius: 8px;
+        padding: 20px;
+        color: #fff;
+        min-height: 250px;
+        transition: border-color 0.3s;
+    }
+    #course-info-box.active-info {
+        border-color: #00ffff;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    }
+    
+    #info-course-name {
+        font-size: 28px;
+        font-weight: 900;
+        color: #ffaa00;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        border-bottom: 1px solid #555;
+        padding-bottom: 10px;
+    }
+
+    .info-reward-line {
+        font-size: 16px;
+        margin-bottom: 5px;
+        color: #ccc;
+    }
+    .info-reward-value {
+        color: #00ff00; /* Green bolded text for rewards */
+        font-weight: bold;
+    }
+
+    #info-course-desc {
+        margin-top: 15px;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #bbb;
+        font-style: italic;
+    }
+
+    /* Bottom Left: Player Showcase */
+    #hub-showcase {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    
+    .hub-idle-spin {
+        width: 225px; 
+        height: 225px;
+        position: relative;
+        animation: hubSpin 2.5s linear infinite;
+        filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.5));
+    }
+    @keyframes hubSpin { 100% { transform: rotate(360deg); } }
+    
+    .hub-part {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        object-fit: contain;
+        image-rendering: pixelated;
+    }
+
+    #active-build-name {
+        margin-top: 25px; font-size: 18px; font-weight: bold;
+        color: #ffaa00; text-align: center; white-space: nowrap;
+        text-transform: uppercase; letter-spacing: 2px;
+        text-shadow: 2px 2px 0px #000;
+    }
+
+    .cycle-btn {
+        margin-top: 15px; background: rgba(0,0,0,0.5);
+        border: 1px solid #00ffff; color: #00ffff;
+        padding: 8px 16px; border-radius: 20px;
+        cursor: pointer; font-size: 12px; font-weight: bold;
+        transition: 0.2s;
+    }
+    .cycle-btn:active { background: #00ffff; color: #000; transform: scale(0.95); }
+
+    .start-course-btn {
+        margin-top: 20px; background: #ffaa00; color: #000;
+        border: 2px solid #fff; padding: 12px 24px;
+        font-size: 18px; font-weight: 900; cursor: pointer;
+        border-radius: 8px; text-transform: uppercase;
+        box-shadow: 0 0 15px rgba(255, 170, 0, 0.4);
+        transition: 0.2s; width: 100%; display: none;
+    }
+    .start-course-btn:active { transform: scale(0.95); }
+
+    /* RIGHT SIDE: The Course List */
+    #right-panel {
+        width: 55%;
+        height: 100%;
+        position: relative;
+        /* The nonmoving background! Scaled to 2x (380px * 2 = 760px) */
+        background-image: url('./images/course/course_select_bg1.png');
+        background-size: 100% 760px; 
+        background-attachment: local;
+        background-repeat: repeat-y;
+    }
+
+    /* The Scrollable List */
+    #course-list {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        padding-top: 40px; /* Padding to push first item down a bit */
+        padding-bottom: 200px; /* Scroll room at the bottom */
+        box-sizing: border-box;
+        
+        /* CSS Magic: Magnetic snapping to align with the 190px background grid! */
+        scroll-snap-type: y mandatory;
+    }
+
+    /* Hide standard scrollbar for arcade feel */
+    #course-list::-webkit-scrollbar { width: 0; }
+
+    /* Each List Row locks into the grid */
+    .course-row {
+        height: 190px; /* Exact size of the doubled 95px bg bars */
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding-left: 40px;
+        scroll-snap-align: start; /* Snaps perfectly to the top of the grid */
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    /* The "Package" (Scaled 2x natively via CSS sizes) */
+    .course-package {
+        height: 220px; /* 110px * 2 */
+        background-color: #9a9a9a;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border: 3px solid transparent;
+        transition: 0.2s;
+        /* Allow the mugshot width to dictate the package width */
+        width: fit-content; 
+    }
+
+    /* Highlight Effect when selected */
+    .course-row.selected .course-package {
+        border-color: #00ffff;
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.6);
+        transform: scale(1.02);
+        z-index: 5;
+    }
+
+    /* Top text area (34px * 2 = 68px tall) */
+    .package-header {
+        height: 68px;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px;
+        box-sizing: border-box;
+    }
+
+    .package-course-name {
+        background: linear-gradient(to bottom, #f49f21, #cd0d21);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        -webkit-text-stroke: 2px black; /* The 2px black outline! */
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        font-family: 'Arial Black', impact, sans-serif;
+    }
+
+    .package-mode {
+        font-size: 18px;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-left: 20px;
+        -webkit-text-stroke: 1px black; /* Small outline to help it pop */
+    }
+
+    /* Specific Mode Colors */
+    .mode-exhibition {
+        color: yellow;
+    }
+    .mode-survival {
+        background: linear-gradient(to bottom, #433651, #da2b26);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* The Mugshot Image (76px * 2 = 152px tall) */
+    .package-mugshots {
+        height: 152px;
+        width: auto;
+        object-fit: contain;
+        image-rendering: pixelated;
+        display: block; /* Removes bottom spacing artifact on images */
+    }
+
+    .back-btn { 
+        position: absolute; top: 15px; left: 15px; background: #333; color: #fff; 
+        border: 1px solid #555; padding: 5px 15px; cursor: pointer; border-radius: 4px; font-size: 14px; z-index: 50;
+    }
+    .back-btn:active { background: #555; }
+
+</style>
+
+<div id="course-hub-container">
+    <button class="back-btn" onclick="window.navigateTo('home-menu.html')">Back to Menu</button>
+
+    <div id="left-panel">
+        
+        <div id="course-info-box">
+            <div id="info-course-name">SELECT A COURSE</div>
+            <div class="info-reward-line">BP Reward: <span class="info-reward-value" id="info-bp">--</span></div>
+            <div class="info-reward-line">Part Reward: <span class="info-reward-value" id="info-part">--</span></div>
+            <div id="info-course-desc">Pick a course from the right to see its details.</div>
+            
+            <button class="start-course-btn" id="start-btn" onclick="startSelectedCourse()">START COURSE</button>
+        </div>
+
+        <div id="hub-showcase">
+            <div class="hub-idle-spin" id="hub-bey-stack"></div>
+            <div id="active-build-name">LOADING...</div>
+            <button class="cycle-btn" onclick="window.cycleLoadout()">⟳ CYCLE LOADOUT</button>
+        </div>
+
+    </div>
+
+    <div id="right-panel">
+        <div id="course-list">
+            </div>
+    </div>
+</div>
+
+<script type="module">
+    import { db } from './firebase-config.js';
+    import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    if (!window.CurrentUser || !window.PlayerData) {
+        window.navigateTo('login.html');
+    }
+
+    // Play appropriate BGM
+    if (window.AudioManager) {
+        window.AudioManager.playBGM('./audio/music/Course_Select_Theme.wav', 0); // Update with your actual track!
+    }
+
+    let activeCourseId = null;
+
+    // --- BEYBLADE SHOWCASE LOGIC (Imported from Home Menu) ---
+    let saves = window.PlayerData.saves || new Array(10).fill(null);
+    let activeSaveIndex = window.PlayerData.featuredBuildIndex || 0;
+
+    function getSafeImage(part, isTopDown = false) {
+        if (!part) return '';
+        let key = isTopDown ? 'topDownImage' : 'image';
+        if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
+        if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
+        return part.fallbackImage || part[key] || '';
+    }
+
+    window.renderShowcase = function() {
+        const stack = document.getElementById('hub-bey-stack');
+        const nameLabel = document.getElementById('active-build-name');
+        
+        let currentSave = saves[activeSaveIndex];
+        
+        if (!currentSave || !currentSave.parts) {
+            stack.innerHTML = `<img src="./images/menu_icons/AR_icon.png" class="hub-part" style="opacity: 0.5;">`;
+            nameLabel.innerText = "NO BUILD SAVED";
+            nameLabel.style.color = "#666";
+            return;
+        }
+
+        let displayName = currentSave.name || `Build ${activeSaveIndex + 1}`;
+        if (displayName.length > 20) displayName = displayName.substring(0, 20) + "...";
+        nameLabel.innerText = displayName;
+        nameLabel.style.color = "#ffaa00";
+
+        const bbImg = getSafeImage(currentSave.parts.bladeBase, true);
+        const sgImg = getSafeImage(currentSave.parts.spinGear, true);
+        const wdImg = getSafeImage(currentSave.parts.weightDisk, true);
+        const sarImg = getSafeImage(currentSave.parts.subAttackRing, true);
+        const arImg = getSafeImage(currentSave.parts.attackRing, true);
+        const bcImg = getSafeImage(currentSave.parts.bitChip, true);
+
+        stack.innerHTML = `
+            ${bbImg ? `<img src="${bbImg}" class="hub-part" style="z-index: 1;">` : ''}
+            ${sgImg ? `<img src="${sgImg}" class="hub-part" style="z-index: 2;">` : ''}
+            ${wdImg ? `<img src="${wdImg}" class="hub-part" style="z-index: 3;">` : ''}
+            ${sarImg ? `<img src="${sarImg}" class="hub-part" style="z-index: 4;">` : ''}
+            ${arImg ? `<img src="${arImg}" class="hub-part" style="z-index: 5;">` : ''}
+            ${bcImg ? `<img src="${bcImg}" class="hub-part" style="z-index: 6;">` : ''}
+        `;
+    };
+
+    window.cycleLoadout = function() {
+        if (!saves.some(s => s && s.parts)) return;
+
+        let startingIndex = activeSaveIndex;
+        do {
+            activeSaveIndex++;
+            if (activeSaveIndex >= 10) activeSaveIndex = 0;
+            if (activeSaveIndex === startingIndex) break; 
+        } while (!saves[activeSaveIndex] || !saves[activeSaveIndex].parts);
+        
+        window.PlayerData.featuredBuildIndex = activeSaveIndex;
+        
+        const userRef = doc(db, "users", window.CurrentUser.uid);
+        updateDoc(userRef, { featuredBuildIndex: activeSaveIndex }).catch(e => console.error(e));
+
+        window.renderShowcase();
+    };
+
+    // --- COURSE LIST LOGIC ---
+    window.renderCourseList = function() {
+        const listContainer = document.getElementById('course-list');
+        listContainer.innerHTML = '';
+
+        if (!window.CoursesDB) {
+            console.error("CoursesDB not found!");
+            return;
+        }
+
+        // Loop through the CoursesDB and create the Packages
+        Object.keys(window.CoursesDB).forEach(key => {
+            let course = window.CoursesDB[key];
+            
+            // Format mode text
+            let isSurvival = course.mode === "SURVIVAL";
+            let modeClass = isSurvival ? "mode-survival" : "mode-exhibition";
+            let modeText = isSurvival ? "Survival" : "Exhibition";
+            
+            // Fallback image just in case
+            let mugshotImg = course.image || "./images/course/course_earlybladebreakers.png";
+
+            // Create the Row
+            let row = document.createElement('div');
+            row.className = 'course-row';
+            row.id = `course-row-${key}`;
+            
+            row.onclick = () => window.selectCourse(key);
+
+            // Create the Package structure
+            row.innerHTML = `
+                <div class="course-package">
+                    <div class="package-header">
+                        <span class="package-course-name">${course.name}</span>
+                        <span class="package-mode ${modeClass}">${modeText}</span>
+                    </div>
+                    <img src="${mugshotImg}" class="package-mugshots" alt="Opponents">
+                </div>
+            `;
+
+            listContainer.appendChild(row);
+        });
+    };
+
+    window.selectCourse = function(courseId) {
+        activeCourseId = courseId;
+        let course = window.CoursesDB[courseId];
+        if (!course) return;
+
+        // 1. Update UI Selection Highlights
+        document.querySelectorAll('.course-row').forEach(row => row.classList.remove('selected'));
+        document.getElementById(`course-row-${courseId}`).classList.add('selected');
+
+        // 2. Update the Info Box
+        let infoBox = document.getElementById('course-info-box');
+        infoBox.classList.add('active-info');
+        
+        document.getElementById('info-course-name').innerText = course.name;
+        document.getElementById('info-bp').innerText = course.rewardBP || "n/a";
+        document.getElementById('info-part').innerText = course.rewardPart || "n/a";
+        document.getElementById('info-course-desc').innerText = course.desc || "Defeat all opponents to clear this course.";
+
+        // 3. Reveal the Start button
+        document.getElementById('start-btn').style.display = 'block';
+    };
+
+    window.startSelectedCourse = function() {
+        if (!activeCourseId) return;
+
+        // 1. Ensure they have a build saved!
+        let currentSave = saves[activeSaveIndex];
+        if (!currentSave || !currentSave.parts) {
+            alert("You must Build and Save a Beyblade before challenging a Course!");
+            return; 
+        }
+
+        // 2. Set Active Bey for the Engine
+        window.ActiveBey = currentSave;
+
+        // 3. Build the Firebase ActiveCourse Object
+        let courseData = window.CoursesDB[activeCourseId];
+        window.PlayerData.activeCourse = {
+            courseId: activeCourseId,
+            mode: courseData.mode,
+            currentStageIndex: 0,
+            carryOverHP: null, 
+            carryOverRPM: null,
+            lastUpdated: Date.now() 
+        };
+
+        // 4. Determine Routing (Check if Stage 0 has a VN scene!)
+        let firstStage = courseData.stages[0];
+        if (firstStage && firstStage.preScene) {
+            window.PlayerData.activeCourse.pendingScene = firstStage.preScene;
+        }
+
+        // 5. Sync to Cloud and Route
+        const userRef = doc(db, "users", window.CurrentUser.uid);
+        updateDoc(userRef, { activeCourse: window.PlayerData.activeCourse }).then(() => {
+            if (window.PlayerData.activeCourse.pendingScene) {
+                window.navigateTo('adventure.html');
+            } else {
+                window.navigateTo('arena.html');
+            }
+        }).catch(e => {
+            console.error("Failed to save run:", e);
+            alert("Network error starting course. Please try again.");
+        });
+    };
+
+    // Initialize Page
+    window.renderShowcase();
+    window.renderCourseList();
+
+</script>
