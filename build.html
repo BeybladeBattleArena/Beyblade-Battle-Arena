@@ -180,7 +180,7 @@
     }
 </style>
 
-<div id=build-page-root">
+<div id="build-page-root">
 
 <div id="designs-modal-overlay" onclick="window.closeDesignsModal(event)">
     <div id="designs-popover" onclick="event.stopPropagation()">
@@ -319,32 +319,48 @@ function fitBuildPageToHost() {
     if (!root) return;
 
     const host = root.parentElement;
-    if (!host) return;
-
-    const hostHeight = host.clientHeight;
-
-    if (hostHeight && hostHeight > 0) {
-        root.style.height = `${hostHeight}px`;
-        return;
-    }
-
     const rect = root.getBoundingClientRect();
+
     const viewportHeight = window.visualViewport
         ? window.visualViewport.height
         : window.innerHeight;
 
-    root.style.height = `${Math.max(0, viewportHeight - rect.top)}px`;
+    const availableHeight = Math.max(0, Math.floor(viewportHeight - rect.top));
+
+    root.style.height = `${availableHeight}px`;
+    root.style.maxHeight = `${availableHeight}px`;
+    root.style.minHeight = '0';
+    root.style.overflow = 'hidden';
+
+    if (host) {
+        host.style.minHeight = '0';
+        host.style.overflow = 'hidden';
+    }
 }
 
-requestAnimationFrame(() => {
+function setupBuildPageSizing() {
     fitBuildPageToHost();
 
     const root = document.getElementById('build-page-root');
-    if (root && root.parentElement && window.ResizeObserver) {
+    if (!root) return;
+
+    if (window.ResizeObserver) {
         const ro = new ResizeObserver(() => fitBuildPageToHost());
-        ro.observe(root.parentElement);
+        ro.observe(root);
+        if (root.parentElement) ro.observe(root.parentElement);
+        document.body && ro.observe(document.body);
     }
-});
+
+    window.addEventListener('resize', fitBuildPageToHost);
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', fitBuildPageToHost);
+        window.visualViewport.addEventListener('scroll', fitBuildPageToHost);
+    }
+
+    requestAnimationFrame(fitBuildPageToHost);
+    setTimeout(fitBuildPageToHost, 0);
+    setTimeout(fitBuildPageToHost, 50);
+}
 
 window.addEventListener('resize', fitBuildPageToHost);
 if (window.visualViewport) {
