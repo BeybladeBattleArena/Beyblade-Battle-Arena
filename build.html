@@ -848,7 +848,7 @@
             if (part.specialLaunch) {
                 part.specialLaunch.forEach(sl => {
 				let desc = "";
-                    passives.push({ name: `Special Launch: ${sl}`, desc: desc, source: originText });
+                    passives.push({ name: `Special Launch: ${sl}`, desc: part.passives.desc, source: originText });
                 });
             }
 
