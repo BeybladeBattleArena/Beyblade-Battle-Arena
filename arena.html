@@ -1893,6 +1893,22 @@
                 if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
             }
 
+
+		// 1. Clamp Player Stats
+        if (playerBey && playerBey.stats) {
+            // Math.max looks at the two numbers and keeps the bigger one. 
+            // If speed is 0.2, it keeps 0.5. If speed is 12, it keeps 12!
+            playerBey.stats.speed = Math.max(0.5, playerBey.stats.speed || 0.5);
+            playerBey.stats.mobility = Math.max(0.5, playerBey.stats.mobility || 0.5);
+        }
+
+        // 2. Clamp CPU Stats (Because we don't want the AI breaking either!)
+        if (cpuBey && cpuBey.stats) {
+            cpuBey.stats.speed = Math.max(0.5, cpuBey.stats.speed || 0.5);
+            cpuBey.stats.mobility = Math.max(0.5, cpuBey.stats.mobility || 0.5);
+        }
+
+
             extractBuildData(); buildSkillsUI();
             matchTimerMs = 120000; p1Spirit = 0;
 
