@@ -29,7 +29,7 @@
 	}
 
     /* Left Panel Lists */
-    #inventory-list { flex: 1 1 auto; min-height: 0; max-height: 100%; 0; overflow-y: auto; padding: 10px; }
+    #inventory-list { flex: 1 1 auto; min-height: 0; max-height: 100%; overflow-y: auto; padding: 10px; }
     .item-row { padding: 8px 10px; background: #222; margin: 5px 0; border-radius: 4px; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; transition: background 0.2s; }
     .item-row:hover { background: #334455; } 
     .item-row:active { transform: scale(0.98); }
@@ -218,6 +218,9 @@
                 <button class="tab-btn" onclick="window.switchTab('ripCords')">
                     <img src="./images/menu_icons/Cord_icon.png" class="tab-icon" alt="Ripcord"> <span class="tab-text">Rip Cord</span>
                 </button>
+				<button class="tab-btn" onclick="window.switchTab('subAttackRings')">
+					<img src="./images/menu_icons/SubAR_icon.png" class="tab-icon" alt="Sub Attack Ring"> <span class="tab-text">Sub Attack Ring</span>
+				</button>
                 <div style="flex: 3;"></div> </div>
             
             <div class="tab-row bottom-row" style="width: 100%;">
@@ -387,6 +390,7 @@ setupBuildPageSizing();
     // Include the new arrays!
     var availableBitChips = getOwnedParts("bitChips");
     var availableAttackRings = getOwnedParts("attackRings");
+	var availableSubAttackRings = getOwnedParts("subAttackRings");
     var availableWeightDisks = getOwnedParts("weightDisks");
     var availableSpinGears = getOwnedParts("spinGears");
     var availableBladeBases = getOwnedParts("bladeBases");
@@ -395,9 +399,15 @@ setupBuildPageSizing();
 
     // NEW: Build object now explicitly tracks the tools
     var currentBuild = { 
-        bitChip: null, attackRing: null, weightDisk: null, spinGear: null, bladeBase: null,
-        launcher: null, ripCord: null 
-    };
+    bitChip: null,
+    attackRing: null,
+    subAttackRing: null,
+    weightDisk: null,
+    spinGear: null,
+    bladeBase: null,
+    launcher: null,
+    ripCord: null 
+};
 
     if (!window.PlayerData.saves) window.PlayerData.saves = new Array(10).fill(null);
     if (window.PlayerData.saves.length < 10) {
@@ -435,18 +445,20 @@ setupBuildPageSizing();
                 const bbImg = getSafeImage(slotData.parts.bladeBase, true);
                 const sgImg = getSafeImage(slotData.parts.spinGear, true);
                 const wdImg = getSafeImage(slotData.parts.weightDisk, true);
+				const sarImg = getSafeImage(slotData.parts.subAttackRing, true);
                 const arImg = getSafeImage(slotData.parts.attackRing, true);
                 const bcImg = getSafeImage(slotData.parts.bitChip, true);
 
                 html += `
                 <div class="save-slot-card ${pulseClass}" onclick="window.handleSlotClick(${i})">
                     <div class="save-slot-mini">
-                        ${bbImg ? `<img src="${bbImg}" style="z-index: 1;">` : ''}
-                        ${sgImg ? `<img src="${sgImg}" style="z-index: 2;">` : ''}
-                        ${wdImg ? `<img src="${wdImg}" style="z-index: 3;">` : ''}
-                        ${arImg ? `<img src="${arImg}" style="z-index: 4;">` : ''}
-                        ${bcImg ? `<img src="${bcImg}" style="z-index: 5;">` : ''}
-                    </div>
+						${bbImg ? `<img src="${bbImg}" style="z-index: 1;">` : ''}
+						${sgImg ? `<img src="${sgImg}" style="z-index: 2;">` : ''}
+						${wdImg ? `<img src="${wdImg}" style="z-index: 3;">` : ''}
+						${sarImg ? `<img src="${sarImg}" style="z-index: 4;">` : ''}
+						${arImg ? `<img src="${arImg}" style="z-index: 5;">` : ''}
+						${bcImg ? `<img src="${bcImg}" style="z-index: 6;">` : ''}
+					</div>
                     <div class="save-slot-info">
                         <span style="color:#aaa;">Slot ${i + 1}</span>
                         <span class="save-slot-name">${slotData.name}</span>
@@ -463,40 +475,61 @@ setupBuildPageSizing();
     }
 
     window.renderAssemblyVisual = function() {
-        const container = document.getElementById('assembly-visual');
-        
-        // Row 1: The Beyblade
-        const beySlots = ["bladeBase", "spinGear", "weightDisk", "attackRing", "bitChip"];
-        let beyHtml = '<div class="assembly-row">';
-        beySlots.forEach(slot => {
-            const part = currentBuild[slot];
-            const imgSrc = getSafeImage(part, true); 
-            if (imgSrc) beyHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
-            else beyHtml += `<div class="assembly-part empty"></div>`;
-        });
-        beyHtml += '</div>';
+    const container = document.getElementById('assembly-visual');
 
-        // Row 2: The Tools
-        const toolSlots = ["launcher", "ripCord"];
-        let toolHtml = '<div class="assembly-row" style="justify-content: flex-start; padding-left: 20px; gap: 20px;">';
-        toolSlots.forEach(slot => {
-            const part = currentBuild[slot];
-            const imgSrc = getSafeImage(part, true); 
-            if (imgSrc) toolHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
-            else toolHtml += `<div class="assembly-part empty"></div>`;
-        });
-        toolHtml += '</div>';
+    const mainSlots = ["bladeBase", "spinGear", "weightDisk", "attackRing", "bitChip"];
+    let beyHtml = '<div class="assembly-row assembly-row-main">';
 
-        container.innerHTML = beyHtml + toolHtml;
+    mainSlots.forEach(slot => {
+        if (slot === 'attackRing') {
+            const part = currentBuild.attackRing;
+            const imgSrc = getSafeImage(part, true);
 
-        // Validation Check: Need ALL 7 pieces to save!
-        const allEquipped = currentBuild.bitChip && currentBuild.attackRing && 
-                            currentBuild.weightDisk && currentBuild.spinGear && 
-                            currentBuild.bladeBase && currentBuild.launcher && 
-                            currentBuild.ripCord;
-                            
-        document.getElementById('init-save-btn').disabled = !allEquipped;
-    }
+            const attackRingHtml = imgSrc
+                ? `<div class="assembly-part"><img src="${imgSrc}"></div>`
+                : `<div class="assembly-part empty"></div>`;
+
+            beyHtml += `
+                <div class="assembly-stack">
+                    ${attackRingHtml}
+                    ${getSubAttackRingSlotHtml()}
+                </div>
+            `;
+            return;
+        }
+
+        const part = currentBuild[slot];
+        const imgSrc = getSafeImage(part, true);
+
+        if (imgSrc) {
+            beyHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
+        } else {
+            beyHtml += `<div class="assembly-part empty"></div>`;
+        }
+    });
+
+    beyHtml += '</div>';
+
+    const toolSlots = ["launcher", "ripCord"];
+    let toolHtml = '<div class="assembly-row" style="justify-content: flex-start; padding-left: 20px; gap: 20px;">';
+
+    toolSlots.forEach(slot => {
+        const part = currentBuild[slot];
+        const imgSrc = getSafeImage(part, true);
+
+        if (imgSrc) {
+            toolHtml += `<div class="assembly-part"><img src="${imgSrc}"></div>`;
+        } else {
+            toolHtml += `<div class="assembly-part empty"></div>`;
+        }
+    });
+
+    toolHtml += '</div>';
+
+    container.innerHTML = beyHtml + toolHtml;
+
+    document.getElementById('init-save-btn').disabled = !buildIsSaveReady();
+};
 
     // --- POPUP MODAL LOGIC ---
     window.openDesignsModal = function(itemId, dbKey) {
@@ -507,7 +540,7 @@ setupBuildPageSizing();
         let unlockedStyles = window.PlayerData.unlockedStyles || [];
         
         const activeCategory = {
-            bitChips: 'bitChip', attackRings: 'attackRing', weightDisks: 'weightDisk', 
+            bitChips: 'bitChip', attackRings: 'attackRing', subAttackRings: 'subAttackRing', weightDisks: 'weightDisk', 
             spinGears: 'spinGear', bladeBases: 'bladeBase', launchers: 'launcher', ripCords: 'ripCord'
         }[dbKey];
         
@@ -546,8 +579,7 @@ setupBuildPageSizing();
 
     // --- Save/Load Logic ---
     window.initSaveMode = function() {
-        const allEquipped = currentBuild.bitChip && currentBuild.attackRing && currentBuild.weightDisk && currentBuild.spinGear && currentBuild.bladeBase && currentBuild.launcher && currentBuild.ripCord;
-        if (!allEquipped) return;
+        if (!buildIsSaveReady()) return;
         
         isSavingMode = true;
         document.getElementById('save-instruction').style.display = 'block';
@@ -596,6 +628,101 @@ setupBuildPageSizing();
                 const arImg = getSafeImage(currentBuild.attackRing, true);
                 const bcImg = getSafeImage(currentBuild.bitChip, true);
 
+function playNegativeSfx() {
+    const sfx = new Audio('./audio/sounds/negative.wav');
+    sfx.volume = 0.7;
+    sfx.play().catch(() => {});
+}
+
+function requiredSubRingType() {
+    const ar = currentBuild.attackRing;
+    if (!ar || ar.subRing !== true) return null;
+    return ar.subRingType || null;
+}
+
+function validateEquippedSubAttackRing() {
+    const requiredType = requiredSubRingType();
+
+    if (!requiredType) {
+        currentBuild.subAttackRing = null;
+        return;
+    }
+
+    if (
+        currentBuild.subAttackRing &&
+        currentBuild.subAttackRing.subRingType !== requiredType
+    ) {
+        currentBuild.subAttackRing = null;
+    }
+}
+
+function buildIsSaveReady() {
+    const baseReady =
+        currentBuild.bitChip &&
+        currentBuild.attackRing &&
+        currentBuild.weightDisk &&
+        currentBuild.spinGear &&
+        currentBuild.bladeBase &&
+        currentBuild.launcher &&
+        currentBuild.ripCord;
+
+    if (!baseReady) return false;
+
+    const requiredType = requiredSubRingType();
+    if (!requiredType) return true;
+
+    return !!(
+        currentBuild.subAttackRing &&
+        currentBuild.subAttackRing.subRingType === requiredType
+    );
+}
+
+			function normalizeLoadedBuild(parts) {
+				return {
+					bitChip: null,
+					attackRing: null,
+					subAttackRing: null,
+					weightDisk: null,
+					spinGear: null,
+					bladeBase: null,
+					launcher: null,
+					ripCord: null,
+					...(parts || {})
+				};
+			}
+
+			function getSubAttackRingSlotHtml() {
+				const requiredType = requiredSubRingType();
+				const part = currentBuild.subAttackRing;
+				const imgSrc = getSafeImage(part, true);
+				const labelHtml = requiredType
+					? `<span class="subring-req-label">${requiredType}</span>`
+					: '';
+
+				if (imgSrc) {
+					return `
+						<div class="assembly-part assembly-sub-slot">
+							${labelHtml}
+							<img src="${imgSrc}">
+						</div>
+					`;
+				}
+
+				if (requiredType) {
+					return `
+						<div class="assembly-part assembly-sub-slot empty">
+							${labelHtml}
+						</div>
+					`;
+				}
+
+				return `
+					<div class="assembly-part assembly-sub-slot blocked">
+						<span class="blocked-x">X</span>
+					</div>
+				`;
+			}
+
                 stack.innerHTML = `
                     <img src="${bbImg}" id="anim-bb" class="anim-part" style="transform: translateY(120px) scale(0.8); opacity: 0;">
                     <img src="${sgImg}" id="anim-sg" class="anim-part" style="transform: translateY(60px) scale(0.8); opacity: 0;">
@@ -629,7 +756,8 @@ setupBuildPageSizing();
         } else {
             const slotData = window.PlayerData.saves[index];
             if (slotData && slotData.parts) {
-                currentBuild = { ...slotData.parts };
+                currentBuild = normalizeLoadedBuild(slotData.parts);
+				validateEquippedSubAttackRing();
                 window.renderLeftPanel();
                 calculateAndRenderTotals();
                 const oldText = document.getElementById('init-save-btn').innerText;
@@ -646,6 +774,7 @@ setupBuildPageSizing();
     var categoryFilters = {
         bitChips: [], 
         attackRings: ["Stationary SubAR", "Free-Spinning SubAR", "Specialized Mechanism", "Smash Attack", "Upper Attack", "Spike Attack"],
+		subAttackRings: ["Free", "Locked"],
         weightDisks: ["8 Series", "10 Series", "Magnecore"],
         spinGears: ["Left Spin", "Right Spin", "Magnecore", "Engine Gear", "Specialized"],
         bladeBases: ["Integrated Base", "Open Base", "Specialized Mechanism", "Rubber Tip", "Metal Tip", "Sharp Tip", "Flat Tip"],
@@ -691,6 +820,7 @@ setupBuildPageSizing();
         const categories = {
             bitChips: { slot: 'bitChip', ownedList: availableBitChips },
             attackRings: { slot: 'attackRing', ownedList: availableAttackRings },
+			subAttackRings: { slot: 'subAttackRing', ownedList: availableSubAttackRings },
             weightDisks: { slot: 'weightDisk', ownedList: availableWeightDisks },
             spinGears: { slot: 'spinGear', ownedList: availableSpinGears },
             bladeBases: { slot: 'bladeBase', ownedList: availableBladeBases },
@@ -776,7 +906,25 @@ setupBuildPageSizing();
             }
         }
         
-        currentBuild[slot] = item;
+        if (slot === 'subAttackRing') {
+    const requiredType = requiredSubRingType();
+
+    if (!requiredType) {
+        playNegativeSfx();
+        return;
+    }
+
+    if (item.subRingType !== requiredType) {
+        playNegativeSfx();
+        return;
+    }
+}
+
+currentBuild[slot] = item;
+
+if (slot === 'attackRing') {
+    validateEquippedSubAttackRing();
+}
         
         const statOrder = [
             "hp", "rpm", "attack", "defense", "stamina", "endurance", 
@@ -882,10 +1030,15 @@ setupBuildPageSizing();
         }
 
         const slotNames = { 
-            bitChip: "Bit Chip", attackRing: "Attack Ring", 
-            weightDisk: "Weight Disk", spinGear: "Spin Gear", bladeBase: "Blade Base",
-            launcher: "Launcher", ripCord: "Rip Cord" // ADDED NEW SLOTS HERE
-        };
+    bitChip: "Bit Chip",
+    attackRing: "Attack Ring",
+    subAttackRing: "Sub-Attack Ring",
+    weightDisk: "Weight Disk",
+    spinGear: "Spin Gear",
+    bladeBase: "Blade Base",
+    launcher: "Launcher",
+    ripCord: "Rip Cord"
+};
 
         Object.entries(currentBuild).forEach(([slot, part]) => {
             if (!part) return;
