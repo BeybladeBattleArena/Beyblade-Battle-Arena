@@ -2487,7 +2487,7 @@ window.equipmentDB = {
                     styleName: "Manual Balancer", 
                     styleColorSample: "#abaaa9", 
                     styleRarity: 2,
-                    image: "./images/beyblade_parts/BB/ManualBalancer_sideview.png", 
+                    image: "./images/beyblade_parts/BB/ManualBalancer_sideview_animated.gif", 
                     topDownImage: "./images/beyblade_parts/BB/ManualBalancer_topdown.png" 
                 },
             ]
