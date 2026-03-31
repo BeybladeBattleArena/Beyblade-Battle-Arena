@@ -1210,6 +1210,8 @@
         if (document.getElementById('arena-tutorial-vn').style.display === 'block') return;
         let safeX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches.length > 0 ? e.touches[0].clientX : width/2);
         let safeY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches.length > 0 ? e.touches[0].clientY : height/2);
+		
+
 
         if (gameState === "SELECT_LAUNCH") {
             const cx = width / 2; const cy = height / 2;
@@ -1222,7 +1224,8 @@
                 return;
             }
 
-            let launchPct = window.playerMaxLaunchPct || 0.425;
+            let customRange = (playerBey.stats && playerBey.stats.launchRange) ? playerBey.stats.launchRange : 0.425;
+			let launchPct = window.playerMaxLaunchPct || customRange;
             if (safeX <= width * launchPct) {
                 playerLaunchSite = { x: safeX, y: safeY };
                 gameState = "COUNTDOWN";
@@ -1409,6 +1412,39 @@
         let letItRipSFX = new Audio('./audio/sounds/Countdown_Let_It_Rip.wav'); 
         letItRipSFX.volume = 0.45; 
         letItRipSFX.play().catch(e => {});
+		
+		if (playerBey.hasPowerShoot) {
+            let currentRange = playerBey.stats.launchRange || 0.425;
+            let extraRangeDecimal = Math.max(0, currentRange - 0.425);
+            let extraRangePct = extraRangeDecimal * 100;
+
+            if (extraRangePct > 0) {
+                // 1. Boost the Launch RPM Mod BEFORE the battle engine starts!
+                let rpmBoost = 1 + (extraRangePct * 0.01);
+                playerStartRpmMod *= rpmBoost;
+
+                // 2. Stat Buffs
+                let attackMod = 1 + (extraRangePct * 0.01);
+                let enduranceMod = 1 + (extraRangePct * 0.005);
+                
+                let baseAttack = playerBey.stats.attack || 10;
+                let baseEndurance = playerBey.stats.stamina || 10; // Change to your exact stamina/defense stat name
+                
+                playerBey.stats.attack = baseAttack * attackMod;
+                playerBey.stats.stamina = baseEndurance * enduranceMod;
+
+                // 3. Set the Timer State
+                playerBey.skillState = playerBey.skillState || {};
+                playerBey.skillState.powerShootTimer = 15000;
+                
+                playerBey.skillState.powerShootAtkBuff = playerBey.stats.attack - baseAttack;
+                playerBey.skillState.powerShootStaminaBuff = playerBey.stats.stamina - baseEndurance;
+                
+                // Optional UI Flair!
+                subMsg += `<br><span style='color:#ff8800'>Power Shoot Active! Stats Up!</span>`;
+                countText.innerHTML = `${launchMsg}<br><span class="launch-subtext">${subMsg}</span>`;
+            }
+        }
 
         // Process tutorials...
         if (TutorialManager.isActive && TutorialManager.tutorialType === "basics" && TutorialManager.phase < 2) {

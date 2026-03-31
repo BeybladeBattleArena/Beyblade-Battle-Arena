@@ -138,7 +138,11 @@ window.SkillsDB = {
 		"Launcher: Range Boost": {
             name: "Launcher: Range Boost",
             desc: "Upgrades the launch range from 42.5% to 55%.",
-            apply: function(bey) {}
+            apply: function(bey) {
+                bey.stats = bey.stats || {};
+                // We store this as a raw decimal. Default is 0.425, this boosts it to 0.55!
+                bey.stats.launchRange = Math.max((bey.stats.launchRange || 0.425), 0.55);
+            }
         },
         "Special Launch: Marvelous Launch": {
             name: "Marvelous Launch",
@@ -148,8 +152,10 @@ window.SkillsDB = {
 		"Special Launch: Power Shoot": {
             name: "Power Shoot",
             desc: "For every 1% of launch range beyond the standard 42.5%, gain 1% additional attack and 0.5% additional endurance for 15 seconds, and gain 1% additional RPM on launch.",
-            apply: function(bey) {} 
-        }
+            // We just flag that they own the skill here. 
+                // The actual buff math MUST happen in the arena exactly at the moment of launch!
+                bey.hasPowerShoot = true; 
+            }
     },
 
     attacks: {

@@ -935,6 +935,74 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "ar_33", // Generalized ID
+            name: "Shark Jaw", // Generalized Name
+            type: "Attack Ring",
+			subRing: true,
+			subRingType: "Free",			
+            tags: ["Shark", "Jaw", "Sub-Attack Ring", "SAR", "Sub"], 
+			fallbackImage: "./images/beyblade_parts/AR/SharkJaw.png",  
+            stats: { attack: 22, weight: 12, speed: 2, mobility: 3, defense: 3, endurance: -1, stamina: 2, recoil: 16, recoilReduction: 2 },
+			passives: [], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "sharkjaw",
+                    styleName: "Shark Jaw", 
+                    styleColorSample: "#1e6a87", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/AR/SharkJaw.png", 
+                    topDownImage: "./images/beyblade_parts/AR/SharkJaw.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_34", // Generalized ID
+            name: "Devil Crusher", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Devil", "Crusher", "Upper Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/DevilCrusher.png",  
+            stats: { attack: 24, weight: 15, mobility: -1, balance: 3, speed: 2, defense: 2, endurance: 3, stamina: 1, recoil: 15, recoilReduction: 1 },
+			passives: [], 
+			attacks: [{ name: "Upper Attack", cd: 5 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "devilcrusher",
+                    styleName: "Devil Crusher", 
+                    styleColorSample: "#bdd9cd", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/DevilCrusher.png", 
+                    topDownImage: "./images/beyblade_parts/AR/DevilCrusher.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_35", // Generalized ID
+            name: "Armored Sprinter", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Armored", "Sprinter", "Concentrate Defense"], 
+			fallbackImage: "./images/beyblade_parts/AR/ArmoredSprinter.png",  
+            stats: { attack: 22, weight: 15, mobility: 2, balance: 1, speed: 4, defense: 6, endurance: 3, stamina: 4, recoil: 17, },
+			passives: [], 
+			attacks: [{ name: "Concentrate Defense", cd: 7 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "armoredsprinter",
+                    styleName: "Armored Sprinter", 
+                    styleColorSample: "#eef2f6", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/ArmoredSprinter.png", 
+                    topDownImage: "./images/beyblade_parts/AR/ArmoredSprinter.png" 
+                },
+            ]
+},
     ],
 	
 	
@@ -990,6 +1058,37 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/SAR/VenomTail.png", 
                     topDownImage: "./images/beyblade_parts/SAR/VenomTail.png" 
+                },
+            ]
+},
+{ 
+            id: "sar_03", // Generalized ID
+            name: "Submerge Attacker", // Generalized Name
+            type: "subAttackRing", 
+			subRingType: "Free",
+            tags: ["Submerge", "Attacker", "Free", "Cross Smash"], 
+			fallbackImage: "./images/beyblade_parts/SAR/SubmergeAttack.png",  
+            stats: { weight: 3, attack: 3, recoil: 1, stamina: 2, balance: 1, mobility: 1, defense: 2, speed: 1, recoilReduction: 2 },
+			passives: [], 
+			attacks: [{ name: "Cross Smash", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "submergeattack",
+                    styleName: "Submerge Attacker Dark Blue (Shark Jaw)", 
+                    styleColorSample: "#251c81", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SAR/SubmergeAttack.png", 
+                    topDownImage: "./images/beyblade_parts/SAR/SubmergeAttack.png" 
+                },
+				{ 
+                    styleId: "submergeattack_red",
+                    styleName: "Submerge Attacker Red", 
+                    styleColorSample: "#da0a10", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SAR/SubmergeAttack_Red.png", 
+                    topDownImage: "./images/beyblade_parts/SAR/SubmergeAttack_Red.png" 
                 },
             ]
 },
@@ -2059,7 +2158,7 @@ window.equipmentDB = {
                     styleId: "tiltshift_lightblue",
                     styleName: "Tilt-Shift Light Blue", 
                     styleColorSample: "#61bbe4", 
-                    styleRarity: 4,
+                    styleRarity: 3,
                     image: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_topdown.png" 
                 },
@@ -2067,9 +2166,17 @@ window.equipmentDB = {
                     styleId: "tiltshift_red",
                     styleName: "Tilt-Shift Red", 
                     styleColorSample: "#de4921", 
-                    styleRarity: 3,
+                    styleRarity: 4,
                     image: "./images/beyblade_parts/BB/TiltShiftBase_Red_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/TiltShiftBase_Red_topdown.png" 
+                },
+				                { 
+                    styleId: "tiltshift_white",
+                    styleName: "Tilt-Shift White", 
+                    styleColorSample: "#eef2f6", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/TiltShiftBase_White_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/TiltShiftBase_White_topdown.png" 
                 },
             ]
 },
@@ -2385,6 +2492,30 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "bb_20", // Generalized ID
+            name: "Shooter Change Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Flat",
+            tags: ["Shooter", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal" ], 
+			fallbackImage: "./images/beyblade_parts/BB/ShooterChangeBase_sideview.png",  
+            stats: {  rpm: 120, defense: 2, stamina: -1, endurance: -3, balance: 5, speed: 2, grip: 23, mobility: 12, attack: 4, weight: 14  },
+			passives: ["Mode Change"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "shooter_changebase",
+                    styleName: "Shooter Change Base (Bloody Devil)", 
+                    styleColorSample: "#759da4", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/BB/ShooterChangeBase_sideview_animated.gif", 
+                    topDownImage: "./images/beyblade_parts/BB/ShooterChangeBase_topdown.png" 
+                },
+            ]
+},
     ],
 	launchers: [
         { 
@@ -2468,6 +2599,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png" 
                 }
+				{ 
+                    styleId: "ezshoot_standard_galaxy",
+                    styleName: "EZ Shooter Launcher Galaxy Edition", 
+                    styleColorSample: "#2c1664", 
+                    styleRarity: 4,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_galaxy.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_galaxy.png" 
+                }
             ]
         },
 		{ 
@@ -2483,7 +2622,7 @@ window.equipmentDB = {
                     styleId: "range_shooter_orange",
                     styleName: "Range Shooter Orange", 
                     styleColorSample: "#ed920a", 
-                    styleRarity: 2,
+                    styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_orange.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_orange.png" 
                 },
@@ -2502,6 +2641,30 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_green.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_green.png" 
+                },
+				{ 
+                    styleId: "range_shooter_combatgreen",
+                    styleName: "Range Shooter Combat Green", 
+                    styleColorSample: "#436044", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_combatgreen.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_combatgreen.png" 
+                },
+				{ 
+                    styleId: "range_shooter_sunburst",
+                    styleName: "Range Shooter Sunburst", 
+                    styleColorSample: "#e8b85b", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_sunburst.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_sunburst.png" 
+                },
+				{ 
+                    styleId: "range_shooter_twotone_pinklemonade",
+                    styleName: "Range Shooter Pink Lemonade", 
+                    styleColorSample: "#ffb5b0", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_twotone_pinklemonade.png", 
+                    topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/RangeShooter_twotone_pinklemonade.png" 
                 },
             ]
         }
