@@ -341,32 +341,26 @@
     const savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
     
 	
-	// ==========================================
+// ==========================================
 // --- ARENA DATA RECOVERY & COURSE LOADER ---
 // ==========================================
 
 // 1. RECOVER PLAYER BEYBLADE
-// If the active build was lost in transit, pull it directly from their saved slots!
 if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
     let saveIndex = window.PlayerData.featuredBuildIndex || 0;
     window.ActiveBey = window.PlayerData.saves[saveIndex];
 }
 
 // 2. LOAD COURSE OPPONENT
-// If the player is actively running a course, the Arena needs to check Courses.js to see who is next!
 if (window.PlayerData && window.PlayerData.activeCourse && window.CoursesDB && window.opponentsDB) {
     let activeRun = window.PlayerData.activeCourse;
     let courseData = window.CoursesDB[activeRun.courseId];
     
     if (courseData) {
-        // Find the specific stage they are on
         let stageData = courseData.stages[activeRun.currentStageIndex];
-        
         if (stageData && stageData.opponent) {
-            // Find that opponent in the main database and lock them in!
             window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
             
-            // Set the global CourseManager flag so the Arena knows to use Survival/Exhibition rules!
             window.CourseManager = {
                 isActive: true,
                 courseData: courseData,
@@ -375,35 +369,22 @@ if (window.PlayerData && window.PlayerData.activeCourse && window.CoursesDB && w
             };
         }
     }
-}	
-
-console.log("--- ARENA BOOT DIAGNOSTIC ---");
-console.log("1. Is Player Bey here?", !!window.ActiveBey);
-console.log("2. Is Active Course here?", window.PlayerData?.activeCourse);
-console.log("3. Is CoursesDB loaded?", !!window.CoursesDB);
-console.log("4. Is OpponentsDB loaded?", !!window.opponentsDB);
-
-if (window.PlayerData?.activeCourse && window.CoursesDB) {
-    let cData = window.CoursesDB[window.PlayerData.activeCourse.courseId];
-    console.log("5. Did we find the Course?", cData);
-    
-    if (cData) {
-        let sData = cData.stages[window.PlayerData.activeCourse.currentStageIndex];
-        console.log("6. Did we find the Stage?", sData);
-        
-        if (sData) {
-            let opp = window.opponentsDB.find(o => o.id === sData.opponent);
-            console.log("7. Did we find the Opponent in the DB?", opp);
-        }
-    }
 }
 
+// ==========================================
+// 3. STRICT VARIABLE ASSIGNMENT
+// These MUST be declared AFTER the recovery block above!
+// ==========================================
+let playerBey = window.ActiveBey;
+let cpuData = window.ActiveOpponent;
 
-	
-    if (!playerBuild || !savedCpuData) {
-        window.navigateTo('home-menu.html');
-        throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
-    }
+// 4. THE SAFETY CHECK
+// Also ensure we are checking that the player actually has 'parts' equipped
+if (!playerBey || !playerBey.parts || !cpuData) {
+    console.error("CRITICAL FAILURE: Missing Beyblade Data.", { playerBey, cpuData });
+    throw new Error("Missing Beyblade data! Aborting arena load and redirecting...");
+}
+// ==========================================
 
     const cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
     // --- NEW: DYNAMIC NESTED STADIUM RESOLVER ---
