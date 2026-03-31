@@ -157,6 +157,7 @@ window.SkillsDB = {
                  apply: function(bey) {
 				bey.hasPowerShoot = true; 
             }
+		}
     },
 
     attacks: {
