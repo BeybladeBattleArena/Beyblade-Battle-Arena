@@ -947,19 +947,20 @@
 		window.hasPowerShoot = false;
 		window.playerMaxLaunchPct = 0.425
 		
-		if (part.specialLaunch && part.specialLaunch.includes("Power Shoot")) {
+		
+		Object.values(playerBuild.parts).forEach(part => {
+			if (part.specialLaunch && part.specialLaunch.includes("Power Shoot")) {
                 window.hasPowerShoot = true;
             }
 			
-		if ((part.skills && part.skills.includes("Launcher: Range Boost")) || 
+			if ((part.skills && part.skills.includes("Launcher: Range Boost")) || 
                 (part.specialLaunch && part.specialLaunch.includes("Launcher: Range Boost"))) {
                 window.playerMaxLaunchPct = 0.55; 
             }
 			
-			
-        Object.values(playerBuild.parts).forEach(part => {
+			       
             if (part && part.specialLaunch && part.specialLaunch.includes("Marvelous Launch")) hasMarvelousLaunch = true;
-        });
+			});
 
         ripcordData = (playerBuild.parts.ripCord && playerBuild.parts.ripCord.launchData) ? 
                       playerBuild.parts.ripCord.launchData : {
