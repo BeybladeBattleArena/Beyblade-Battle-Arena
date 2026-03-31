@@ -129,6 +129,48 @@
     .assembly-part img { width: 100%; height: 100%; object-fit: contain; z-index: 10; }
     .assembly-part.empty::after { content: "?"; color: #444; font-size: 20px; font-weight: bold; }
     
+	.assembly-row-main {
+    align-items: flex-start;
+    height: auto;
+}
+
+.assembly-stack {
+    width: 128px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.assembly-sub-slot {
+    width: 128px;
+    height: 64px;
+}
+
+.assembly-part.blocked::after {
+    content: none;
+}
+
+.blocked-x {
+    color: #ff4444;
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.subring-req-label {
+    position: absolute;
+    top: 4px;
+    left: 6px;
+    font-size: 10px;
+    color: #aaa;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    z-index: 20;
+    pointer-events: none;
+}
+	
+	
     .save-build-btn { background: #ffaa00; color: #000; border: none; border-radius: 4px; padding: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.1s; width: 100%; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
     .save-build-btn:active { transform: scale(0.98); }
     .save-build-btn:disabled { background: #555; color: #888; cursor: not-allowed; }
@@ -432,6 +474,101 @@ setupBuildPageSizing();
         if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
         return part.fallbackImage || part[key] || '';
     }
+	
+	function playNegativeSfx() {
+    const sfx = new Audio('./audio/sounds/negative.wav');
+    sfx.volume = 0.7;
+    sfx.play().catch(() => {});
+}
+
+function requiredSubRingType() {
+    const ar = currentBuild.attackRing;
+    if (!ar || ar.subRing !== true) return null;
+    return ar.subRingType || null;
+}
+
+function validateEquippedSubAttackRing() {
+    const requiredType = requiredSubRingType();
+
+    if (!requiredType) {
+        currentBuild.subAttackRing = null;
+        return;
+    }
+
+    if (
+        currentBuild.subAttackRing &&
+        currentBuild.subAttackRing.subRingType !== requiredType
+    ) {
+        currentBuild.subAttackRing = null;
+    }
+}
+
+function buildIsSaveReady() {
+    const baseReady =
+        currentBuild.bitChip &&
+        currentBuild.attackRing &&
+        currentBuild.weightDisk &&
+        currentBuild.spinGear &&
+        currentBuild.bladeBase &&
+        currentBuild.launcher &&
+        currentBuild.ripCord;
+
+    if (!baseReady) return false;
+
+    const requiredType = requiredSubRingType();
+    if (!requiredType) return true;
+
+    return !!(
+        currentBuild.subAttackRing &&
+        currentBuild.subAttackRing.subRingType === requiredType
+    );
+}
+
+			function normalizeLoadedBuild(parts) {
+				return {
+					bitChip: null,
+					attackRing: null,
+					subAttackRing: null,
+					weightDisk: null,
+					spinGear: null,
+					bladeBase: null,
+					launcher: null,
+					ripCord: null,
+					...(parts || {})
+				};
+			}
+
+			function getSubAttackRingSlotHtml() {
+				const requiredType = requiredSubRingType();
+				const part = currentBuild.subAttackRing;
+				const imgSrc = getSafeImage(part, true);
+				const labelHtml = requiredType
+					? `<span class="subring-req-label">${requiredType}</span>`
+					: '';
+
+				if (imgSrc) {
+					return `
+						<div class="assembly-part assembly-sub-slot">
+							${labelHtml}
+							<img src="${imgSrc}">
+						</div>
+					`;
+				}
+
+				if (requiredType) {
+					return `
+						<div class="assembly-part assembly-sub-slot empty">
+							${labelHtml}
+						</div>
+					`;
+				}
+
+				return `
+					<div class="assembly-part assembly-sub-slot blocked">
+						<span class="blocked-x">X</span>
+					</div>
+				`;
+			}
 
     window.renderSaveSlots = function() {
         const container = document.getElementById('save-slots-container');
@@ -628,100 +765,6 @@ setupBuildPageSizing();
                 const arImg = getSafeImage(currentBuild.attackRing, true);
                 const bcImg = getSafeImage(currentBuild.bitChip, true);
 
-function playNegativeSfx() {
-    const sfx = new Audio('./audio/sounds/negative.wav');
-    sfx.volume = 0.7;
-    sfx.play().catch(() => {});
-}
-
-function requiredSubRingType() {
-    const ar = currentBuild.attackRing;
-    if (!ar || ar.subRing !== true) return null;
-    return ar.subRingType || null;
-}
-
-function validateEquippedSubAttackRing() {
-    const requiredType = requiredSubRingType();
-
-    if (!requiredType) {
-        currentBuild.subAttackRing = null;
-        return;
-    }
-
-    if (
-        currentBuild.subAttackRing &&
-        currentBuild.subAttackRing.subRingType !== requiredType
-    ) {
-        currentBuild.subAttackRing = null;
-    }
-}
-
-function buildIsSaveReady() {
-    const baseReady =
-        currentBuild.bitChip &&
-        currentBuild.attackRing &&
-        currentBuild.weightDisk &&
-        currentBuild.spinGear &&
-        currentBuild.bladeBase &&
-        currentBuild.launcher &&
-        currentBuild.ripCord;
-
-    if (!baseReady) return false;
-
-    const requiredType = requiredSubRingType();
-    if (!requiredType) return true;
-
-    return !!(
-        currentBuild.subAttackRing &&
-        currentBuild.subAttackRing.subRingType === requiredType
-    );
-}
-
-			function normalizeLoadedBuild(parts) {
-				return {
-					bitChip: null,
-					attackRing: null,
-					subAttackRing: null,
-					weightDisk: null,
-					spinGear: null,
-					bladeBase: null,
-					launcher: null,
-					ripCord: null,
-					...(parts || {})
-				};
-			}
-
-			function getSubAttackRingSlotHtml() {
-				const requiredType = requiredSubRingType();
-				const part = currentBuild.subAttackRing;
-				const imgSrc = getSafeImage(part, true);
-				const labelHtml = requiredType
-					? `<span class="subring-req-label">${requiredType}</span>`
-					: '';
-
-				if (imgSrc) {
-					return `
-						<div class="assembly-part assembly-sub-slot">
-							${labelHtml}
-							<img src="${imgSrc}">
-						</div>
-					`;
-				}
-
-				if (requiredType) {
-					return `
-						<div class="assembly-part assembly-sub-slot empty">
-							${labelHtml}
-						</div>
-					`;
-				}
-
-				return `
-					<div class="assembly-part assembly-sub-slot blocked">
-						<span class="blocked-x">X</span>
-					</div>
-				`;
-			}
 
                 stack.innerHTML = `
                     <img src="${bbImg}" id="anim-bb" class="anim-part" style="transform: translateY(120px) scale(0.8); opacity: 0;">
