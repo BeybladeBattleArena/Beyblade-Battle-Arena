@@ -340,6 +340,52 @@
     const playerBuild = window.ActiveBey || JSON.parse(localStorage.getItem('activeBey'));
     const savedCpuData = window.ActiveOpponent || JSON.parse(localStorage.getItem('activeOpponent'));
     
+	
+	// ==========================================
+// --- ARENA DATA RECOVERY & COURSE LOADER ---
+// ==========================================
+
+// 1. RECOVER PLAYER BEYBLADE
+// If the active build was lost in transit, pull it directly from their saved slots!
+if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
+    let saveIndex = window.PlayerData.featuredBuildIndex || 0;
+    window.ActiveBey = window.PlayerData.saves[saveIndex];
+}
+
+// 2. LOAD COURSE OPPONENT
+// If the player is actively running a course, the Arena needs to check Courses.js to see who is next!
+if (window.PlayerData && window.PlayerData.activeCourse && window.CoursesDB && window.opponentsDB) {
+    let activeRun = window.PlayerData.activeCourse;
+    let courseData = window.CoursesDB[activeRun.courseId];
+    
+    if (courseData) {
+        // Find the specific stage they are on
+        let stageData = courseData.stages[activeRun.currentStageIndex];
+        
+        if (stageData && stageData.opponent) {
+            // Find that opponent in the main database and lock them in!
+            window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
+            
+            // Set the global CourseManager flag so the Arena knows to use Survival/Exhibition rules!
+            window.CourseManager = {
+                isActive: true,
+                courseData: courseData,
+                currentStageIndex: activeRun.currentStageIndex,
+                mode: activeRun.mode
+            };
+        }
+    }
+}
+
+// ==========================================
+// 3. YOUR EXISTING SAFETY CHECK (Line 26)
+if (!window.ActiveBey || !window.ActiveOpponent) {
+    throw new Error("Missing Beyblade data! Aborting arena load and redirecting...");
+    // window.navigateTo('home-menu.html');
+}
+// ==========================================
+	
+	
     if (!playerBuild || !savedCpuData) {
         window.navigateTo('home-menu.html');
         throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
