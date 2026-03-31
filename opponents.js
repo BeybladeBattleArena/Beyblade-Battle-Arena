@@ -101,9 +101,9 @@ window.opponentsDB = [
         ],
         aiScript: function(cpu, player, engine) {
             let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
-            let ramSkill = cpu.activeAttacks.find(a => a.name === "Upper Attack"); // Changed to match his actual attack!
-            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
-                engine.executeAttack("Upper Attack", cpu, player);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Sharp Shooter"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 180) {
+                engine.executeAttack("Sharp Shooter", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
@@ -249,19 +249,25 @@ window.opponentsDB = [
     },
 	
 
-    {
+	{
         id: "opp_max1",
         name: "Max",
         portrait: "Max.png",
-        dialogueBG: "beystadium_park.png",
-        aiType: "CENTER_DEFEND", 
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
         beyName: "Draciel Metal Ball Defenser",
-        bitBeast: "Draciel",
+        bitBeast: "None",
+		bitChip: "bc_04",
+		attackRing: { id: "ar_21", styleId: "protoshell_maxdesign" },
+		weightDisk: "wd_04",
+		spinGear: { id: "sg_01", styleId: "SG_basic_green2" },
+		bladeBase: "bb_17",
         alwaysUnlocked: false,
-        arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" }, 
-        stats: { hp: 180, rpm: 1350, attack: 14, defense: 55, stamina: 36, speed: 8, weight: 76, mobility: 5, grip: 11, balance: 19, recoil: 8, recoilReduction: 4, spiritCharge: 5, cdr: 1 },
-        passives: [],
-        attacks: [{ name: "Heavy Attack", cd: 5 }],
+        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
+        stats: { 
+            hp: 155, rpm: 1320, attack: 26, defense: 27, stamina: 19, speed: 2, weight: 75, mobility: -2, grip: 24, balance: 6, recoil: 8, recoilReduction: 6, spiritCharge: 8, cdr: 3 },
+        passives: ["Metal Ball Defense"],
+        attacks: [{ name: "Concentrate Defense", cd: 7 }],
         ultimate: null, 
         dialogue: [
             "Hi there! It's great to meet a new Blader!",
@@ -279,14 +285,17 @@ window.opponentsDB = [
         ],
         aiScript: function(cpu, player, engine) {
             let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
-            let ramSkill = cpu.activeAttacks.find(a => a.name === "Heavy Attack"); // Changed to match his actual attack!
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Concentrate Defense"); // Changed to match his actual attack!
             if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
-                engine.executeAttack("Heavy Attack", cpu, player);
+                engine.executeAttack("Concentrate Defense", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
         }
     },
+
+
+
 
     {
         id: "opp_mirorbey",
