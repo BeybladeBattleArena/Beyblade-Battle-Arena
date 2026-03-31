@@ -154,7 +154,8 @@ window.SkillsDB = {
             desc: "For every 1% of launch range beyond the standard 42.5%, gain 1% additional attack and 0.5% additional endurance for 15 seconds, and gain 1% additional RPM on launch.",
             // We just flag that they own the skill here. 
                 // The actual buff math MUST happen in the arena exactly at the moment of launch!
-                bey.hasPowerShoot = true; 
+                 apply: function(bey) {
+				bey.hasPowerShoot = true; 
             }
     },
 

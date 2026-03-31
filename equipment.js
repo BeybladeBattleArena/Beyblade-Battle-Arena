@@ -2598,7 +2598,7 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png", 
                     topDownImage: "./images/beyblade_parts/Launchers_and_Ripcords/Launchers/ezshooter_basic_twotone_koamarublush.png" 
-                }
+                },
 				{ 
                     styleId: "ezshoot_standard_galaxy",
                     styleName: "EZ Shooter Launcher Galaxy Edition", 
