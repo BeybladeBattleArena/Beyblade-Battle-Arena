@@ -847,8 +847,17 @@
             // Look for special launches on Tools!
             if (part.specialLaunch) {
                 part.specialLaunch.forEach(sl => {
-				let desc = "";
-                    passives.push({ name: `Special Launch: ${sl}`, desc: part.passives.desc, source: originText });
+                    // 1. Construct the exact name as it appears in skills.js (e.g., "Special Launch: Power Shoot")
+                    let skillKey = `Special Launch: ${sl}`; 
+                    let desc = "";
+                    
+                    // 2. Look it up inside the passives database!
+                    if (window.SkillsDB && window.SkillsDB.passives && window.SkillsDB.passives[skillKey]) {
+                        desc = window.SkillsDB.passives[skillKey].desc;
+                    }
+                    
+                    // 3. Push it to the UI array
+                    passives.push({ name: skillKey, desc: desc, source: originText });
                 });
             }
 
