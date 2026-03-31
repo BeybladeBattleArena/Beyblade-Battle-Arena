@@ -944,6 +944,19 @@
         if (ripcordUrl) { rImg.src = ripcordUrl; rImg.style.display = 'block'; } else { rImg.style.display = 'none'; }
 
         hasMarvelousLaunch = false;
+		window.hasPowerShoot = false;
+		window.playerMaxLaunchPct = 0.425
+		
+		if (part.specialLaunch && part.specialLaunch.includes("Power Shoot")) {
+                window.hasPowerShoot = true;
+            }
+			
+		if ((part.skills && part.skills.includes("Launcher: Range Boost")) || 
+                (part.specialLaunch && part.specialLaunch.includes("Launcher: Range Boost"))) {
+                window.playerMaxLaunchPct = 0.55; 
+            }
+			
+			
         Object.values(playerBuild.parts).forEach(part => {
             if (part && part.specialLaunch && part.specialLaunch.includes("Marvelous Launch")) hasMarvelousLaunch = true;
         });
@@ -1415,37 +1428,26 @@
         letItRipSFX.volume = 0.45; 
         letItRipSFX.play().catch(e => {});
 		
-		if (playerBey.hasPowerShoot) {
-            let currentRange = playerBey.stats.launchRange || 0.425;
+		if (window.hasPowerShoot) {
+            // We can safely read the global range we set in the minigame setup!
+            let currentRange = window.playerMaxLaunchPct || 0.425; 
             let extraRangeDecimal = Math.max(0, currentRange - 0.425);
             let extraRangePct = extraRangeDecimal * 100;
 
             if (extraRangePct > 0) {
-                // 1. Boost the Launch RPM Mod BEFORE the battle engine starts!
+                // Boost the Launch RPM Mod immediately
                 let rpmBoost = 1 + (extraRangePct * 0.01);
                 playerStartRpmMod *= rpmBoost;
 
-                // 2. Stat Buffs
-                let attackMod = 1 + (extraRangePct * 0.01);
-                let enduranceMod = 1 + (extraRangePct * 0.005);
+                // Set a global flag so the Battle Engine knows to apply physical stats later
+                window.pendingPowerShootBuff = extraRangePct;
                 
-                let baseAttack = playerBey.stats.attack || 10;
-                let baseEndurance = playerBey.stats.stamina || 10; // Change to your exact stamina/defense stat name
-                
-                playerBey.stats.attack = baseAttack * attackMod;
-                playerBey.stats.stamina = baseEndurance * enduranceMod;
-
-                // 3. Set the Timer State
-                playerBey.skillState = playerBey.skillState || {};
-                playerBey.skillState.powerShootTimer = 15000;
-                
-                playerBey.skillState.powerShootAtkBuff = playerBey.stats.attack - baseAttack;
-                playerBey.skillState.powerShootStaminaBuff = playerBey.stats.stamina - baseEndurance;
-                
-                // Optional UI Flair!
+                // UI Flair
                 subMsg += `<br><span style='color:#ff8800'>Power Shoot Active! Stats Up!</span>`;
                 countText.innerHTML = `${launchMsg}<br><span class="launch-subtext">${subMsg}</span>`;
             }
+        } else {
+            window.pendingPowerShootBuff = 0; // Clear it just in case!
         }
 
         // Process tutorials...
@@ -1744,6 +1746,29 @@
                 playerBey.activeAura = "rgba(255, 255, 200, 0.5)";
                 playerBey.activeAuraDuration = 15000;
             }
+			
+			
+			// --- CATCH PENDING LAUNCHER BUFFS ---
+        if (window.pendingPowerShootBuff && window.pendingPowerShootBuff > 0) {
+            let extraRangePct = window.pendingPowerShootBuff;
+            
+            let attackMod = 1 + (extraRangePct * 0.01);
+            let enduranceMod = 1 + (extraRangePct * 0.005);
+            
+            let baseAttack = playerBey.stats.attack || 10;
+            let baseEndurance = playerBey.stats.stamina || 10; 
+            
+            playerBey.stats.attack = baseAttack * attackMod;
+            playerBey.stats.stamina = baseEndurance * enduranceMod;
+
+            playerBey.skillState = playerBey.skillState || {};
+            playerBey.skillState.powerShootTimer = 15000;
+            
+            playerBey.skillState.powerShootAtkBuff = playerBey.stats.attack - baseAttack;
+            playerBey.skillState.powerShootStaminaBuff = playerBey.stats.stamina - baseEndurance;
+            
+            window.pendingPowerShootBuff = 0; // Turn off the flag!
+        }
 			
             
             if (TutorialManager.isActive && TutorialManager.tutorialType === "basics") {
