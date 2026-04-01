@@ -364,7 +364,7 @@
         throw new Error("Missing Beyblade data! Aborting arena load and redirecting..."); 
     }
 
-    const cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
+    let cpuData = window.opponentsDB ? window.opponentsDB.find(opp => opp.id === savedCpuData.id) || savedCpuData : savedCpuData;
     // --- NEW: DYNAMIC NESTED STADIUM RESOLVER ---
     function resolveStadium(arenaRequest) {
         // 1. The Failsafe (If the DB breaks, the game still boots)

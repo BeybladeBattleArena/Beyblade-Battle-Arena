@@ -191,17 +191,23 @@ window.AudioManager = {
         if (!this.currentBGM || this.currentBGM.paused || this.currentBGM.volume === 0) return;
         
         let startVol = this.currentBGM.volume;
+		if (startVol === undefined || startVol === 0) return;
         let steps = 20; // How many volume "ticks" we take to get to zero
         let stepTime = durationMs / steps;
         let volStep = startVol / steps;
 
         let fadeInterval = setInterval(() => {
+            // SAFETY SHIELD: Stop the timer if the track was deleted!
+            if (!this.bgm || typeof this.bgm.volume === 'undefined') {
+                clearInterval(fadeInterval);
+                return;
+            }
+
             if (this.bgm.volume - volStep > 0.01) {
                 this.bgm.volume -= volStep;
             } else {
-                // Fade complete! Stop the track.
-                this.currentBGM.volume = 0;
-                this.currentBGM.pause();
+                this.bgm.volume = 0;
+                this.bgm.pause();
                 clearInterval(fadeInterval);
             }
         }, stepTime);
