@@ -720,6 +720,79 @@
             window.navigateTo('arena.html');
             return;
         }
+		
+		
+		else {
+                        let unlockedNames = [];
+                        let unlockedPartNames = [];
+                        
+                        // 1. Process Opponent Unlocks
+                        if (courseData.unlockOpponents) {
+                            if (!window.PlayerData.unlockedOpponents) window.PlayerData.unlockedOpponents = [];
+                            
+                            courseData.unlockOpponents.forEach(oppId => {
+                                if (!window.PlayerData.unlockedOpponents.includes(oppId)) {
+                                    window.PlayerData.unlockedOpponents.push(oppId);
+                                    let oppData = window.opponentsDB ? window.opponentsDB.find(o => o.id === oppId) : null;
+                                    if (oppData) unlockedNames.push(oppData.name);
+                                }
+                            });
+                        }
+
+                        // 2. Process Part Unlocks
+                        if (courseData.unlockParts && Array.isArray(courseData.unlockParts)) {
+                            if (!window.PlayerData.unlockedStyles) window.PlayerData.unlockedStyles = [];
+
+                            courseData.unlockParts.forEach(reward => {
+                                if (!window.PlayerData[reward.partType]) window.PlayerData[reward.partType] = [];
+                                
+                                if (!window.PlayerData[reward.partType].includes(reward.id)) {
+                                    window.PlayerData[reward.partType].push(reward.id);
+                                }
+                                if (reward.styleId && !window.PlayerData.unlockedStyles.includes(reward.styleId)) {
+                                    window.PlayerData.unlockedStyles.push(reward.styleId);
+                                }
+                                
+                                if (window.equipmentDB && window.equipmentDB[reward.partType]) {
+                                    let partData = window.equipmentDB[reward.partType].find(p => p.id === reward.id);
+                                    if (partData) {
+                                        let styleName = "";
+                                        if (reward.styleId && partData.styles) {
+                                            let styleObj = partData.styles.find(s => s.styleId === reward.styleId);
+                                            if (styleObj) styleName = styleObj.styleName;
+                                        }
+                                        unlockedPartNames.push(styleName || partData.name);
+                                    } else {
+                                        unlockedPartNames.push(reward.id);
+                                    }
+                                }
+                            });
+                        }
+
+                        // 3. Pay the BP & Clear the run
+                        window.PlayerData.bp += courseData.rewardBP;
+                        window.PlayerData.activeCourse = null;
+
+                        if (window.savePlayerData) window.savePlayerData();
+
+                        // 4. Alert the player and kick them to the menu!
+                        let alertMsg = `COURSE CLEARED!\nEarned ${courseData.rewardBP} BP!`;
+                        if (unlockedNames.length > 0) alertMsg += `\n\nUnlocked Opponents:\n${unlockedNames.join(", ")}`;
+                        if (unlockedPartNames.length > 0) alertMsg += `\n\nAcquired New Parts:\n${unlockedPartNames.join("\n")}`;
+                        
+                        alert(alertMsg);
+                        window.navigateTo('coursebattle.html');
+                        return;
+                    }
+                }
+            }
+
+            // Failsafe: If data is missing somehow, just kick back to the menu safely
+            window.PlayerData.activeCourse = null;
+            window.navigateTo('coursebattle.html');
+            return;
+        }
+		
 
         if (lineData.action === "advance_stage") {
             loadStage(lineData.nextStage);
