@@ -7,6 +7,10 @@ window.CoursesDB = {
         name: "Fledgling Blade Breakers",
         mode: "EXHIBITION",
         rewardBP: 800,
+		rewardPart: null,
+		unlockParts: [],
+        // partType: "attackRings", id: "ar_dragoon_g", styleId: "ar_dragoon_g_anime" },
+
 		unlockOpponents: ["opp_max1", "opp_rei1", "opp_kai1", "opp_tyson1"],
 		desc: "Take on the Blade Breakers before they became the Blade Breakers. Duke it out with Max, Rei, Kai, and Tyson while they use their first gen, original Beyblades.",
         stages: [

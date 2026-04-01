@@ -3187,7 +3187,7 @@
 	
 	
 	// ==========================================
-    // --- NEW: COURSE ADVANCEMENT ENGINE ---
+    // --- COURSE ADVANCEMENT ENGINE ---
     // ==========================================
     window.processCourseMatchEnd = function(playerScore, cpuScore) {
         let didPlayerWin = playerScore >= 3; 
@@ -3196,7 +3196,7 @@
             alert("You were defeated! Course Failed.");
             window.PlayerData.activeCourse = null;
             if (window.savePlayerData) window.savePlayerData();
-            window.navigateTo('coursebattle.html'); // Kick back to menu
+            window.navigateTo('coursebattle.html'); 
             return;
         }
 
@@ -3217,20 +3217,24 @@
             pendingScene = nextStage.preScene; // Next opponent intro scene
         }
 
-        // 3. Save Progress to Firebase
-        if (window.db && window.CurrentUser) {
-            window.PlayerData.activeCourse.pendingScene = pendingScene;
-            if (window.savePlayerData) window.savePlayerData();
+        // 3. CRITICAL FIX: Update the SPA's memory NO MATTER WHAT!
+        window.PlayerData.activeCourse.pendingScene = pendingScene;
+
+        // 4. Best-effort Firebase Save (If the global function exists)
+        if (window.savePlayerData) {
+            window.savePlayerData();
         }
 
-        // 4. Route the Player
+        // 5. Route the Player
         if (pendingScene) {
+            // We have dialogue! Route to Adventure engine.
             window.navigateTo('adventure.html');
         } else if (!nextStage) {
             // ==========================================
             // 🎉 COURSE CLEARED LOGIC
             // ==========================================
             let unlockedNames = [];
+            let unlockedPartNames = [];
             
             // 1. Process Opponent Unlocks
             if (course.unlockOpponents) {
@@ -3240,27 +3244,65 @@
                     if (!window.PlayerData.unlockedOpponents.includes(oppId)) {
                         window.PlayerData.unlockedOpponents.push(oppId);
                         
-                        // Grab the name from the DB for the alert box
-                        let oppData = window.opponentsDB.find(o => o.id === oppId);
+                        let oppData = window.opponentsDB ? window.opponentsDB.find(o => o.id === oppId) : null;
                         if (oppData) unlockedNames.push(oppData.name);
                     }
                 });
             }
 
-            // 2. Pay the BP
+            // 2. Process Part Unlocks
+            if (course.unlockParts && Array.isArray(course.unlockParts)) {
+                if (!window.PlayerData.unlockedStyles) window.PlayerData.unlockedStyles = [];
+
+                course.unlockParts.forEach(reward => {
+                    // A. Ensure the category array exists in the player's inventory
+                    if (!window.PlayerData[reward.partType]) {
+                        window.PlayerData[reward.partType] = [];
+                    }
+
+                    // B. Grant the Base Part ID if they don't have it
+                    if (!window.PlayerData[reward.partType].includes(reward.id)) {
+                        window.PlayerData[reward.partType].push(reward.id);
+                    }
+
+                    // C. Grant the specific Style ID
+                    if (reward.styleId && !window.PlayerData.unlockedStyles.includes(reward.styleId)) {
+                        window.PlayerData.unlockedStyles.push(reward.styleId);
+                    }
+
+                    // D. Fetch the name for the Alert Box (Safely)
+                    if (window.equipmentDB && window.equipmentDB[reward.partType]) {
+                        let partData = window.equipmentDB[reward.partType].find(p => p.id === reward.id);
+                        if (partData) {
+                            let styleName = "";
+                            if (reward.styleId && partData.styles) {
+                                let styleObj = partData.styles.find(s => s.styleId === reward.styleId);
+                                if (styleObj) styleName = styleObj.styleName;
+                            }
+                            unlockedPartNames.push(styleName || partData.name);
+                        } else {
+                            unlockedPartNames.push(reward.id); // Fallback
+                        }
+                    }
+                });
+            }
+
+            // 3. Pay the BP & Clear the run
             window.PlayerData.bp += course.rewardBP;
-            
-            // 3. Clear the active run
             window.PlayerData.activeCourse = null;
 
-            // 4. Save everything to Firebase in ONE clean sweep!
             if (window.savePlayerData) window.savePlayerData();
 
-            // 5. Alert the player and kick them to the menu!
+            // 4. Alert the player and kick them to the menu!
             let alertMsg = `COURSE CLEARED!\nEarned ${course.rewardBP} BP!`;
+            
             if (unlockedNames.length > 0) {
-                alertMsg += `\n\nUnlocked for Free Battle:\n${unlockedNames.join(", ")}`;
+                alertMsg += `\n\nUnlocked Opponents:\n${unlockedNames.join(", ")}`;
             }
+            if (unlockedPartNames.length > 0) {
+                alertMsg += `\n\nAcquired New Parts:\n${unlockedPartNames.join("\n")}`;
+            }
+            
             alert(alertMsg);
             
             window.navigateTo('coursebattle.html');
