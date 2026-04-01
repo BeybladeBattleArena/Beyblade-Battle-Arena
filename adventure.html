@@ -214,6 +214,7 @@
     <div id="popup-hint">Click to continue...</div>
 </div>
 
+
 <script type="module">
     import { db } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -286,8 +287,8 @@
             let courseData = window.CoursesDB ? window.CoursesDB[courseId] : null;
 
             // 3. Now check if the database object has a custom theme
-            if (courseData && courseData.bgmTrack) {
-                trackToPlay = courseData.bgmTrack;
+            if (courseData && courseData.trackBGM) {
+                trackToPlay = courseData.trackBGM;
             
                 // If it does have a custom loop point, grab that too!
                 if (courseData.bgmLoopPoint !== undefined) {
