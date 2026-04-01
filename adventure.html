@@ -683,46 +683,42 @@
             // 1. Clear the pending scene flag so we don't get stuck in a loop
             window.PlayerData.activeCourse.pendingScene = null;
             
-            // ==========================================
-            // 2. THE PERFECT ARENA HANDOFF
-            // ==========================================
-            if (window.PlayerData.activeCourse && window.CoursesDB && window.opponentsDB) {
+            if (window.PlayerData.activeCourse && window.CoursesDB) {
                 let activeRun = window.PlayerData.activeCourse;
                 let courseData = window.CoursesDB[activeRun.courseId];
                 
                 if (courseData) {
                     let stageData = courseData.stages[activeRun.currentStageIndex];
                     
-                    if (stageData && stageData.opponent) {
-                        // A. Find the opponent and strictly assign them to the Arena's global variable!
-                        window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
-                        
-                        // B. Set the Course Manager flag so the Arena knows to use Survival/Exhibition rules!
-                        window.CourseManager = {
-                            isActive: true,
-                            courseData: courseData,
-                            currentStageIndex: activeRun.currentStageIndex,
-                            mode: activeRun.mode
-                        };
-                    }
-                }
-            }
+                    // ==========================================
+                    // SCENARIO A: THE COURSE CONTINUES
+                    // ==========================================
+                    if (stageData) {
+                        if (stageData.opponent && window.opponentsDB) {
+                            window.ActiveOpponent = window.opponentsDB.find(o => o.id === stageData.opponent);
+                            window.CourseManager = {
+                                isActive: true,
+                                courseData: courseData,
+                                currentStageIndex: activeRun.currentStageIndex,
+                                mode: activeRun.mode
+                            };
+                        }
 
-            // C. Guarantee the Player's Beyblade is loaded in memory
-            if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
-                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
-                window.ActiveBey = window.PlayerData.saves[saveIndex];
-            }
-            // ==========================================
-            
-            // 3. Save and punt them back to the Arena
-            if (window.savePlayerData) window.savePlayerData();
-            window.navigateTo('arena.html');
-            return;
-        
-		
-		
-		else {
+                        // C. Guarantee the Player's Beyblade is loaded in memory
+                        if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
+                            let saveIndex = window.PlayerData.featuredBuildIndex || 0;
+                            window.ActiveBey = window.PlayerData.saves[saveIndex];
+                        }
+                        
+                        // 3. Save and punt them back to the Arena
+                        if (window.savePlayerData) window.savePlayerData();
+                        window.navigateTo('arena.html');
+                        return;
+                    } 
+                    // ==========================================
+                    // SCENARIO B: COURSE CLEARED!
+                    // ==========================================
+                    else {
                         let unlockedNames = [];
                         let unlockedPartNames = [];
                         
@@ -767,7 +763,7 @@
                                     }
                                 }
                             });
-                        
+                        }
 
                         // 3. Pay the BP & Clear the run
                         window.PlayerData.bp += courseData.rewardBP;
@@ -790,6 +786,19 @@
             // Failsafe: If data is missing somehow, just kick back to the menu safely
             window.PlayerData.activeCourse = null;
             window.navigateTo('coursebattle.html');
+            return;
+        }
+
+            // C. Guarantee the Player's Beyblade is loaded in memory
+            if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
+                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
+                window.ActiveBey = window.PlayerData.saves[saveIndex];
+            }
+            // ==========================================
+            
+            // 3. Save and punt them back to the Arena
+            if (window.savePlayerData) window.savePlayerData();
+            window.navigateTo('arena.html');
             return;
         }
 		
