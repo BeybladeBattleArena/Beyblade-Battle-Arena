@@ -276,22 +276,31 @@
                 
 				    // 0. Play appropriate BGM for Course instead of Adventure BGM
 					if (window.AudioManager) {
-						let trackToPlay = './audio/music/How_To_Go_Pro_ForTutorial.wav';
-						let loopPoint = 5.32;
-						let courseData = window.PlayerData.activeCourse.courseId || null;
-					// Check if the course exists AND has a custom theme for VN sequence
-					if (courseData && courseData.bgmTrack) {
-                    trackToPlay = courseData.bgmTrack;
-                
-					// If it does have a custom loop point, grab that too!
-					if (courseData.bgmLoopPoint !== undefined) {
-                        loopPoint = courseData.bgmLoopPoint;
-					}
-				}
+            let trackToPlay = './audio/music/How_To_Go_Pro_ForTutorial.wav';
+            let loopPoint = 5.32;
+            
+            // 1. Get the ID string (e.g., "earlybb")
+            let courseId = window.PlayerData.activeCourse.courseId;
+            
+            // 2. THE FIX: Use that ID to fetch the actual object from the Database!
+            let courseData = window.CoursesDB ? window.CoursesDB[courseId] : null;
 
-            // Play the music!
-            window.AudioManager.playBGM(trackToPlay, loopPoint, 0.5);
-			}
+            // 3. Now check if the database object has a custom theme
+            if (courseData && courseData.bgmTrack) {
+                trackToPlay = courseData.bgmTrack;
+            
+                // If it does have a custom loop point, grab that too!
+                if (courseData.bgmLoopPoint !== undefined) {
+                    loopPoint = courseData.bgmLoopPoint;
+                }
+            }
+
+            // 4. The Gatekeeper: Play the music only if it isn't already playing!
+            if (window.AudioManager.currentSrc !== trackToPlay) {
+                window.AudioManager.playBGM(trackToPlay, loopPoint, 0.5);
+                window.AudioManager.currentSrc = trackToPlay; // Update the tracker
+            }
+        }
 	
 	
                 // 1. Hide the Adventure UI elements
