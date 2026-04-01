@@ -789,18 +789,6 @@
             return;
         }
 
-            // C. Guarantee the Player's Beyblade is loaded in memory
-            if (!window.ActiveBey && window.PlayerData && window.PlayerData.saves) {
-                let saveIndex = window.PlayerData.featuredBuildIndex || 0;
-                window.ActiveBey = window.PlayerData.saves[saveIndex];
-            }
-            // ==========================================
-            
-            // 3. Save and punt them back to the Arena
-            if (window.savePlayerData) window.savePlayerData();
-            window.navigateTo('arena.html');
-            return;
-        }
 		
 
         if (lineData.action === "advance_stage") {
