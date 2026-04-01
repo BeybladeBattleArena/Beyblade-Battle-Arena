@@ -204,6 +204,21 @@
     #splash-subtitle { font-size: 24px; color: #aaa; cursor: pointer; animation: blink 1.5s infinite; text-align: center; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+	
+	#course-splash-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #000; z-index: 9999;
+        display: none; justify-content: center; align-items: center;
+        opacity: 0; transition: opacity 0.5s ease; pointer-events: none;
+    }
+    #splash-stage-text {
+        color: #fff; font-size: 64px; font-weight: 900;
+        font-family: 'Arial Black', impact, sans-serif;
+        letter-spacing: 5px; margin: 0;
+        text-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+
     /* --- ARENA TUTORIAL VN OVERLAY --- */
     #arena-tutorial-vn {
         display: none; position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%);
@@ -227,7 +242,9 @@
 <canvas id="gameCanvas" style="display: block; width: 100vw; height: 100vh;"></canvas>
 
 <div id="balloon-tally">0 / 15</div>
-
+<div id="course-splash-overlay">
+    <h1 id="splash-stage-text">STAGE 1</h1>
+</div>
 <div id="arena-tutorial-vn" onclick="TutorialManager.advanceVN()">
     <img id="arena-tut-portrait" src="./images/dialogue_portraits/Miko_Nanami.png" onerror="this.style.display='none'">
     <div id="arena-tut-name">Miko</div>
@@ -3133,10 +3150,97 @@
 	window.advanceMatch = function() {
         document.getElementById('next-round-overlay').style.display = 'none';
         
-        if (p1Score >= 3) { endMatch("YOU WIN!", "#00ffff"); } 
-        else if (cpuScore >= 3) { endMatch("YOU LOSE...", "#ff4400"); } 
-        else { resetRound(); }
+        // Check if the overall match is over (someone hit 3 points)
+        if (p1Score >= 3 || cpuScore >= 3) {
+            
+            // --- NEW: THE MATCH-END INTERCEPTOR ---
+            if (window.CourseManager && window.CourseManager.isActive) {
+                // 🛑 ABORT NORMAL ROUTING! Let the Course logic handle it!
+                window.processCourseMatchEnd(p1Score, cpuScore);
+            } else {
+                // 🟢 Normal Free Battle/Story routing
+                if (p1Score >= 3) { endMatch("YOU WIN!", "#00ffff"); } 
+                else if (cpuScore >= 3) { endMatch("YOU LOSE...", "#ff4400"); } 
+            }
+            
+        } else {
+            // No one has 3 points yet. Keep fighting!
+            resetRound(); 
+        }
     }
+	
+	
+	// ==========================================
+    // --- NEW: COURSE ADVANCEMENT ENGINE ---
+    // ==========================================
+    window.processCourseMatchEnd = function(playerScore, cpuScore) {
+        let didPlayerWin = playerScore >= 3; 
+
+        if (!didPlayerWin) {
+            alert("You were defeated! Course Failed.");
+            window.PlayerData.activeCourse = null;
+            if (window.savePlayerData) window.savePlayerData();
+            window.navigateTo('coursebattle.html'); // Kick back to menu
+            return;
+        }
+
+        let course = window.CourseManager.courseData;
+        let currentIndex = window.CourseManager.currentStageIndex;
+        let currentStage = course.stages[currentIndex];
+
+        // 1. Advance the Stage Index
+        let nextIndex = currentIndex + 1;
+        window.PlayerData.activeCourse.currentStageIndex = nextIndex;
+        let nextStage = course.stages[nextIndex];
+
+        // 2. Check for Scenes
+        let pendingScene = null;
+        if (currentStage.postScene) {
+            pendingScene = currentStage.postScene; // Boss defeated scene
+        } else if (nextStage && nextStage.preScene) {
+            pendingScene = nextStage.preScene; // Next opponent intro scene
+        }
+
+        // 3. Save Progress to Firebase
+        if (window.db && window.CurrentUser) {
+            window.PlayerData.activeCourse.pendingScene = pendingScene;
+            if (window.savePlayerData) window.savePlayerData();
+        }
+
+        // 4. Route the Player
+        if (pendingScene) {
+            // We have dialogue! Route to Adventure engine.
+            window.navigateTo('adventure.html');
+        } else if (!nextStage) {
+            // We beat the final stage and there was no outro scene!
+            alert(`Course Cleared! Earned ${course.rewardBP} BP!`);
+            window.PlayerData.bp += course.rewardBP;
+            window.PlayerData.activeCourse = null;
+            if (window.savePlayerData) window.savePlayerData();
+            window.navigateTo('coursebattle.html');
+        } else {
+            // No scenes. Seamlessly transition to the next battle in the Arena!
+            window.triggerSeamlessNextStage(nextIndex);
+        }
+    };
+
+    window.triggerSeamlessNextStage = function(nextIndex) {
+        let overlay = document.getElementById('course-splash-overlay');
+        document.getElementById('splash-stage-text').innerText = `STAGE ${nextIndex + 1}`;
+        
+        overlay.style.display = 'flex';
+        
+        // Fade to black
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 50);
+
+        // Once the screen is totally black, instantly reload. 
+        // The Auto-Loader will wake up, see currentStageIndex is higher, and seamlessly load the new opponent!
+        setTimeout(() => {
+            window.location.reload();
+        }, 600);
+    };
 
     // --- THE FIX: DYNAMIC ROUTING ---
     window.returnFromArena = function() {
@@ -3216,4 +3320,25 @@
     }
     
     drawArena();
+	
+	if (window.CourseManager && window.CourseManager.isActive) {
+        let overlay = document.getElementById('course-splash-overlay');
+        if (overlay) {
+            document.getElementById('splash-stage-text').innerText = `STAGE ${window.CourseManager.currentStageIndex + 1}`;
+            
+            // Start with the screen black and text visible
+            overlay.style.display = 'flex';
+            overlay.style.opacity = '1';
+
+            // Fade away the black screen, leaving the text floating over the stadium
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+            }, 1500);
+
+            // Hide it completely so it doesn't block clicks during the minigame
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 2000);
+        }
+    }
 </script>
