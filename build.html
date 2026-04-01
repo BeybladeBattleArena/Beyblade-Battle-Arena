@@ -483,7 +483,7 @@ setupBuildPageSizing();
     }
 	
 	function playNegativeSfx() {
-    const sfx = new Audio('./audio/sounds/negative.wav');
+    const sfx = new Audio('./audio/sounds/menu_cancel_or_error.wav');
     sfx.volume = 0.7;
     sfx.play().catch(() => {});
 }
@@ -1139,7 +1139,7 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         calculateAndRenderTotals();
         
         // Optional play a clicking sound
-        const sfx = new Audio('./audio/sounds/ClickIntoPlace.wav');
+        const sfx = new Audio('./audio/sounds/PartsMeet.wav');
         sfx.volume = 0.3;
         sfx.play().catch(()=>{});
     };
