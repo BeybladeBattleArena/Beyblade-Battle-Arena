@@ -105,12 +105,12 @@ window.SkillsDB = {
         },
 		"Alter Approach (Flat)": {
             name: "Alter Approach",
-            desc: "Depending on manually prepared settings before the match starts, gain either 4% attack and 3% speed or gain 2% defense, 3% stamina, and 4% endurance.",
+            desc: "Depending on manually prepared settings before the match starts, gain an additional 4% Attack and 3% Speed when a round begins. (Flat mode active).",
             apply: function(bey) {} 
         },
 		"Alter Approach (Semi-Flat)": {
             name: "Alter Approach",
-            desc: "Depending on manually prepared settings before the match starts, gain either 4% attack and 3% speed or gain 2% defense, 3% stamina, and 4% endurance.",
+            desc: "Depending on manually prepared settings before the match starts, gain an additional 2% Defense, 3% Stamina, and 4% Endurance when a round begins. (Semi-Flat mode active).",
             apply: function(bey) {} 
         },
         "Centrifugal Synergy": {
