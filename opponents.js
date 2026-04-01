@@ -17,7 +17,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Basic", stadiumId: "basic_nopockets" }, 
         stats: { 
-            hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
+            hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, endurance: 9, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
         passives: [],
         attacks: [],
         ultimate: null, 
@@ -39,7 +39,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" }, 
         stats: { 
-            hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
+            hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, endurance: 13, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
         passives: [],
         attacks: [{ name: "Smash Attack", cd: 5 }],
         ultimate: null, 
@@ -83,7 +83,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" },
         stats: { 
-            hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
+            hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, endurance: 11, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
         passives: [],
         attacks: [{ name: "Sharp Shooter", cd: 6 }],
         ultimate: null, 
@@ -129,7 +129,7 @@ window.opponentsDB = [
 		bgmTrack: "./audio/music/Battle_Target_Acquired.wav", 
         bgmLoopPoint: 20.758687,		
         stats: { 
-            hp: 800, rpm: 4500, attack: 25, defense: 19, stamina: 17, speed: 12, weight: 62, mobility: 11, grip: 21, balance: 10, recoil: 11, recoilReduction: 7, spiritCharge: 5, cdr: 2 },
+            hp: 800, rpm: 4500, attack: 25, defense: 19, stamina: 17, endurance: 10, speed: 12, weight: 62, mobility: 11, grip: 21, balance: 10, recoil: 11, recoilReduction: 7, spiritCharge: 5, cdr: 2 },
         passives: [],
         attacks: [{ name: "Smash Attack", cd: 5 }],
         ultimate: null, 
@@ -174,7 +174,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" },
         stats: { 
-            hp: 116, rpm: 1170, attack: 21, defense: 12, stamina: 17, speed: 12, weight: 61, mobility: 10, grip: 21, balance: 10, recoil: 15, recoilReduction: 5, spiritCharge: 5, cdr: 1 },
+            hp: 116, rpm: 1270, attack: 25, defense: 12, stamina: 17, endurance: 14, speed: 12, weight: 61, mobility: 10, grip: 21, balance: 10, recoil: 15, recoilReduction: 5, spiritCharge: 5, cdr: 1 },
         passives: [],
         attacks: [{ name: "Smash Attack", cd: 5 }],
         ultimate: null, 
@@ -219,7 +219,7 @@ window.opponentsDB = [
         alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_twopockets" }, 
         stats: { 
-            hp: 136, rpm: 1200, attack: 29, defense: 10, stamina: 16, speed: 12, weight: 75, mobility: 2, grip: 24, balance: 9, recoil: 17, recoilReduction: 4, spiritCharge: 5, cdr: 1 },
+            hp: 136, rpm: 1200, attack: 29, defense: 10, stamina: 16, endurance: 15, speed: 12, weight: 75, mobility: 2, grip: 24, balance: 9, recoil: 17, recoilReduction: 4, spiritCharge: 5, cdr: 1 },
         passives: [],
         attacks: [{ name: "Smash Attack", cd: 5 }],
         ultimate: null, 
@@ -265,7 +265,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
         stats: { 
-            hp: 155, rpm: 1320, attack: 26, defense: 27, stamina: 19, speed: 2, weight: 75, mobility: -2, grip: 24, balance: 6, recoil: 8, recoilReduction: 6, spiritCharge: 8, cdr: 3 },
+            hp: 155, rpm: 1320, attack: 25, defense: 27, stamina: 19, endurance: 15, speed: 2, weight: 75, mobility: -2, grip: 24, balance: 6, recoil: 8, recoilReduction: 6, spiritCharge: 8, cdr: 3 },
         passives: ["Metal Ball Defense"],
         attacks: [{ name: "Concentrate Defense", cd: 7 }],
         ultimate: null, 
@@ -311,7 +311,7 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
         stats: { 
-            hp: 165, rpm: 1390, attack: 25, defense: 10, stamina: 22, speed: 4, weight: 68, mobility: 7, grip: 24, balance: 5, recoil: 15, recoilReduction: 9, spiritCharge: 8, cdr: 3 },
+            hp: 165, rpm: 1390, attack: 25, defense: 12, stamina: 22, endurance: 25, speed: 5, weight: 68, mobility: 7, grip: 22, balance: 7, recoil: 15, recoilReduction: 9, spiritCharge: 8, cdr: 3 },
         passives: ["Alter Approach (Semi-Flat)"],
         attacks: [{ name: "Barrage Attack", cd: 5 }],
         ultimate: null, 
@@ -334,6 +334,98 @@ window.opponentsDB = [
             let ramSkill = cpu.activeAttacks.find(a => a.name === "Barrage Attack"); // Changed to match his actual attack!
             if (ramSkill && ramSkill.currentCd <= 0 && dist < 135) {
                 engine.executeAttack("Barrage Attack", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
+	
+	
+	{
+        id: "opp_kai1",
+        name: "Kai",
+        portrait: "Kai.png",
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Dranzer Auto Change Balancer",
+        bitBeast: "None",
+		bitChip: "bc_04",
+		attackRing: "ar_22",
+		weightDisk: "wd_01",
+		spinGear: { id: "sg_01", styleId: "SG_basic_blue2" },
+		bladeBase: "bb_16",
+        alwaysUnlocked: false,
+        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
+        stats: { 
+            hp: 140, rpm: 1360, attack: 26, defense: 9, stamina: 19, endurance: 20, speed: 16, weight: 69, mobility: 17, grip: 22, balance: 19, recoil: 16, recoilReduction: 6, spiritCharge: 8, cdr: 3 },
+        passives: ["Mode Change"],
+        attacks: [{ name: "Sharp Shooter", cd: 6 }],
+        ultimate: null, 
+        dialogue: [
+            "I hope you're prepared to do more than just stand there and look stupid.",
+            "Don't blink, <player>. This will be over before you even realize you've lost.",
+        ],
+        winDialogue: [
+            "Tch, is that it? What a waste of my time.",
+            "Try finding a hobby you're actually good at.", // ADDED COMMA
+        ],
+        loseDialogue: [
+            "Not bad. But don't get used to this feeling.", // ADDED COMMA
+            "I'll be back, and next time, Dranzer and I won't be so merciful."
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Sharp Shooter"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 160) {
+                engine.executeAttack("Sharp Shooter", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
+	
+	
+	
+		{
+        id: "opp_tyson1",
+        name: "Tyson",
+        portrait: "Tyson.png",
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Dragoon Grip Attacker",
+        bitBeast: "None",
+		bitChip: "bc_04",
+		attackRing: "ar_25",
+		weightDisk: "wd_02",
+		spinGear: { id: "sg_01", styleId: "SG_basic_dragoongripattack_white" },
+		bladeBase: "bb_18",
+        alwaysUnlocked: false,
+        arenaStyle: { stadiumType: "Official Blue", stadiumId: "offblue_threepockets" }, 
+        stats: { 
+            hp: 135, rpm: 1410, attack: 32, defense: 9, stamina: 23, endurance: 14, speed: 16, weight: 64, mobility: 25, grip: 29, balance: 5, recoil: 20, recoilReduction: 5, spiritCharge: 8, cdr: 3 },
+        passives: ["Hyper Aggression"],
+        attacks: [{ name: "Smash Attack", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Yo! I'm Tyson! It's nice to meet ya! You look strong.",
+			"So, you ready for a killer battle?",
+            "Show me what ya got!",
+        ],
+        winDialogue: [
+            "Looks like I win! No hard feelings, right? That was a great battle!",
+            "I'm gonna keep reaching higher and higher. Every battle launches me higher.", // ADDED COMMA
+			"See ya at the top?",
+        ],
+        loseDialogue: [
+            "You don't get stronger by accepting how everyone else does things.", // ADDED COMMA
+            "You get stronger by finding your own path. That's how champions are made.",
+			"Next battle, I'll give you 1000%!",
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
+                engine.executeAttack("Smash Attack", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
