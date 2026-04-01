@@ -3235,11 +3235,66 @@
             overlay.style.opacity = '1';
         }, 50);
 
-        // Once the screen is totally black, instantly reload. 
-        // The Auto-Loader will wake up, see currentStageIndex is higher, and seamlessly load the new opponent!
+        // While the screen is black, swap the variables in the background!
         setTimeout(() => {
-            window.location.reload();
+            window.hotSwapCourseStage(nextIndex);
         }, 600);
+        
+        // After the swap is done, fade the black screen away
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+        }, 1500);
+
+        // Hide the overlay completely
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 2000);
+    };
+	
+	window.hotSwapCourseStage = function(nextIndex) {
+        // 1. Update the Tracker
+        window.CourseManager.currentStageIndex = nextIndex;
+        let course = window.CourseManager.courseData;
+        let nextStage = course.stages[nextIndex];
+        
+        // 2. Fetch and Overwrite the Opponent
+        let newOpponent = window.opponentsDB.find(o => o.id === nextStage.opponent);
+        window.ActiveOpponent = newOpponent;
+        cpuData = newOpponent; // Overwrite the local arena variable!
+
+        // 3. Reset the Scoreboard & Round Counter
+        p1Score = 0;
+        cpuScore = 0;
+        currentRound = 0; // resetRound() will immediately ++ this to 1
+        
+        // Reset the UI Pips
+        for(let i=1; i<=3; i++) {
+            let p1Pip = document.getElementById(`p1-pt${i}`);
+            let cpuPip = document.getElementById(`cpu-pt${i}`);
+            if(p1Pip) p1Pip.classList.remove('filled');
+            if(cpuPip) cpuPip.classList.remove('cpu-filled');
+        }
+        
+        // 4. Manage Health & Stamina based on Course Mode
+        if (course.mode === "SURVIVAL") {
+            // Keep player HP/RPM exactly where it is, but fully heal the NEW opponent
+            cpuBey.currentHp = cpuBey.maxHp;
+            cpuBey.currentRpm = cpuBey.maxRpm;
+        } else {
+            // It's Exhibition. Fully heal everyone for a fair match.
+            playerBey.currentHp = playerBey.maxHp;
+            playerBey.currentRpm = playerBey.maxRpm;
+            cpuBey.currentHp = cpuBey.maxHp;
+            cpuBey.currentRpm = cpuBey.maxRpm;
+        }
+        
+        // 5. Re-initialize the Skill Engine to apply new passives
+        if (window.SkillEngine && window.SkillEngine.init) {
+            window.SkillEngine.init(playerBey, cpuBey);
+        }
+
+        // 6. Trigger your existing round reset logic
+        resetRound();
     };
 
     // --- THE FIX: DYNAMIC ROUTING ---
