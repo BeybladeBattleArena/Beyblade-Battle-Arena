@@ -3225,17 +3225,49 @@
 
         // 4. Route the Player
         if (pendingScene) {
-            // We have dialogue! Route to Adventure engine.
             window.navigateTo('adventure.html');
         } else if (!nextStage) {
-            // We beat the final stage and there was no outro scene!
-            alert(`Course Cleared! Earned ${course.rewardBP} BP!`);
+            // ==========================================
+            // 🎉 COURSE CLEARED LOGIC
+            // ==========================================
+            let unlockedNames = [];
+            
+            // 1. Process Opponent Unlocks
+            if (course.unlockOpponents) {
+                if (!window.PlayerData.unlockedOpponents) window.PlayerData.unlockedOpponents = [];
+                
+                course.unlockOpponents.forEach(oppId => {
+                    if (!window.PlayerData.unlockedOpponents.includes(oppId)) {
+                        window.PlayerData.unlockedOpponents.push(oppId);
+                        
+                        // Grab the name from the DB for the alert box
+                        let oppData = window.opponentsDB.find(o => o.id === oppId);
+                        if (oppData) unlockedNames.push(oppData.name);
+                    }
+                });
+            }
+
+            // 2. Pay the BP
             window.PlayerData.bp += course.rewardBP;
+            
+            // 3. Clear the active run
             window.PlayerData.activeCourse = null;
+
+            // 4. Save everything to Firebase in ONE clean sweep!
             if (window.savePlayerData) window.savePlayerData();
+
+            // 5. Alert the player and kick them to the menu!
+            let alertMsg = `COURSE CLEARED!\nEarned ${course.rewardBP} BP!`;
+            if (unlockedNames.length > 0) {
+                alertMsg += `\n\nUnlocked for Free Battle:\n${unlockedNames.join(", ")}`;
+            }
+            alert(alertMsg);
+            
             window.navigateTo('coursebattle.html');
+            // ==========================================
+            
         } else {
-            // No scenes. Seamlessly transition to the next battle in the Arena!
+            // No scenes. Seamlessly transition to the next battle!
             window.triggerSeamlessNextStage(nextIndex);
         }
     };
