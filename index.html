@@ -185,6 +185,29 @@ window.AudioManager = {
     currentSrc: null, // <-- NEW: Tracks the exact text string of the playing song
     loopFrame: null,
 
+
+	fadeBGMOut: function(durationMs) {
+        // Replace 'this.bgm' with whatever variable your AudioManager uses for the audio object!
+        if (!this.currentBGM || this.currentBGM.paused || this.currentBGM.volume === 0) return;
+        
+        let startVol = this.currentBGM.volume;
+        let steps = 20; // How many volume "ticks" we take to get to zero
+        let stepTime = durationMs / steps;
+        let volStep = startVol / steps;
+
+        let fadeInterval = setInterval(() => {
+            if (this.bgm.volume - volStep > 0.01) {
+                this.bgm.volume -= volStep;
+            } else {
+                // Fade complete! Stop the track.
+                this.currentBGM.volume = 0;
+                this.currentBGM.pause();
+                clearInterval(fadeInterval);
+            }
+        }, stepTime);
+    },
+
+
     playBGM: function(src, loopStartMark, customVolume) {
         // --- THE GATEKEEPER CHECK ---
         // If the requested song is already playing, exit out and let it keep looping!
