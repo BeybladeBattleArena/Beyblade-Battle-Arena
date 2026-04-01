@@ -3220,9 +3220,22 @@
         // 3. CRITICAL FIX: Update the SPA's memory NO MATTER WHAT!
         window.PlayerData.activeCourse.pendingScene = pendingScene;
 
-        // 4. Best-effort Firebase Save (If the global function exists)
-        if (window.savePlayerData) {
-            window.savePlayerData();
+        // 4. FIREBASE AUTOSAVE (Checkpoint System)
+        if (window.CurrentUser && window.PlayerData.activeCourse) {
+            // We use standard try/catch so a network blip doesn't crash the transition
+            try {
+                // Note: Make sure 'db', 'doc', and 'updateDoc' are imported at the top of arena.html!
+                const userRef = doc(db, "users", window.CurrentUser.uid);
+                
+                // Push the exact state of the course (including their new stage index and carried-over HP)
+                updateDoc(userRef, { 
+                    activeCourse: window.PlayerData.activeCourse 
+                }).then(() => {
+                    console.log(`Course Checkpoint Saved: Stage ${nextIndex}`);
+                });
+            } catch (error) {
+                console.error("Autosave failed, but letting player continue:", error);
+            }
         }
 
         // 5. Route the Player
