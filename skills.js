@@ -205,7 +205,7 @@ window.SkillsDB = {
             execute: function() {}
         },
         "Barrage Attack": {
-            name: "Barrage Attack", cd: 5,
+            name: "Barrage Attack", cd: 6,
             desc: "Executes a rapid flurry of high speed movements to overwhelm the opponent.",
             execute: function() {}
         },

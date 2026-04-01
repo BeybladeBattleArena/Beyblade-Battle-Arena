@@ -85,7 +85,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
             stats: { attack: 24, weight: 15, hp: 800, rpm: 2000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
 			passives: [], 
-			attacks: [{ name: "Heavy Ram", cd: 5 }, { name: "Cyclone Loop", cd: 6 }, { name: "Sharp Shooter", cd: 6 }, { name: "Grindblade Lunge", cd: 8 }, { name: "Aerial Lance", cd: 8 }, { name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }, { name: "Upper Attack", cd: 6 }, { name: "Barrage Attack", cd: 5 }, { name: "Cross Smash", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
+			attacks: [{ name: "Heavy Ram", cd: 5 }, { name: "Cyclone Loop", cd: 6 }, { name: "Sharp Shooter", cd: 6 }, { name: "Grindblade Lunge", cd: 8 }, { name: "Aerial Lance", cd: 8 }, { name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }, { name: "Upper Attack", cd: 6 }, { name: "Barrage Attack", cd: 6 }, { name: "Cross Smash", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -317,7 +317,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/Sandstrike.png",  
             stats: { attack: 21, defense: 11, recoil: 10, weight: 13, recoilReduction: 2, mobility: 5, speed: 5 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -339,7 +339,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/LunarGallop.png",  
             stats: { attack: 22, defense: 9, endurance: 1, stamina: 1, recoil: 9, weight: 17, recoilReduction: 2, mobility: -2, speed: 5 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -607,7 +607,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/BasiliskEye.png",  
             stats: { attack: 19, stamina: 10, recoil: 15, balance: 4, weight: 15, mobility: 2, endurance: 5, defense: 4 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -861,7 +861,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/TigerClaw.png",  
             stats: { attack: 22, hp: 15, weight: 13, speed: 2, mobility: 4, defense: 4, endurance: 5, stamina: 3, recoil: 15, recoilReduction: 2 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1000,6 +1000,50 @@ window.equipmentDB = {
                     styleRarity: 2,
                     image: "./images/beyblade_parts/AR/ArmoredSprinter.png", 
                     topDownImage: "./images/beyblade_parts/AR/ArmoredSprinter.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_36", // Generalized ID
+            name: "Grim Scythe", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Grim", "Scythe", "Offensive Guard"], 
+			fallbackImage: "./images/beyblade_parts/AR/GrimScythe.png",  
+            stats: { attack: 22, weight: 15, mobility: 2, balance: 3, speed: 2, defense: 3, endurance: 6, stamina: 3, recoil: 15, },
+			passives: ["Offensive Guard"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "grimscythe",
+                    styleName: "Grim Scythe", 
+                    styleColorSample: "#202b37", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/GrimScythe.png", 
+                    topDownImage: "./images/beyblade_parts/AR/GrimScythe.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_37", // Generalized ID
+            name: "Thundering Shriek", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Thundering", "Shriek", "Upper Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/ThunderingShriek.png",  
+            stats: { attack: 25, weight: 14, mobility: 3, balance: -1, speed: 6, defense: 1, endurance: 1, stamina: 2, recoil: 18, },
+			passives: [], 
+			attacks: [{ name: "Upper Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "thunderingshriek",
+                    styleName: "Thundering Shriek", 
+                    styleColorSample: "#833b86", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/ThunderingShriek.png", 
+                    topDownImage: "./images/beyblade_parts/AR/ThunderingShriek.png" 
                 },
             ]
 },
@@ -1868,9 +1912,17 @@ window.equipmentDB = {
                     styleId: "rightspin_G_ball",
                     styleName: "Right Spin Gear G Ball (Strata Dragoon)", 
                     styleColorSample: "#624c8e", 
-                    styleRarity: 4,
+                    styleRarity: 3,
                     image: "./images/beyblade_parts/SG/RightSG_G_Ball_sideview.gif", 
                     topDownImage: "./images/beyblade_parts/SG/RightSG_G_Ball_topdown.png" 
+                },
+				{ 
+                    styleId: "rightspin_G_ball_gunmetal",
+                    styleName: "Right Spin Gear G Ball (Sickled Seeker)", 
+                    styleColorSample: "#36353a", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/SG/RightSG_G_Ball_gunmetal_sideview.gif", 
+                    topDownImage: "./images/beyblade_parts/SG/RightSG_G_Ball_gunmetal_topdown.png" 
                 },
             ]
 }, 
@@ -2022,7 +2074,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/BB/FossilClawBase_TyrannoF_sideview.png",  
             stats: { rpm: 120, speed: 8, defense: 4, attack: 20, grip: 30, balance: 11, stamina: -4, mobility: -2, weight: 18 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2190,7 +2242,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/BB/StrataDragoonGSpecialBase_sideview.png",  
             stats: { hp: 20, rpm: 125, defense: -1, endurance: -1, grip: 11, balance: 8, stamina: 4, mobility: 5, recoilReduction: 1, weight: 15 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 5 }],
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2514,6 +2566,38 @@ window.equipmentDB = {
                     styleRarity: 3,
                     image: "./images/beyblade_parts/BB/ShooterChangeBase_sideview_animated.gif", 
                     topDownImage: "./images/beyblade_parts/BB/ShooterChangeBase_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_21", // Generalized ID
+            name: "Basin Sharp Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Sharp",
+            tags: ["Basin", "Sharp", "Tip", "Metal" ], 
+			fallbackImage: "./images/beyblade_parts/BB/Basin_SharpBase_SickleSeeker_sideview.png",  
+            stats: { rpm: 110, speed: 3, defense: 3, endurance: 5, grip: 8, balance: 15, stamina: 4, weight: 14 },
+			passives: [], 
+			attacks: [{ name: "Barrage Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "basin_sharpbase_sickledseeker",
+                    styleName: "Basin Sharp Base (Sickled Seeker)", 
+                    styleColorSample: "#b2b2b2", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/Basin_SharpBase_SickleSeeker_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/Basin_SharpBase_SickleSeeker_topdown.png" 
+                },
+				{ 
+                    styleId: "basin_sharpbase_magenta",
+                    styleName: "Basin Sharp Base Magenta", 
+                    styleColorSample: "#964f77", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/BB/Basin_SharpBase_Magenta_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/Basin_SharpBase_Magenta_topdown.png" 
                 },
             ]
 },
