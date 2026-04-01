@@ -198,7 +198,7 @@ window.AudioManager = {
 
         let fadeInterval = setInterval(() => {
             // SAFETY SHIELD: Stop the timer if the track was deleted!
-            if (!this.bgm || typeof this.currentBGM.volume === 'undefined') {
+            if (!this.currentBGM || typeof this.currentBGM.volume === 'undefined') {
                 clearInterval(fadeInterval);
                 return;
             }
