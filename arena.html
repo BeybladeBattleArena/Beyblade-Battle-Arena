@@ -1351,7 +1351,7 @@
         }
 
         // If the upcoming track is DIFFERENT from what's currently playing, fade out the current one!
-        if (window.AudioManager.currentTrack !== upcomingTrack) {
+        if (window.AudioManager.currentSrc !== upcomingTrack) {
             window.AudioManager.fadeBGMOut(1500); // 1.5 second cinematic fade!
         }
     }
