@@ -6,6 +6,8 @@ window.CoursesDB = {
         id: "earlybb",
         name: "Fledgling Blade Breakers",
         mode: "EXHIBITION",
+		trackBGM: "./audio/music/Battle_Something_Else.wav",
+		bgmLoopPoint: 14.511937,
         rewardBP: 800,
 		rewardPart: null,
 		unlockParts: [],

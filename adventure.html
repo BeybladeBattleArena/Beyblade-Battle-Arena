@@ -274,6 +274,26 @@
             if (courseScene) {
                 console.log("Course Scene Detected! Hijacking Adventure Engine...");
                 
+				    // 0. Play appropriate BGM for Course instead of Adventure BGM
+					if (window.AudioManager) {
+						let trackToPlay = './audio/music/How_To_Go_Pro_ForTutorial.wav';
+						let loopPoint = 5.32;
+						let courseData = window.CoursesDB ? window.CoursesDB[activeRun.courseId] : null;
+					// Check if the course exists AND has a custom theme for VN sequence
+					if (courseData && courseData.bgmTrack) {
+                    trackToPlay = courseData.bgmTrack;
+                
+					// If it does have a custom loop point, grab that too!
+					if (courseData.bgmLoopPoint !== undefined) {
+                        loopPoint = courseData.bgmLoopPoint;
+					}
+				}
+
+            // Play the music!
+            window.AudioManager.playBGM(trackToPlay, loopPoint, 0.5);
+			}
+	
+	
                 // 1. Hide the Adventure UI elements
                 document.getElementById('map-container').style.display = 'none';
                 document.querySelector('.back-btn').style.display = 'none';
