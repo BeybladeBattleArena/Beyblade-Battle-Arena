@@ -187,7 +187,7 @@ window.AudioManager = {
 
 
 	fadeBGMOut: function(durationMs) {
-        // Replace 'this.bgm' with whatever variable your AudioManager uses for the audio object!
+        // Replace 'this.currentBGM' with whatever variable your AudioManager uses for the audio object!
         if (!this.currentBGM || this.currentBGM.paused || this.currentBGM.volume === 0) return;
         
         let startVol = this.currentBGM.volume;
@@ -203,11 +203,11 @@ window.AudioManager = {
                 return;
             }
 
-            if (this.bgm.volume - volStep > 0.01) {
-                this.bgm.volume -= volStep;
+            if (this.currentBGM.volume - volStep > 0.01) {
+                this.currentBGM.volume -= volStep;
             } else {
-                this.bgm.volume = 0;
-                this.bgm.pause();
+                this.currentBGM.volume = 0;
+                this.currentBGM.pause();
                 clearInterval(fadeInterval);
             }
         }, stepTime);
