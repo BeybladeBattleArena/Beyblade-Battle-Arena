@@ -1945,7 +1945,7 @@
 
 
             extractBuildData(); buildSkillsUI();
-            matchTimerMs = 120000; p1Spirit = 0;
+            matchTimerMs = 120000;
 
             lastTime = null; 
             requestAnimationFrame(gameLoop);
@@ -3369,6 +3369,7 @@
         p1Score = 0;
         cpuScore = 0;
         currentRound = 0; // resetRound() will immediately ++ this to 1
+		p1Spirit = 0;
         
         // Reset the UI Pips
         for(let i=1; i<=3; i++) {
