@@ -1,0 +1,412 @@
+<style>
+    /* --- ROOT & THEME --- */
+    #beyspirits-page-root {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        /* Ethereal Base Theme: Mid-tone silvers, whites, and pale blues */
+        background-color: #eef2f5; 
+        color: #2c3e50; /* Dark blue-gray for readability on light backgrounds */
+        font-family: sans-serif;
+    }
+    
+    /* --- HEADER (SAVE SLOTS) --- */
+    .header-bar { 
+        background: linear-gradient(to bottom, #ffffff, #e2e8f0); 
+        padding: 10px; 
+        display: flex; 
+        flex-direction: column;
+        gap: 10px;
+        border-bottom: 2px solid #cbd5e1; 
+        z-index: 10; 
+    }
+    .header-top { display: flex; justify-content: space-between; align-items: center; }
+    .back-btn { background: #94a3b8; color: #fff; border: 1px solid #64748b; padding: 5px 15px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+    .back-btn:active { background: #64748b; }
+    
+    .save-slots-scroll { display: flex; gap: 10px; overflow-x: auto; overflow-y: hidden; padding-bottom: 5px; scrollbar-width: thin; }
+    .save-slot-card { 
+        background: rgba(255, 255, 255, 0.8); 
+        border: 1px solid #94a3b8; 
+        border-radius: 6px; 
+        padding: 5px 15px; 
+        cursor: pointer; 
+        min-width: 150px; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        transition: 0.2s; 
+        color: #64748b;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .save-slot-card:hover { border-color: #00aaff; background: #f0f8ff; color: #0077cc; }
+    .save-slot-card.active { border-color: #00aaff; background: #e0f2fe; color: #0284c7; box-shadow: 0 0 8px rgba(0, 170, 255, 0.4); }
+
+    /* --- LAYOUT SPLIT --- */
+    .content-wrapper { display: flex; width: 100%; flex: 1 1 auto; min-height: 0; overflow: hidden; } 
+    
+    /* Left Panel: 40% width, soft silver background */
+    #left-panel { 
+        width: 40%; 
+        display: flex; 
+        flex-direction: column; 
+        min-height: 0; 
+        border-right: 2px solid #cbd5e1; 
+        background: #f8fafc; 
+    }
+    
+    /* Right Panel: 60% width, Pearlescent Animation */
+    #right-panel { 
+        width: 60%; 
+        padding: 20px; 
+        min-height: 0; 
+        overflow-y: auto; 
+        overflow-x: hidden; 
+        position: relative;
+        /* The Pearlescent Churning Oil Slick Effect */
+        background: linear-gradient(-45deg, #fdfbfb, #e2e8f0, #f0f4f8, #e0f2fe, #f5f3ff, #fdfbfb);
+        background-size: 400% 400%;
+        animation: pearlescentChurn 18s ease infinite;
+    }
+
+    @keyframes pearlescentChurn {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    /* --- LEFT PANEL: LIST --- */
+    .list-header { background: #e2e8f0; padding: 10px; font-weight: 900; color: #475569; text-align: center; border-bottom: 1px solid #cbd5e1; letter-spacing: 1px;}
+    #spirit-list { flex: 1 1 auto; overflow-y: auto; padding: 10px; }
+    .spirit-row { 
+        padding: 10px; 
+        background: #ffffff; 
+        margin-bottom: 8px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        border: 1px solid #cbd5e1; 
+        display: flex; 
+        align-items: center; 
+        transition: 0.2s;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .spirit-row:hover { background: #f1f5f9; border-color: #94a3b8; transform: translateY(-1px); } 
+    .spirit-row.selected { border-color: #00aaff; background: #e0f2fe; box-shadow: 0 0 10px rgba(0,170,255,0.2); }
+    
+    .spirit-icon-placeholder { 
+        width: 40px; height: 40px; 
+        background: linear-gradient(135deg, #00aaff, #e2e8f0); 
+        border-radius: 50%; 
+        margin-right: 15px; 
+        display: flex; align-items: center; justify-content: center; 
+        color: #fff; font-weight: bold; border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .spirit-info { display: flex; flex-direction: column; }
+    .spirit-name { font-weight: bold; font-size: 14px; color: #1e293b; }
+    .spirit-level { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* --- RIGHT PANEL: GLASSMORPHISM UI --- */
+    /* By using rgba backgrounds and backdrop-filter, the animated pearlescent background shows through! */
+    .glass-panel { 
+        background: rgba(255, 255, 255, 0.55); 
+        backdrop-filter: blur(12px); 
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.8); 
+        border-radius: 12px; 
+        padding: 20px; 
+        margin-bottom: 20px; 
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.07);
+    }
+
+    .section-title { font-size: 14px; color: #0284c7; text-transform: uppercase; margin-top: 0; font-weight: 900; letter-spacing: 1px; border-bottom: 1px solid rgba(0,170,255,0.3); padding-bottom: 5px; margin-bottom: 15px;}
+    
+    /* Inspect Layout */
+    .inspect-layout { display: flex; gap: 20px; }
+    .spirit-portrait { 
+        width: 100px; height: 100px; 
+        border-radius: 8px; 
+        background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(226, 232, 240, 0.5));
+        border: 2px solid #fff;
+        display: flex; align-items: center; justify-content: center;
+        color: #94a3b8; font-size: 12px; text-align: center;
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .stats-container { flex: 1; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 12px; }
+    .stat-item { background: rgba(255,255,255,0.7); padding: 6px; border-radius: 4px; border: 1px solid rgba(203, 213, 225, 0.5); text-align: center; }
+    .stat-label { display: block; font-size: 10px; color: #64748b; font-weight: bold; margin-bottom: 2px;}
+    .stat-value { font-weight: 900; color: #0f172a; }
+
+    /* Skills Layout */
+    .skills-area { margin-top: 15px; }
+    .ultimate-box { background: rgba(254, 243, 199, 0.6); border: 1px solid #f59e0b; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+    .skill-box { background: rgba(241, 245, 249, 0.7); border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; margin-bottom: 6px; }
+    .skill-type { font-size: 10px; font-weight: 900; letter-spacing: 0.5px; text-transform: uppercase; }
+    .type-ult { color: #d97706; }
+    .type-atk { color: #dc2626; }
+    .type-pas { color: #7c3aed; }
+
+    /* --- RIGHT PANEL: THE 4 QUADRANTS MENU --- */
+    .quadrant-menu {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 15px;
+        height: 200px; /* Adjust based on desired height */
+    }
+    
+    .quad-btn {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        color: #334155;
+        font-size: 16px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .quad-btn:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0,170,255,0.15);
+        border-color: #00aaff;
+        color: #0284c7;
+    }
+    .quad-btn:active { transform: translateY(1px); }
+
+    /* Initial hidden state when no spirit is selected */
+    #right-panel-content { display: none; }
+    #empty-selection-msg { 
+        height: 100%; display: flex; align-items: center; justify-content: center; 
+        color: #94a3b8; font-size: 18px; font-weight: bold; font-style: italic; letter-spacing: 1px;
+    }
+
+</style>
+
+<div id="beyspirits-page-root">
+
+    <div class="header-bar">
+        <div class="header-top">
+            <button class="back-btn" onclick="window.navigateTo('home-menu.html')">Back to Home</button>
+            <div style="font-weight: 900; color: #0284c7; letter-spacing: 2px;">BIT BEAST STORAGE</div>
+        </div>
+        <div class="save-slots-scroll" id="spirit-slots-container">
+            </div>
+    </div>
+
+    <div class="content-wrapper">
+        
+        <div id="left-panel">
+            <div class="list-header">PARTNERED SPIRITS</div>
+            <div id="spirit-list">
+                </div>
+        </div>
+
+        <div id="right-panel">
+            
+            <div id="empty-selection-msg">Select a Spirit to view details...</div>
+            
+            <div id="right-panel-content">
+                <div class="glass-panel">
+                    <h3 class="section-title">Inspecting Spirit</h3>
+                    
+                    <div class="inspect-layout">
+                        <div class="spirit-portrait">
+                            No Image<br>Available
+                        </div>
+                        
+                        <div class="stats-container">
+                            <div style="font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 10px;" id="disp-name">Dragoon</div>
+                            <div class="stat-grid" id="disp-stats">
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="skills-area" id="disp-skills">
+                        </div>
+                </div>
+
+                <div class="quadrant-menu">
+                    <button class="quad-btn" onclick="alert('Training Module Coming Soon!')">Training</button>
+                    <button class="quad-btn" onclick="alert('Ascension Module Coming Soon!')">Ascension</button>
+                    <button class="quad-btn" onclick="alert('Make Bit Beast Module Coming Soon!')">Make Bit Beast</button>
+                    <button class="quad-btn" style="color: #ef4444;" onclick="alert('Part Ways Coming Soon!')">Part Ways</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // SPA Sizing Boilerplate
+    function fitSpiritsPageToHost() {
+        const root = document.getElementById('beyspirits-page-root');
+        if (!root) return;
+        const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        const availableHeight = Math.max(0, Math.floor(viewportHeight - root.getBoundingClientRect().top));
+        root.style.height = `${availableHeight}px`;
+    }
+    window.addEventListener('resize', fitSpiritsPageToHost);
+    requestAnimationFrame(fitSpiritsPageToHost);
+
+    // ==========================================
+    // --- TEMPORARY MOCK DATA ---
+    // (We will replace this once spirits.js is built)
+    // ==========================================
+    let mockPlayerSpirits = [
+        { 
+            uid: "spirit_001", // Unique ID since they can own multiples
+            dbId: "s_dragoon_v2", 
+            name: "Dragoon V2", 
+            level: 5,
+            stats: { hp: 120, attack: 45, speed: 50, defense: 10, stamina: 15 },
+            ultimate: { name: "Galaxy Storm", desc: "Summons a massive hurricane." },
+            attacks: [{ name: "Twister Shoot", cd: 8 }],
+            passives: ["Wind Affinity", "Aggressive Start"]
+        },
+        { 
+            uid: "spirit_002", 
+            dbId: "s_dranzer_s", 
+            name: "Dranzer S", 
+            level: 12,
+            stats: { hp: 110, attack: 35, speed: 30, defense: 25, stamina: 40 },
+            ultimate: { name: "Flame Saber", desc: "A devastating blade of fire." },
+            attacks: [{ name: "Spiral Fire", cd: 12 }],
+            passives: ["Fire Affinity", "Endurance Boost"]
+        },
+        { 
+            uid: "spirit_003", 
+            dbId: "s_dragoon_v2", 
+            name: "Dragoon V2", // Duplicate to test unique handling!
+            level: 1,
+            stats: { hp: 100, attack: 35, speed: 40, defense: 8, stamina: 12 },
+            ultimate: { name: "Galaxy Storm", desc: "Summons a massive hurricane." },
+            attacks: [{ name: "Twister Shoot", cd: 8 }],
+            passives: ["Wind Affinity"]
+        }
+    ];
+
+    let selectedSpiritUid = null;
+
+    // ==========================================
+    // --- UI RENDERING ---
+    // ==========================================
+    
+    // 1. Render the 8 Save Slots at the top
+    window.renderSpiritSlots = function() {
+        const container = document.getElementById('spirit-slots-container');
+        let html = '';
+        for(let i=0; i<8; i++) {
+            // For now, these are just visual placeholders
+            html += `<div class="save-slot-card" onclick="alert('Slot ${i+1} selected!')">Team Slot ${i+1}</div>`;
+        }
+        container.innerHTML = html;
+    };
+
+    // 2. Render the Left Panel List
+    window.renderSpiritList = function() {
+        const listDiv = document.getElementById('spirit-list');
+        let html = '';
+
+        if (mockPlayerSpirits.length === 0) {
+            listDiv.innerHTML = `<div style="text-align: center; color: #94a3b8; padding: 20px;">No Spirits Owned.</div>`;
+            return;
+        }
+
+        mockPlayerSpirits.forEach(spirit => {
+            let isSelected = selectedSpiritUid === spirit.uid ? 'selected' : '';
+            html += `
+                <div class="spirit-row ${isSelected}" onclick="window.selectSpirit('${spirit.uid}')">
+                    <div class="spirit-icon-placeholder">DB</div>
+                    <div class="spirit-info">
+                        <span class="spirit-name">${spirit.name}</span>
+                        <span class="spirit-level">Lv. ${spirit.level}</span>
+                    </div>
+                </div>
+            `;
+        });
+        listDiv.innerHTML = html;
+    };
+
+    // 3. Handle Spirit Selection and Right Panel population
+    window.selectSpirit = function(uid) {
+        selectedSpiritUid = uid;
+        
+        let spirit = mockPlayerSpirits.find(s => s.uid === uid);
+        if (!spirit) return;
+
+        // Toggle UI visibility
+        document.getElementById('empty-selection-msg').style.display = 'none';
+        document.getElementById('right-panel-content').style.display = 'block';
+
+        // Update Name
+        document.getElementById('disp-name').innerText = `Lv.${spirit.level} ${spirit.name}`;
+
+        // Update Stats
+        let statsHtml = '';
+        const statLabels = { hp: "HP", attack: "ATK", defense: "DEF", stamina: "STA", speed: "SPD" };
+        for (let key in spirit.stats) {
+            statsHtml += `
+                <div class="stat-item">
+                    <span class="stat-label">${statLabels[key] || key.toUpperCase()}</span>
+                    <span class="stat-value">${spirit.stats[key]}</span>
+                </div>
+            `;
+        }
+        document.getElementById('disp-stats').innerHTML = statsHtml;
+
+        // Update Skills
+        let skillsHtml = '';
+        if (spirit.ultimate) {
+            skillsHtml += `
+                <div class="ultimate-box">
+                    <div class="skill-type type-ult">ULTIMATE</div>
+                    <div style="font-weight:bold; font-size:14px; color:#0f172a;">${spirit.ultimate.name}</div>
+                    <div style="font-size:11px; color:#475569; margin-top:3px;">${spirit.ultimate.desc}</div>
+                </div>
+            `;
+        }
+        if (spirit.attacks) {
+            spirit.attacks.forEach(atk => {
+                skillsHtml += `
+                    <div class="skill-box">
+                        <div class="skill-type type-atk">ATTACK (CD: ${atk.cd}s)</div>
+                        <div style="font-weight:bold; font-size:13px; color:#1e293b;">${atk.name}</div>
+                    </div>
+                `;
+            });
+        }
+        if (spirit.passives) {
+            spirit.passives.forEach(pas => {
+                skillsHtml += `
+                    <div class="skill-box">
+                        <div class="skill-type type-pas">PASSIVE</div>
+                        <div style="font-weight:bold; font-size:13px; color:#1e293b;">${pas}</div>
+                    </div>
+                `;
+            });
+        }
+        document.getElementById('disp-skills').innerHTML = skillsHtml;
+
+        // Re-render the left list to update the blue highlight outline
+        window.renderSpiritList();
+    };
+
+    // Boot Sequence
+    window.renderSpiritSlots();
+    window.renderSpiritList();
+
+</script>
