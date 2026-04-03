@@ -1894,10 +1894,21 @@
 
             cpuBey.activeAttacks = cpuData.attacks ? cpuData.attacks.map(a => ({ name: a.name, baseCd: a.cd * 1000, currentCd: 0 })) : [];
             cpuBey.ultimate = cpuData.ultimate || null; cpuBey.spirit = 0;
-				if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
-                if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
-					console.log("Player Passives:", playerBey.passives);
-					console.log("CPU Passives:", cpuBey.passives);
+				playerBey.passives = [];
+				cpuBey.passives = [];
+
+			if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { 
+				if (part && part.passives) part.passives.forEach(p => { 
+					if (!playerBey.passives.includes(p)) playerBey.passives.push(p);
+					if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); 
+				}); 
+			});
+
+			if (typeof cpuData !== 'undefined' && cpuData.passives) cpuData.passives.forEach(p => { 
+				if (!cpuBey.passives.includes(p)) cpuBey.passives.push(p);
+				if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey);
+			});
+			
 			
             burstParticles = [];
 
