@@ -1824,7 +1824,8 @@
                     x: cTargetX, y: cTargetY, 
                     z: 300, vz: 0, vx: 0, vy: 0, 
                     targetX: cTargetX, targetY: cTargetY, isLanded: false, bounceCount: 0,
-                    radius: 15, color: '#ff4400', stats: cStats, 
+                    radius: (typeof cpuData !== 'undefined' && cpuData.radius) ? cpuData.radius : 15, 
+					color: '#ff4400', stats: cStats, 
                     maxHp: cMaxHp, maxRpm: cMaxRpm, currentHp: cMaxHp, currentRpm: cMaxRpm 
                 };
                 document.getElementById('cpu-hud-wrapper').style.display = 'flex';
