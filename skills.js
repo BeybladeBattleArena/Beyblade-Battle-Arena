@@ -770,24 +770,27 @@ window.SkillEngine = {
                 state.bossHostilityAuraTimer -= dt;
                 
                 // 1. The Solid Base Aura (Stays on as long as the timer is running)
-                bey.passiveAura = "rgba(214, 17, 17, 0.4)"; // Red base glow
-				bey.passiveAuraSize = 0.55;
+                bey.passiveAura = "rgba(214, 17, 17, 0.8)"; // Red base glow
+				bey.passiveAuraSize = 0.125;
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
-                if (Math.random() < 2.125 && window.particles) {
+                if (Math.random() < 25.125 && window.particles) {
                     let ang = Math.random() * Math.PI * 2;
-                    let driftSpeed = Math.random() * 1.5 + 0.5; 
+                    let driftSpeed = Math.random() * 1.015 + 0.5; 
                     let activeRadius = bey.visualRadius || bey.radius || 15;
+					let spawnAngle = Math.random() * Math.PI * 2;
+					let outwardVx = Math.cos(spawnAngle) * driftSpeed;
+                    let outwardVy = Math.sin(spawnAngle) * driftSpeed;
                     
                     window.particles.push({
-                        x: bey.x + (Math.random() - 0.5) * activeRadius, 
-                        y: bey.y + (Math.random() - 0.5) * activeRadius,
-                        vx: (bey.vx * 0.4) + (Math.cos(ang) * driftSpeed), 
-                        vy: (bey.vy * 0.4) + (Math.sin(ang) * driftSpeed),
+                        x: edgeX, // Start exactly on the perimeter
+                        y: edgeY,
+                        vx: (bey.vx * 0.4) + outwardVx, 
+                        vy: (bey.vy * 0.4) + outwardVy,
                         life: 1.0, 
                         decay: 0.02 + Math.random() * 0.02, 
                         color: '#861720', // Dark red wisps!
-                        size: Math.random() * 3 + 4 
+                        size: Math.random() * 3 + 2 
                     });
                 }
             }
