@@ -774,7 +774,7 @@ window.SkillEngine = {
 				bey.passiveAuraSize = 1.33;
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
-                if (Math.random() < 0.95 && window.particles) {
+                if (Math.random() < 2.125 && window.particles) {
                     let ang = Math.random() * Math.PI * 2;
                     let driftSpeed = Math.random() * 1.5 + 0.5; 
                     let activeRadius = bey.visualRadius || bey.radius || 15;
@@ -787,7 +787,7 @@ window.SkillEngine = {
                         life: 1.0, 
                         decay: 0.02 + Math.random() * 0.02, 
                         color: '#861720', // Dark red wisps!
-                        size: Math.random() * 6 + 4 
+                        size: Math.random() * 3 + 4 
                     });
                 }
             }
