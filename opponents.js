@@ -124,7 +124,7 @@ window.opponentsDB = [
 		weightDisk: "wd_14",
 		spinGear: "sg_01",
 		bladeBase: "bb_15",
-		radius: 25,
+		radius: 35,
         alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Super Duel", stadiumId: "superduel_nowalls" },
 		bgmTrack: "./audio/music/Battle_Target_Acquired.wav", 
