@@ -1047,6 +1047,28 @@ window.equipmentDB = {
                 },
             ]
 },
+{ 
+            id: "prototype_bossbey", // Generalized ID
+            name: "Prototype Boss Beyblade", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Thundering", "Shriek", "Upper Attack"], 
+			fallbackImage: "./images/boss_beyblades/prototypebossbey.png",  
+            stats: { attack: 25, weight: 14, mobility: 3, balance: -1, speed: 6, defense: 1, endurance: 1, stamina: 2, recoil: 18, },
+			passives: [], 
+			attacks: [{ name: "Upper Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "proto_bossbey",
+                    styleName: "Prototype Boss Beyblade", 
+                    styleColorSample: "#833b86", 
+                    styleRarity: 2,
+                    image: "./images/boss_beyblades/prototypebossbey.png", 
+                    topDownImage: "./images/boss_beyblades/prototypebossbey.png" 
+                },
+            ]
+},
     ],
 	
 	

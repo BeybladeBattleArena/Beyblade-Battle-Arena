@@ -120,7 +120,7 @@ window.opponentsDB = [
         beyName: "Godblade",
         bitBeast: "None",
 		bitChip: "bc_03",
-		attackRing: "ar_19",
+		attackRing: "prototype_bossbey",
 		weightDisk: "wd_14",
 		spinGear: "sg_01",
 		bladeBase: "bb_15",
