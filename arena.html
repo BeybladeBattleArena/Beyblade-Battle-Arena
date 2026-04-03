@@ -1824,6 +1824,7 @@
                     x: cTargetX, y: cTargetY, 
                     z: 300, vz: 0, vx: 0, vy: 0, 
                     targetX: cTargetX, targetY: cTargetY, isLanded: false, bounceCount: 0,
+					visualRadius: (typeof cpuData !== 'undefined' && cpuData.visualRadius) ? cpuData.visualRadius : 15,
                     radius: (typeof cpuData !== 'undefined' && cpuData.radius) ? cpuData.radius : 15, 
 					color: '#ff4400', stats: cStats, 
                     maxHp: cMaxHp, maxRpm: cMaxRpm, currentHp: cMaxHp, currentRpm: cMaxRpm 
@@ -2831,7 +2832,8 @@
             let renderZ = bey.z || 0;
             let scale = 1 + (renderZ * 0.003); 
             if (bey.skillState && bey.skillState.z) scale += bey.skillState.z * 0.03; 
-            let renderSize = bey.radius * 8.0 * scale;
+            let activeVisualRadius = bey.visualRadius || bey.radius;
+            let renderSize = activeVisualRadius * 8.0 * scale;
 
             if (renderZ > 0) {
                 ctx.save();
