@@ -771,10 +771,10 @@ window.SkillEngine = {
                 
                 // 1. The Solid Base Aura (Stays on as long as the timer is running)
                 bey.passiveAura = "rgba(214, 17, 17, 0.8)"; // Red base glow
-				bey.passiveAuraSize = 0.125;
+				bey.passiveAuraSize = 0.95;
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
-                if (Math.random() < 25.125 && window.particles) {
+                if (Math.random() < 150.125 && window.particles) {
                     let ang = Math.random() * Math.PI * 2;
                     let driftSpeed = Math.random() * 1.015 + 0.5; 
                     let activeRadius = bey.visualRadius || bey.radius || 15;
