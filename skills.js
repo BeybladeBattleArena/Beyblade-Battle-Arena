@@ -771,7 +771,7 @@ window.SkillEngine = {
                 
                 // 1. The Solid Base Aura (Stays on as long as the timer is running)
                 bey.passiveAura = "rgba(214, 17, 17, 0.4)"; // Red base glow
-				bey.passiveAuraSize = 1.05;
+				bey.passiveAuraSize = 0.55;
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
                 if (Math.random() < 2.125 && window.particles) {
