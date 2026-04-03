@@ -772,7 +772,7 @@ window.SkillEngine = {
                 bey.passiveAura = "rgba(214, 17, 17, 0.4)"; // Red base glow
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
-                if (Math.random() < 0.7 && window.particles) {
+                if (Math.random() < 0.95 && window.particles) {
                     let ang = Math.random() * Math.PI * 2;
                     let driftSpeed = Math.random() * 1.5 + 0.5; 
                     let activeRadius = bey.visualRadius || bey.radius || 15;
