@@ -1762,13 +1762,38 @@
             let cT = constrainTarget(cTargetX, cTargetY);
             cTargetX = cT.x; cTargetY = cT.y;
 
+
+			// --- 1. CALCULATE DYNAMIC RADIUS FROM PARTS ---
+            let maxPartRadius = -Infinity; // Start impossibly low
+            let foundAnyRadius = false;    // Our flag!
+
+            // Loop through every equipped part in the build
+            if (playerBuild && playerBuild.parts) {
+                Object.values(playerBuild.parts).forEach(part => {
+                    // If the part exists and specifically has a number for a radius
+                    if (part && typeof part.radius === 'number') {
+                        foundAnyRadius = true; // We found at least one!
+                        
+                        // If this part is bigger than our current max, it becomes the new max
+                        if (part.radius > maxPartRadius) {
+                            maxPartRadius = part.radius;
+                        }
+                    }
+                });
+            }
+
+            // The Final Decision: If we found numbers, use the biggest one. If not, default to 15.
+            let finalPlayerRadius = foundAnyRadius ? maxPartRadius : 15;
+
+
             playerBey = { 
                 isBursted: false, 
                 x: pTargetX, y: pTargetY, 
                 z: 300, vz: 0, 
                 vx: 0, vy: 0, 
                 targetX: pTargetX, targetY: pTargetY, isLanded: false, bounceCount: 0,
-                radius: 15, color: '#00aaff', stats: pStats, 
+                radius: finalPlayerRadius, 
+				color: '#00aaff', stats: pStats, 
                 maxHp: pMaxHp, maxRpm: pMaxRpm, currentHp: pMaxHp, currentRpm: safeNum(pMaxRpm * startRpmMod, 3000),
                 skillState: { actionState: 'IDLE' }
             };

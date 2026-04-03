@@ -174,6 +174,7 @@ window.equipmentDB = {
             tags: ["Tri-Cutter", "Spike", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/TriCutter.png",
             stats: { attack: 18, defense: 14, recoil: 19, weight: 9, mobility: 5, speed: 4, stamina: 2 },
+			radius: 13,
 			passives: [], 
 			attacks: [{ name: "Spike Attack", cd: 4 }],
 						
