@@ -1926,9 +1926,35 @@
                 };
 			}
 				
-                if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
-                if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
-            }
+                // 1. Give both Beyblades an empty nametag for their passives
+                playerBey.passives = [];
+                cpuBey.passives = [];
+
+                // 2. Load Player Passives
+                if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { 
+                    if (part && part.passives) part.passives.forEach(p => { 
+                        
+                        // Write the name onto the Beyblade!
+                        if (!playerBey.passives.includes(p)) playerBey.passives.push(p);
+
+                        // Run the stat math!
+                        if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) {
+                            window.SkillsDB.passives[p].apply(playerBey); 
+                        }
+                    }); 
+                });
+
+                // 3. Load CPU Passives
+                if (cpuData.passives) cpuData.passives.forEach(p => { 
+                    
+                    // Write the name onto the CPU!
+                    if (!cpuBey.passives.includes(p)) cpuBey.passives.push(p);
+
+                    // Run the stat math!
+                    if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) {
+                        window.SkillsDB.passives[p].apply(cpuBey); 
+                    }
+                });
 
 
 		// 1. Clamp Player Stats
