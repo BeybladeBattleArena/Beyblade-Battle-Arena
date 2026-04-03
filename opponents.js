@@ -124,7 +124,7 @@ window.opponentsDB = [
 		weightDisk: "wd_14",
 		spinGear: "sg_01",
 		bladeBase: "bb_15",
-		radius: 35,
+		radius: 40,
 		visualRadius: 15,
         alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Super Duel", stadiumId: "superduel_nowalls" },
