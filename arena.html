@@ -2899,8 +2899,13 @@
                 ctx.scale(1, 0.95); 
                 ctx.globalCompositeOperation = 'screen'; 
                 ctx.beginPath();
-                // Drawn slightly larger and softer than the active attack
-                ctx.arc(0, 0, renderSize * 0.48, 0, Math.PI * 2);
+      
+                // 1. Check if a custom size was provided. If not, default to 0.48!
+                let auraSizeMod = bey.passiveAuraSize || 0.48;
+                
+                // 2. Use that custom modifier for the radius!
+                ctx.arc(0, 0, renderSize * auraSizeMod, 0, Math.PI * 2);
+                
                 ctx.fillStyle = bey.passiveAura;
                 ctx.shadowBlur = 20; 
                 ctx.shadowColor = bey.passiveAura;

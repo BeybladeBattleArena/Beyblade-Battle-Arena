@@ -385,6 +385,7 @@ window.SkillEngine = {
 
             // --- CLEAR PREVIOUS FRAME'S PASSIVE AURA ---
             bey.passiveAura = null;
+			bey.passiveAuraSize = null
 
             // --- REAPPLY CONSTANT PASSIVE GLOWS ---
             if (state.peakActive) bey.passiveAura = "rgba(255, 215, 0, 0.4)";
@@ -770,6 +771,7 @@ window.SkillEngine = {
                 
                 // 1. The Solid Base Aura (Stays on as long as the timer is running)
                 bey.passiveAura = "rgba(214, 17, 17, 0.4)"; // Red base glow
+				bey.passiveAuraSize = 1.33;
                 
                 // 2. The Wispy Particles (Peeling off the base glow)
                 if (Math.random() < 0.95 && window.particles) {
