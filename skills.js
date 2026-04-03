@@ -365,6 +365,7 @@ window.SkillEngine = {
                 }
 				if (bey.passives.includes("Boss Hostility")) {
                     bey.skillState.bossHostilityAuraTimer = 90000; // 90 seconds in milliseconds!
+					console.log("ETHEREAL CLOAK ACTIVATED! Timer set to 90s.");
                 }
             }
             // ==========================================
