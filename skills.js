@@ -130,6 +130,11 @@ window.SkillsDB = {
             desc: "Taking damage triggers a brief, high-speed dash toward the opponent.",
             apply: function(bey) {} 
         },
+		"Boss Hostility": {
+            name: "Boss Hostility",
+            desc: "For Boss Beys, they are hostile.",
+            apply: function(bey) {} 
+        },
 
         // --- LAUNCHER & TOOL MODIFIERS ---
         "Launcher: RPM Boost": {
@@ -338,6 +343,8 @@ window.SkillEngine = {
                 sourDebuffTimer: 0,
                 sourDebuffAmount: 0,
                 
+				bossHostilityAuraTimer: 0,
+				
                 airLanceTimer: 0
             };
 	
@@ -355,6 +362,9 @@ window.SkillEngine = {
                     bey.stats.defense += (bey.stats.defense || 0) * 0.02;
                     bey.stats.stamina += (bey.stats.stamina || 0) * 0.03;
                     bey.stats.endurance += (bey.stats.endurance || 0) * 0.04;
+                }
+				if (bey.passives.includes("Boss Hostility")) {
+                    bey.skillState.bossHostilityAuraTimer = 90000; // 90 seconds in milliseconds!
                 }
             }
             // ==========================================
@@ -599,6 +609,7 @@ window.SkillEngine = {
                     }
                 }
                 
+				
                 // PASSIVE: Sour Saucer (Collision Debuff)
                 if (bey.passives && bey.passives.includes("Sour Saucer")) {
                     if (state.sourSaucerCd <= 0) {
@@ -749,6 +760,32 @@ window.SkillEngine = {
                 if (state.sourDebuffTimer <= 0) {
                     bey.stats.recoilReduction += state.sourDebuffAmount;
                     state.sourDebuffAmount = 0;
+                }
+            }
+			
+			// --- BOSS HOSTILITY WISPY AURA ---
+            if (state.bossHostilityAuraTimer > 0) {
+                state.bossHostilityAuraTimer -= dt;
+                
+                // 1. The Solid Base Aura (Stays on as long as the timer is running)
+                bey.passiveAura = "rgba(214, 17, 17, 0.4)"; // Red base glow
+                
+                // 2. The Wispy Particles (Peeling off the base glow)
+                if (Math.random() < 0.7 && window.particles) {
+                    let ang = Math.random() * Math.PI * 2;
+                    let driftSpeed = Math.random() * 1.5 + 0.5; 
+                    let activeRadius = bey.visualRadius || bey.radius || 15;
+                    
+                    window.particles.push({
+                        x: bey.x + (Math.random() - 0.5) * activeRadius, 
+                        y: bey.y + (Math.random() - 0.5) * activeRadius,
+                        vx: (bey.vx * 0.4) + (Math.cos(ang) * driftSpeed), 
+                        vy: (bey.vy * 0.4) + (Math.sin(ang) * driftSpeed),
+                        life: 1.0, 
+                        decay: 0.02 + Math.random() * 0.02, 
+                        color: '#861720', // Dark red wisps!
+                        size: Math.random() * 6 + 4 
+                    });
                 }
             }
 
