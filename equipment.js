@@ -883,6 +883,7 @@ window.equipmentDB = {
             tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon.png",  
             stats: { attack: 23, hp: 20, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 4, endurance: 2, stamina: 3, recoil: 16 },
+			radius: 16,
 			passives: [], 
 			attacks: [{ name: "Upper Attack", cd: 5 }],
 			
