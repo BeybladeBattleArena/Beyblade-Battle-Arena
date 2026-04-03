@@ -779,6 +779,8 @@ window.SkillEngine = {
                     let driftSpeed = Math.random() * 1.015 + 0.5; 
                     let activeRadius = bey.visualRadius || bey.radius || 15;
 					let spawnAngle = Math.random() * Math.PI * 2;
+					let edgeX = bey.x + Math.cos(spawnAngle) * activeRadius;
+                    let edgeY = bey.y + Math.sin(spawnAngle) * activeRadius;
 					let outwardVx = Math.cos(spawnAngle) * driftSpeed;
                     let outwardVy = Math.sin(spawnAngle) * driftSpeed;
                     
