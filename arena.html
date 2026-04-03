@@ -1896,7 +1896,9 @@
             cpuBey.ultimate = cpuData.ultimate || null; cpuBey.spirit = 0;
 				if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { if (part && part.passives) part.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); }); });
                 if (cpuData.passives) cpuData.passives.forEach(p => { if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(cpuBey); });
-            
+					console.log("Player Passives:", playerBey.passives);
+					console.log("CPU Passives:", cpuBey.passives);
+			
             burstParticles = [];
 
             if (window.SkillEngine) {
