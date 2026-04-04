@@ -882,10 +882,13 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon.png",  
-            stats: { attack: 23, hp: 20, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 4, endurance: 2, stamina: 3, recoil: 16 },
+            statsRight: { attack: 23, hp: 20, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 4, endurance: 2, stamina: 3, recoil: 16 },
+			statsLeft: { attack: 25, hp: 10, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 5, endurance: 1, stamina: 3, recoil: 17 },
 			radius: 16,
-			passives: [], 
-			attacks: [{ name: "Upper Attack", cd: 5 }],
+			passivesRight: [],
+			passivesLeft: [], 
+			attacksRight: [{ name: "Upper Attack", cd: 5 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
