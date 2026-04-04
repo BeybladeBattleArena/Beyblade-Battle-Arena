@@ -89,6 +89,64 @@
     .inspect-img-box { width: 80px; height: 80px; flex-shrink: 0; background: linear-gradient(to bottom, #00aaff, #800080); border: 2px solid #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.7); box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow: hidden; }
     .inspect-img-box img { transform: scale(1.5); image-rendering: pixelated; pointer-events: none; }
     
+	.inspect-feature-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    margin-top: 4px;
+    min-height: 16px;
+}
+
+.inspect-control-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.inspect-control-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 16px;
+}
+
+.inspect-control-text {
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.inspect-mini-icon-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 17px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: none;
+    outline: none;
+}
+
+.inspect-mini-icon-btn img {
+    width: 17px;
+    height: 16px;
+    display: block;
+    object-fit: contain;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+	
     .inspect-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; font-size: 11px; color: #ddd; }
     .inspect-stat-item { background: #222; padding: 4px 6px; border-radius: 4px; border: 1px solid #333; white-space: nowrap; text-align: center; }
     
@@ -1207,146 +1265,151 @@ function buildIsSaveReady() {
     // --- NEW: DEDICATED INSPECTOR DRAWER ---
     // ==========================================
         window.updateInspectorUI = function(slot) {
-        let item = currentBuild[slot];
-        if (!item) return;
+    let item = currentBuild[slot];
+    if (!item) return;
 
-        const displaySpin = getInspectSpinDirection(item);
-        const displaySpinColor = getSpinPreviewColor(displaySpin);
-        const spinData = getPartSpinData(item, displaySpin);
-        const displayStats = spinData.stats || {};
-        const displayPassives = spinData.passives || [];
-        const displayAttacks = spinData.attacks || [];
+    const displaySpin = getInspectSpinDirection(item);
+    const displaySpinColor = getSpinPreviewColor(displaySpin);
+    const spinData = getPartSpinData(item, displaySpin);
+    const displayStats = spinData.stats || {};
+    const displayPassives = spinData.passives || [];
+    const displayAttacks = spinData.attacks || [];
 
-        const statOrder = [
-            "hp", "rpm", "attack", "defense", "stamina", "endurance",
-            "speed", "mobility", "grip", "balance", "weight",
-            "recoil", "recoilReduction", "spiritCharge", "cdr"
-        ];
+    const statOrder = [
+        "hp", "rpm", "attack", "defense", "stamina", "endurance",
+        "speed", "mobility", "grip", "balance", "weight",
+        "recoil", "recoilReduction", "spiritCharge", "cdr"
+    ];
 
-        const statLabels = {
-            hp: "HP", rpm: "RPM", attack: "Attack", defense: "Defense",
-            stamina: "Stamina", endurance: "Endurance", speed: "Speed",
-            mobility: "Mobility", grip: "Grip", balance: "Balance",
-            weight: "Weight", recoil: "Recoil", recoilReduction: "Recoil Red.",
-            spiritCharge: "Spirit Charge", cdr: "Cooldown Red."
-        };
+    const statLabels = {
+        hp: "HP", rpm: "RPM", attack: "Attack", defense: "Defense",
+        stamina: "Stamina", endurance: "Endurance", speed: "Speed",
+        mobility: "Mobility", grip: "Grip", balance: "Balance",
+        weight: "Weight", recoil: "Recoil", recoilReduction: "Recoil Red.",
+        spiritCharge: "Spirit Charge", cdr: "Cooldown Red."
+    };
 
-        const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
-        let formattedStatsHtml = '';
+    const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
+    let formattedStatsHtml = '';
 
-        if (Object.keys(displayStats).length > 0) {
-            statOrder.forEach(key => {
-                if (displayStats[key] !== undefined) {
-                    let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
-                    formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayStats[key]}${suffix}</div>`;
-                }
-            });
-        } else {
-            formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Skills.</div>`;
-        }
-
-        if (item.toggleModify) {
-            formattedStatsHtml += `
-                <div style="grid-column: span 5; color: #ffaa00; font-size: 10px; margin-top: 8px; font-style: italic; display: flex; align-items: center; gap: 5px;">
-                    This part can be manually modified. Use <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="height:12px;"> to modify.
-                </div>
-            `;
-        }
-
-        let displayName = item.activeStyle ? item.activeStyle.styleName : item.name;
-        let displayImg = getSafeImage(item, false);
-
-        let imgBoxStyle = displayImg ? 'background: transparent; border: none; box-shadow: none;' : '';
-        let imageHtml = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain;">` : `?`;
-
-        let featureIconsHtml = '';
-
-        if (slot === 'bladeBase') {
-            if (item.contactTipShape) {
-                featureIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="./images/menu_icons/base_image_integratedtip.png"></div>`;
-            } else {
-                featureIconsHtml += `<div class="feature-icon-box" title="Open Tip Base"><img src="./images/menu_icons/base_image_opentip.png"></div>`;
+    if (Object.keys(displayStats).length > 0) {
+        statOrder.forEach(key => {
+            if (displayStats[key] !== undefined) {
+                let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
+                formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayStats[key]}${suffix}</div>`;
             }
-        }
+        });
+    } else {
+        formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Skills.</div>`;
+    }
 
-        if (item.subRing === true && item.subRingType) {
-            let sarImg = item.subRingType.toLowerCase().includes('free') ? 'sar_image_free.png' : 'sar_image_locked.png';
-            featureIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="./images/menu_icons/${sarImg}"></div>`;
-        }
+    let displayName = item.activeStyle ? item.activeStyle.styleName : item.name;
+    let displayImg = getSafeImage(item, false);
 
+    let imgBoxStyle = displayImg ? 'background: transparent; border: none; box-shadow: none;' : '';
+    let imageHtml = displayImg ? `<img src="${displayImg}" style="width:100%; height:100%; object-fit:contain;">` : `?`;
+
+    let infoIconsHtml = '';
+    let controlRowsHtml = '';
+
+    // --- INFO ICONS (row below image) ---
+    if (slot === 'bladeBase') {
         if (item.contactTipShape) {
-            let tipImg = '';
-            let shape = item.contactTipShape.toLowerCase();
-
-            if (shape.includes('semi-flat') || shape.includes('semiflat')) tipImg = 'tip_image_semiflat.png';
-            else if (shape.includes('flat')) tipImg = 'tip_image_flat.png';
-            else if (shape.includes('sharp')) tipImg = 'tip_image_sharp.png';
-            else if (shape.includes('ball')) tipImg = 'tip_image_ball.png';
-
-            if (tipImg) {
-                featureIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="./images/menu_icons/${tipImg}"></div>`;
-            }
+            infoIconsHtml += `<div class="feature-icon-box" title="Integrated Tip"><img src="./images/menu_icons/base_image_integratedtip.png"></div>`;
+        } else {
+            infoIconsHtml += `<div class="feature-icon-box" title="Open Tip Base"><img src="./images/menu_icons/base_image_opentip.png"></div>`;
         }
+    }
 
-        if (item.toggleModify) {
-            let currentRot = item._toggleRotation || 0;
-            featureIconsHtml += `
-                <div class="feature-icon-box" style="cursor: pointer; border-color: #ffaa00; background: #332200;" onclick="window.togglePartModification('${slot}')" title="Modify Part">
-                    <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="transform: rotate(${currentRot}deg); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 100%; height: 100%; object-fit: contain;">
-                </div>
-            `;
+    if (item.subRing === true && item.subRingType) {
+        let sarImg = item.subRingType.toLowerCase().includes('free') ? 'sar_image_free.png' : 'sar_image_locked.png';
+        infoIconsHtml += `<div class="feature-icon-box" title="Sub-Ring: ${item.subRingType}"><img src="./images/menu_icons/${sarImg}"></div>`;
+    }
+
+    if (item.contactTipShape) {
+        let tipImg = '';
+        let shape = item.contactTipShape.toLowerCase();
+
+        if (shape.includes('semi-flat') || shape.includes('semiflat')) tipImg = 'tip_image_semiflat.png';
+        else if (shape.includes('flat')) tipImg = 'tip_image_flat.png';
+        else if (shape.includes('sharp')) tipImg = 'tip_image_sharp.png';
+        else if (shape.includes('ball')) tipImg = 'tip_image_ball.png';
+
+        if (tipImg) {
+            infoIconsHtml += `<div class="feature-icon-box" title="Tip Shape: ${item.contactTipShape}"><img src="./images/menu_icons/${tipImg}"></div>`;
         }
+    }
 
-        const spinIconPath = `./images/menu_icons/${displaySpin.toLowerCase()}_spin_icon.png`;
+    // --- INTERACTIVE CONTROL: MANUAL MODIFY ---
+    if (item.toggleModify) {
+        let currentRot = item._toggleRotation || 0;
+        controlRowsHtml += `
+            <div class="inspect-control-row">
+                <button class="inspect-mini-icon-btn" onclick="window.togglePartModification('${slot}')" title="Modify Part">
+                    <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="transform: rotate(${currentRot}deg); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                </button>
+                <span class="inspect-control-text" style="color: #ffaa00;">
+                    This part can be manually modified. Use this button to modify.
+                </span>
+            </div>
+        `;
+    }
 
-        const passivePreviewHtml = displayPassives.length
-            ? displayPassives.map(name => `<div class="inspect-skill-pill">${name}</div>`).join('')
-            : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
+    // --- INTERACTIVE CONTROL: SPIN PREVIEW ---
+    const spinIconPath = `./images/menu_icons/${displaySpin.toLowerCase()}_spin_icon.png`;
 
-        const attackPreviewHtml = displayAttacks.length
-            ? displayAttacks.map(atk => `<div class="inspect-skill-pill">${atk.name}${atk.cd != null ? ` (${atk.cd}s)` : ''}</div>`).join('')
-            : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
+    controlRowsHtml += `
+        <div class="inspect-control-row">
+            <button class="inspect-mini-icon-btn" onclick="window.toggleInspectSpinPreview('${slot}')" title="Toggle displayed spin data">
+                <img src="${spinIconPath}" alt="${displaySpin} Spin">
+            </button>
+            <span class="inspect-control-text" style="color: ${displaySpinColor};">
+                Displaying ${displaySpin} Spin Stats, Skills, and Passives.
+            </span>
+        </div>
+    `;
 
-        document.getElementById('inspect-content').innerHTML = `
-            <div class="inspect-layout">
-                <div class="inspect-media-column">
-                    <div class="inspect-img-box" style="${imgBoxStyle}">
-                        ${imageHtml}
-                    </div>
+    const passivePreviewHtml = displayPassives.length
+        ? displayPassives.map(name => `<div class="inspect-skill-pill">${name}</div>`).join('')
+        : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
 
-                    ${featureIconsHtml ? `<div class="inspect-feature-row">${featureIconsHtml}</div>` : ''}
+    const attackPreviewHtml = displayAttacks.length
+        ? displayAttacks.map(atk => `<div class="inspect-skill-pill">${atk.name}${atk.cd != null ? ` (${atk.cd}s)` : ''}</div>`).join('')
+        : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
 
-                    <div class="inspect-spin-row">
-                        <button class="inspect-mini-icon-btn" onclick="window.toggleInspectSpinPreview('${slot}')" title="Toggle displayed spin data">
-                            <img src="${spinIconPath}" alt="${displaySpin} Spin">
-                        </button>
-                        <span class="inspect-spin-text" style="color: ${displaySpinColor};">
-                            Displaying ${displaySpin} Spin Stats, Skills, and Passives.
-                        </span>
-                    </div>
+    document.getElementById('inspect-content').innerHTML = `
+        <div class="inspect-layout">
+            <div class="inspect-media-column">
+                <div class="inspect-img-box" style="${imgBoxStyle}">
+                    ${imageHtml}
                 </div>
 
-                <div class="inspect-text">
-                    <strong style="font-size: 16px; color: #00ffff;">${displayName}</strong>
+                ${infoIconsHtml ? `<div class="inspect-feature-row">${infoIconsHtml}</div>` : ''}
 
-                    <div class="inspect-stat-grid">
-                        ${formattedStatsHtml}
+                ${controlRowsHtml ? `<div class="inspect-control-stack">${controlRowsHtml}</div>` : ''}
+            </div>
+
+            <div class="inspect-text">
+                <strong style="font-size: 16px; color: #00ffff;">${displayName}</strong>
+
+                <div class="inspect-stat-grid">
+                    ${formattedStatsHtml}
+                </div>
+
+                <div class="inspect-skill-preview">
+                    <div class="inspect-skill-group">
+                        <div class="inspect-skill-group-title">Passives</div>
+                        ${passivePreviewHtml}
                     </div>
-
-                    <div class="inspect-skill-preview">
-                        <div class="inspect-skill-group">
-                            <div class="inspect-skill-group-title">Passives</div>
-                            ${passivePreviewHtml}
-                        </div>
-                        <div class="inspect-skill-group">
-                            <div class="inspect-skill-group-title">Attacks</div>
-                            ${attackPreviewHtml}
-                        </div>
+                    <div class="inspect-skill-group">
+                        <div class="inspect-skill-group-title">Attacks</div>
+                        ${attackPreviewHtml}
                     </div>
                 </div>
             </div>
-        `;
-    };
+        </div>
+    `;
+};
 
     // ==========================================
     // --- NEW: THE MODIFIER ENGINE ---
