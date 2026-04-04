@@ -74,15 +74,86 @@
     .attack-box { background: #442222; border: 1px solid #ff4444; padding: 8px; margin-bottom: 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(255, 68, 68, 0.1); }
     .skill-source { font-size: 9px; color: #aaa; text-transform: uppercase; margin-bottom: 3px; display: block; letter-spacing: 0.5px; }
 
+.inspect-media-column {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-width: 110px;
+}
+
     /* Inspect Layout & Grid */
     .inspect-layout { display: flex; justify-content: flex-start; align-items: flex-start; gap: 20px; }
-    .inspect-text { flex: 0 1 auto; min-width: 50%; } 
+    .inspect-text { flex: 1 1 auto; min-width: 0%; } 
     .inspect-img-box { width: 80px; height: 80px; flex-shrink: 0; background: linear-gradient(to bottom, #00aaff, #800080); border: 2px solid #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.7); box-shadow: 0 4px 8px rgba(0,0,0,0.5); overflow: hidden; }
     .inspect-img-box img { transform: scale(1.5); image-rendering: pixelated; pointer-events: none; }
     
     .inspect-stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px; font-size: 11px; color: #ddd; }
     .inspect-stat-item { background: #222; padding: 4px 6px; border-radius: 4px; border: 1px solid #333; white-space: nowrap; text-align: center; }
-    /* New Feature Icons (Tips, Bases, Sub-Rings) */
+    
+	.inspect-spin-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.inspect-spin-text {
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+.inspect-skill-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.inspect-skill-group {
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px;
+}
+
+.inspect-skill-group-title {
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+}
+
+.inspect-skill-pill {
+    font-size: 10px;
+    color: #ddd;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 3px 5px;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+	
+@media (max-width: 768px) and (orientation: portrait) {
+    .inspect-layout {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .inspect-skill-preview {
+        grid-template-columns: 1fr;
+    }
+
+    .inspect-stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}	
+	
+	/* New Feature Icons (Tips, Bases, Sub-Rings) */
     .feature-icon-box { 
         width: 32px; 
         height: 32px; 
@@ -482,6 +553,111 @@ setupBuildPageSizing();
         return part.fallbackImage || part[key] || '';
     }
 	
+	    var lastInspectedSlot = null;
+
+    function deepClone(obj) {
+        return obj == null ? obj : JSON.parse(JSON.stringify(obj));
+    }
+
+    function normalizeSpinDirection(value) {
+        return String(value || "Right").toLowerCase().includes("left") ? "Left" : "Right";
+    }
+
+    function getBuildSpinDirection() {
+        if (currentBuild.spinGear && currentBuild.spinGear.spinDirection) {
+            return normalizeSpinDirection(currentBuild.spinGear.spinDirection);
+        }
+        return "Right";
+    }
+
+    function getBuildSpinDirectionLabel() {
+        return currentBuild.spinGear ? getBuildSpinDirection() : "Right (Default)";
+    }
+
+    function getSpinPreviewColor(spinDirection) {
+        return normalizeSpinDirection(spinDirection) === "Left" ? "#0079ab" : "#ef2a35";
+    }
+
+    function getPreferredSpinValue(part, baseKey, spinDirection) {
+        if (!part) return baseKey === "stats" ? {} : [];
+
+        const dir = normalizeSpinDirection(spinDirection);
+        const preferredKey = dir === "Left" ? `${baseKey}Left` : `${baseKey}Right`;
+        const alternateKey = dir === "Left" ? `${baseKey}Right` : `${baseKey}Left`;
+
+        if (part[preferredKey] != null) return deepClone(part[preferredKey]);
+
+        // Legacy default support: plain `stats`, `attacks`, `passives`
+        if (dir === "Right" && part[baseKey] != null) return deepClone(part[baseKey]);
+
+        if (part[alternateKey] != null) return deepClone(part[alternateKey]);
+        if (part[baseKey] != null) return deepClone(part[baseKey]);
+
+        return baseKey === "stats" ? {} : [];
+    }
+
+    function getPartSpinData(part, spinDirection) {
+        return {
+            stats: getPreferredSpinValue(part, "stats", spinDirection),
+            attacks: getPreferredSpinValue(part, "attacks", spinDirection),
+            passives: getPreferredSpinValue(part, "passives", spinDirection)
+        };
+    }
+
+    function getInspectSpinDirection(part) {
+        if (!part) return getBuildSpinDirection();
+        return normalizeSpinDirection(part._inspectSpinDirection || getBuildSpinDirection());
+    }
+
+    function resetInspectSpinDisplaysToBuildSpin() {
+        const buildSpin = getBuildSpinDirection();
+        Object.values(currentBuild).forEach(part => {
+            if (part) {
+                part._inspectSpinDirection = buildSpin;
+            }
+        });
+    }
+
+    function getResolvedBuildForSave() {
+        const buildSpin = getBuildSpinDirection();
+        const resolved = {};
+
+        Object.entries(currentBuild).forEach(([slot, part]) => {
+            if (!part) {
+                resolved[slot] = null;
+                return;
+            }
+
+            const copy = deepClone(part);
+            const spinData = getPartSpinData(copy, buildSpin);
+
+            copy.stats = deepClone(spinData.stats);
+            copy.attacks = deepClone(spinData.attacks);
+            copy.passives = deepClone(spinData.passives);
+
+            delete copy._inspectSpinDirection;
+            delete copy._toggleRotation;
+
+            resolved[slot] = copy;
+        });
+
+        return resolved;
+    }
+
+    window.toggleInspectSpinPreview = function(slot) {
+        const part = currentBuild[slot];
+        if (!part) return;
+
+        const currentPreviewSpin = getInspectSpinDirection(part);
+        part._inspectSpinDirection = currentPreviewSpin === "Left" ? "Right" : "Left";
+
+        window.updateInspectorUI(slot);
+
+        const sfx = new Audio('./audio/sounds/PartsMeet.wav');
+        sfx.volume = 0.2;
+        sfx.play().catch(() => {});
+    };
+	
 	function playNegativeSfx() {
     const sfx = new Audio('./audio/sounds/menu_cancel_or_error.wav');
     sfx.volume = 0.7;
@@ -749,7 +925,7 @@ function buildIsSaveReady() {
             
             window.PlayerData.saves[index] = {
                 name: buildName,
-                parts: { ...currentBuild } 
+                parts: getResolvedBuildForSave()
             };
             
             const userRef = doc(db, "users", window.CurrentUser.uid);
@@ -807,14 +983,41 @@ function buildIsSaveReady() {
 
         } else {
             const slotData = window.PlayerData.saves[index];
-            if (slotData && slotData.parts) {
+                        if (slotData && slotData.parts) {
                 currentBuild = normalizeLoadedBuild(slotData.parts);
-				validateEquippedSubAttackRing();
+                validateEquippedSubAttackRing();
+                resetInspectSpinDisplaysToBuildSpin();
+
+                const slotMap = {
+                    bitChips: 'bitChip',
+                    attackRings: 'attackRing',
+                    subAttackRings: 'subAttackRing',
+                    weightDisks: 'weightDisk',
+                    spinGears: 'spinGear',
+                    bladeBases: 'bladeBase',
+                    launchers: 'launcher',
+                    ripCords: 'ripCord'
+                };
+
+                const preferredInspectSlot = slotMap[activeTabKey];
+                lastInspectedSlot =
+                    (preferredInspectSlot && currentBuild[preferredInspectSlot]) ? preferredInspectSlot :
+                    Object.keys(currentBuild).find(key => currentBuild[key]) || null;
+
                 window.renderLeftPanel();
                 calculateAndRenderTotals();
+
+                if (lastInspectedSlot) {
+                    window.updateInspectorUI(lastInspectedSlot);
+                } else {
+                    document.getElementById('inspect-content').innerHTML = 'Tap a part to view details...';
+                }
+
                 const oldText = document.getElementById('init-save-btn').innerText;
                 document.getElementById('init-save-btn').innerText = `LOADED: ${slotData.name}`;
-                setTimeout(() => { if(!isSavingMode) document.getElementById('init-save-btn').innerText = oldText; }, 2000);
+                setTimeout(() => {
+                    if (!isSavingMode) document.getElementById('init-save-btn').innerText = oldText;
+                }, 2000);
             }
         }
     };
@@ -902,15 +1105,22 @@ function buildIsSaveReady() {
             return true;
         });
         
+                const sortSpin = getBuildSpinDirection();
+
         filteredList.sort((a, b) => {
             let valA, valB;
+
             if (sortBy === 'name') {
                 valA = a.name.toLowerCase();
                 valB = b.name.toLowerCase();
             } else {
-                valA = (a.stats && a.stats[sortBy]) ? a.stats[sortBy] : 0;
-                valB = (b.stats && b.stats[sortBy]) ? b.stats[sortBy] : 0;
+                const aStats = getPartSpinData(a, sortSpin).stats || {};
+                const bStats = getPartSpinData(b, sortSpin).stats || {};
+
+                valA = aStats[sortBy] ?? 0;
+                valB = bStats[sortBy] ?? 0;
             }
+
             if (valA < valB) return sortDirection === 'ASC' ? -1 : 1;
             if (valA > valB) return sortDirection === 'ASC' ? 1 : -1;
             return 0;
@@ -946,10 +1156,10 @@ function buildIsSaveReady() {
         container.innerHTML = html;
     }
 
-window.equipItem = function(slot, dbKey, itemId, styleId = null) {
+    window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         const baseItem = window.equipmentDB[dbKey].find(i => i.id === itemId);
-        let item = JSON.parse(JSON.stringify(baseItem));
-        
+        let item = deepClone(baseItem);
+
         if (item.styles && item.styles.length > 0) {
             if (styleId) {
                 item.activeStyle = item.styles.find(s => s.styleId === styleId) || item.styles[0];
@@ -957,7 +1167,7 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
                 item.activeStyle = item.styles[0];
             }
         }
-        
+
         if (slot === 'subAttackRing') {
             const requiredType = requiredSubRingType();
             if (!requiredType || item.subRingType !== requiredType) {
@@ -966,11 +1176,9 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
             }
         }
 
-        // --- NEW: INITIALIZE MODIFIABLE PARTS ---
-        // If this part comes fresh from the inventory list, ensure its default state is set.
+        // Legacy/manual-modify support
         if (item.toggleModify && item.id === 'bb_19') {
             item.contactTipShape = "Flat";
-            // Ensure passives default to flat
             if (item.passives) {
                 item.passives = item.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Flat)" : p);
             }
@@ -981,49 +1189,62 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         if (slot === 'attackRing') {
             validateEquippedSubAttackRing();
         }
-        
-        // Pass the rendering job to our new dedicated UI function
+
+        if (slot === 'spinGear') {
+            resetInspectSpinDisplaysToBuildSpin();
+        } else if (currentBuild[slot]) {
+            currentBuild[slot]._inspectSpinDirection = getBuildSpinDirection();
+        }
+
+        lastInspectedSlot = slot;
+
         window.updateInspectorUI(slot);
-        window.renderLeftPanel(); 
+        window.renderLeftPanel();
         calculateAndRenderTotals();
     };
 
     // ==========================================
     // --- NEW: DEDICATED INSPECTOR DRAWER ---
     // ==========================================
-    window.updateInspectorUI = function(slot) {
+        window.updateInspectorUI = function(slot) {
         let item = currentBuild[slot];
         if (!item) return;
 
+        const displaySpin = getInspectSpinDirection(item);
+        const displaySpinColor = getSpinPreviewColor(displaySpin);
+        const spinData = getPartSpinData(item, displaySpin);
+        const displayStats = spinData.stats || {};
+        const displayPassives = spinData.passives || [];
+        const displayAttacks = spinData.attacks || [];
+
         const statOrder = [
-            "hp", "rpm", "attack", "defense", "stamina", "endurance", 
-            "speed", "mobility", "grip", "balance", "weight", 
+            "hp", "rpm", "attack", "defense", "stamina", "endurance",
+            "speed", "mobility", "grip", "balance", "weight",
             "recoil", "recoilReduction", "spiritCharge", "cdr"
         ];
-        
+
         const statLabels = {
-            hp: "HP", rpm: "RPM", attack: "Attack", defense: "Defense", 
-            stamina: "Stamina", endurance: "Endurance", speed: "Speed", 
-            mobility: "Mobility", grip: "Grip", balance: "Balance", 
-            weight: "Weight", recoil: "Recoil", recoilReduction: "Recoil Red.", 
+            hp: "HP", rpm: "RPM", attack: "Attack", defense: "Defense",
+            stamina: "Stamina", endurance: "Endurance", speed: "Speed",
+            mobility: "Mobility", grip: "Grip", balance: "Balance",
+            weight: "Weight", recoil: "Recoil", recoilReduction: "Recoil Red.",
             spiritCharge: "Spirit Charge", cdr: "Cooldown Red."
         };
 
-        let formattedStatsHtml = '';
         const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
-        
-        if (item.stats) {
+        let formattedStatsHtml = '';
+
+        if (Object.keys(displayStats).length > 0) {
             statOrder.forEach(key => {
-                if (item.stats[key] !== undefined) {
+                if (displayStats[key] !== undefined) {
                     let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
-                    formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${item.stats[key]}${suffix}</div>`;
+                    formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayStats[key]}${suffix}</div>`;
                 }
             });
         } else {
-            formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Passives.</div>`;
+            formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Skills.</div>`;
         }
 
-        // --- NEW: THE MODIFICATION HINT TEXT ---
         if (item.toggleModify) {
             formattedStatsHtml += `
                 <div style="grid-column: span 5; color: #ffaa00; font-size: 10px; margin-top: 8px; font-style: italic; display: flex; align-items: center; gap: 5px;">
@@ -1056,7 +1277,7 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         if (item.contactTipShape) {
             let tipImg = '';
             let shape = item.contactTipShape.toLowerCase();
-            
+
             if (shape.includes('semi-flat') || shape.includes('semiflat')) tipImg = 'tip_image_semiflat.png';
             else if (shape.includes('flat')) tipImg = 'tip_image_flat.png';
             else if (shape.includes('sharp')) tipImg = 'tip_image_sharp.png';
@@ -1067,31 +1288,61 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
             }
         }
 
-        // --- NEW: THE MODIFICATION BUTTON ---
         if (item.toggleModify) {
-            let currentRot = item._toggleRotation || 0; 
+            let currentRot = item._toggleRotation || 0;
             featureIconsHtml += `
                 <div class="feature-icon-box" style="cursor: pointer; border-color: #ffaa00; background: #332200;" onclick="window.togglePartModification('${slot}')" title="Modify Part">
-                    <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="transform: rotate(${currentRot}deg); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 80%; height: 80%; object-fit: contain;">
+                    <img src="./images/menu_icons/togglebutton_forbuildmechanics.png" style="transform: rotate(${currentRot}deg); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); width: 100%; height: 100%; object-fit: contain;">
                 </div>
             `;
         }
 
+        const spinIconPath = `./images/menu_icons/${displaySpin.toLowerCase()}_spin_icon.png`;
+
+        const passivePreviewHtml = displayPassives.length
+            ? displayPassives.map(name => `<div class="inspect-skill-pill">${name}</div>`).join('')
+            : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
+
+        const attackPreviewHtml = displayAttacks.length
+            ? displayAttacks.map(atk => `<div class="inspect-skill-pill">${atk.name}${atk.cd != null ? ` (${atk.cd}s)` : ''}</div>`).join('')
+            : `<div class="inspect-skill-pill" style="opacity: 0.65;">None</div>`;
+
         document.getElementById('inspect-content').innerHTML = `
             <div class="inspect-layout">
-                <div class="inspect-text">
-                    <strong style="font-size: 16px; color: #00ffff;">${displayName}</strong>
-                    <div class="inspect-stat-grid">
-                        ${formattedStatsHtml}
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="inspect-media-column">
                     <div class="inspect-img-box" style="${imgBoxStyle}">
                         ${imageHtml}
                     </div>
-                    
-                    ${featureIconsHtml ? `<div style="display: flex; flex-direction: row; gap: 4px;">${featureIconsHtml}</div>` : ''}
+
+                    ${featureIconsHtml ? `<div class="inspect-feature-row">${featureIconsHtml}</div>` : ''}
+
+                    <div class="inspect-spin-row">
+                        <button class="inspect-mini-icon-btn" onclick="window.toggleInspectSpinPreview('${slot}')" title="Toggle displayed spin data">
+                            <img src="${spinIconPath}" alt="${displaySpin} Spin">
+                        </button>
+                        <span class="inspect-spin-text" style="color: ${displaySpinColor};">
+                            Displaying ${displaySpin} Spin Stats, Skills, and Passives.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="inspect-text">
+                    <strong style="font-size: 16px; color: #00ffff;">${displayName}</strong>
+
+                    <div class="inspect-stat-grid">
+                        ${formattedStatsHtml}
+                    </div>
+
+                    <div class="inspect-skill-preview">
+                        <div class="inspect-skill-group">
+                            <div class="inspect-skill-group-title">Passives</div>
+                            ${passivePreviewHtml}
+                        </div>
+                        <div class="inspect-skill-group">
+                            <div class="inspect-skill-group-title">Attacks</div>
+                            ${attackPreviewHtml}
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -1144,72 +1395,66 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         sfx.play().catch(()=>{});
     };
 
-    function calculateAndRenderTotals() {
+        function calculateAndRenderTotals() {
         let totals = { hp: 0, rpm: 0, attack: 0, recoil: 0, recoilReduction: 0, defense: 0, endurance: 0, stamina: 0, balance: 0, weight: 0, speed: 0, mobility: 0, grip: 0, spiritCharge: 0, cdr: 0 };
         let passives = [];
         let attacks = [];
         let ultimate = null;
-        
-        let spinDirection = "[No Spin Gear]";
-        if (currentBuild.spinGear) {
-            spinDirection = currentBuild.spinGear.spinDirection || "Right";
-        }
 
-        const slotNames = { 
-    bitChip: "Bit Chip",
-    attackRing: "Attack Ring",
-    subAttackRing: "Sub-Attack Ring",
-    weightDisk: "Weight Disk",
-    spinGear: "Spin Gear",
-    bladeBase: "Blade Base",
-    launcher: "Launcher",
-    ripCord: "Rip Cord"
-};
+        const buildSpinDirection = getBuildSpinDirection();
+        const spinDirectionLabel = getBuildSpinDirectionLabel();
+
+        const slotNames = {
+            bitChip: "Bit Chip",
+            attackRing: "Attack Ring",
+            subAttackRing: "Sub-Attack Ring",
+            weightDisk: "Weight Disk",
+            spinGear: "Spin Gear",
+            bladeBase: "Blade Base",
+            launcher: "Launcher",
+            ripCord: "Rip Cord"
+        };
 
         Object.entries(currentBuild).forEach(([slot, part]) => {
             if (!part) return;
+
             let partName = part.activeStyle ? part.activeStyle.styleName : part.name;
             let originText = `${slotNames[slot]}: ${partName}`;
+            const spinData = getPartSpinData(part, buildSpinDirection);
 
-            if (part.stats) {
-                for (let stat in part.stats) {
-                    if (totals[stat] !== undefined) totals[stat] += part.stats[stat];
-                } 
+            const resolvedStats = spinData.stats || {};
+            const resolvedPassives = spinData.passives || [];
+            const resolvedAttacks = spinData.attacks || [];
+
+            for (let stat in resolvedStats) {
+                if (totals[stat] !== undefined) totals[stat] += resolvedStats[stat];
             }
-            
-            if (part.passives) {
-                part.passives.forEach(passiveName => {
-                    let desc = "";
-                    if (window.SkillsDB && window.SkillsDB.passives && window.SkillsDB.passives[passiveName]) {
-                        desc = window.SkillsDB.passives[passiveName].desc;
-                    }
-                    passives.push({ name: passiveName, desc: desc, source: originText });
-                });
-            }
-            
-            if (part.attacks) {
-                part.attacks.forEach(atkObj => {
-                    let desc = "";
-                    if (window.SkillsDB && window.SkillsDB.attacks && window.SkillsDB.attacks[atkObj.name]) {
-                        desc = window.SkillsDB.attacks[atkObj.name].desc;
-                    }
-                    attacks.push({ name: atkObj.name, cd: atkObj.cd, desc: desc, source: originText });
-                });
-            }
-            
-            // Look for special launches on Tools!
+
+            resolvedPassives.forEach(passiveName => {
+                let desc = "";
+                if (window.SkillsDB && window.SkillsDB.passives && window.SkillsDB.passives[passiveName]) {
+                    desc = window.SkillsDB.passives[passiveName].desc;
+                }
+                passives.push({ name: passiveName, desc: desc, source: originText });
+            });
+
+            resolvedAttacks.forEach(atkObj => {
+                let desc = "";
+                if (window.SkillsDB && window.SkillsDB.attacks && window.SkillsDB.attacks[atkObj.name]) {
+                    desc = window.SkillsDB.attacks[atkObj.name].desc;
+                }
+                attacks.push({ name: atkObj.name, cd: atkObj.cd, desc: desc, source: originText });
+            });
+
             if (part.specialLaunch) {
                 part.specialLaunch.forEach(sl => {
-                    // 1. Construct the exact name as it appears in skills.js (e.g., "Special Launch: Power Shoot")
-                    let skillKey = `Special Launch: ${sl}`; 
+                    let skillKey = `Special Launch: ${sl}`;
                     let desc = "";
-                    
-                    // 2. Look it up inside the passives database!
+
                     if (window.SkillsDB && window.SkillsDB.passives && window.SkillsDB.passives[skillKey]) {
                         desc = window.SkillsDB.passives[skillKey].desc;
                     }
-                    
-                    // 3. Push it to the UI array
+
                     passives.push({ name: skillKey, desc: desc, source: originText });
                 });
             }
@@ -1218,49 +1463,51 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
                 ultimate = { name: part.ultimate.name, desc: part.ultimate.desc, source: originText };
             }
         });
-        
+
         let atkScore = totals.attack + totals.speed + totals.mobility + totals.grip;
         let defScore = totals.defense + totals.recoilReduction + (totals.weight * 0.2) + (totals.hp * 0.3);
         let staScore = totals.stamina + totals.balance + (totals.rpm * 0.275) + totals.endurance;
-        
+
         let maxScore = Math.max(atkScore, defScore, staScore);
         let type = "Unknown";
-        
+
         if (maxScore > 0) {
-            let threshold = maxScore * 0.85; 
+            let threshold = maxScore * 0.85;
             let closeScores = [atkScore, defScore, staScore].filter(score => score >= threshold).length;
             if (closeScores > 1) type = "Balance";
             else if (maxScore === atkScore) type = "Attack";
             else if (maxScore === defScore) type = "Defense";
             else type = "Stamina";
         }
-        
+
         const statOrder = [
-            "hp", "rpm", "attack", "defense", "stamina", "endurance", 
-            "speed", "mobility", "grip", "balance", "weight", 
+            "hp", "rpm", "attack", "defense", "stamina", "endurance",
+            "speed", "mobility", "grip", "balance", "weight",
             "recoil", "recoilReduction", "spiritCharge", "cdr"
         ];
+
         const statLabels = {
-            hp: "HP", rpm: "RPM", attack: "ATTACK", defense: "DEFENSE", 
-            stamina: "STAMINA", endurance: "ENDURANCE", speed: "SPEED", 
-            mobility: "MOBILITY", grip: "GRIP", balance: "BALANCE", 
-            weight: "WEIGHT", recoil: "RECOIL", recoilReduction: "RECOIL RED.", 
+            hp: "HP", rpm: "RPM", attack: "ATTACK", defense: "DEFENSE",
+            stamina: "STAMINA", endurance: "ENDURANCE", speed: "SPEED",
+            mobility: "MOBILITY", grip: "GRIP", balance: "BALANCE",
+            weight: "WEIGHT", recoil: "RECOIL", recoilReduction: "RECOIL RED.",
             spiritCharge: "SPIRIT CHARGE", cdr: "COOLDOWN RED."
         };
 
         const percentStats = ["recoilReduction", "spiritCharge", "cdr"];
         let statHtml = '';
+
         statOrder.forEach(key => {
             if (totals[key] !== undefined) {
                 let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
                 statHtml += `<div><b>${statLabels[key]}:</b> ${totals[key]}${suffix}</div>`;
             }
         });
-        
+
         statHtml += `<div style="grid-column: span 2; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; color: #00ffff;">
-                        <b>TYPE:</b> ${type} &nbsp;|&nbsp; <b>SPIN:</b> ${spinDirection}
+                        <b>TYPE:</b> ${type} &nbsp;|&nbsp; <b>SPIN:</b> ${spinDirectionLabel}
                      </div>`;
-                     
+
         document.getElementById('total-stats').innerHTML = statHtml;
 
         const safeParse = window.parseKeywords || function(text) { return text; };
@@ -1276,14 +1523,14 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
                             </div>`;
         });
         document.getElementById('passives-list').innerHTML = passiveHtml;
-        
+
         let attackHtml = '';
         if (attacks.length === 0) attackHtml = `<div style="color: #666; font-style: italic; font-size: 12px; margin-top: 5px;">None equipped</div>`;
         attacks.forEach(atk => {
             let descText = atk.desc ? `<div style="font-size: 11px; color: #ccc; margin-top: 4px; line-height: 1.3;">${safeParse(atk.desc)}</div>` : '';
             attackHtml += `<div class="attack-box">
                                <span class="skill-source">${atk.source}</span>
-                               <strong style="color: #fff; font-size: 13px;">${atk.name}</strong> 
+                               <strong style="color: #fff; font-size: 13px;">${atk.name}</strong>
                                <span style="font-size:11px; color:#ddd; float:right;">${atk.cd}s</span>
                                ${descText}
                            </div>`;
@@ -1303,7 +1550,7 @@ window.equipItem = function(slot, dbKey, itemId, styleId = null) {
         } else {
             document.getElementById('ultimate-container').innerHTML = '';
         }
-        
+
         window.renderAssemblyVisual();
         window.renderSaveSlots();
     }
