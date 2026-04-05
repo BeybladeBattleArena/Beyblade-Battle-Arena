@@ -196,17 +196,17 @@ window.SkillsDB = {
         },
         "Smash Attack": {
             name: "Smash Attack", cd: 5,
-            desc: "A heavy, straightforward burst of speed designed to slam the opponent.",
+            desc: "A heavy, straightforward burst of speed designed to slam the opponent. Great for knockouts.",
             execute: function() {}
         },
         "Spike Attack": {
             name: "Spike Attack", cd: 4,
-            desc: "A razor-sharp, aggressive lunge that deals massive knockback but incurs slight self-recoil.",
+            desc: "A razor-sharp, aggressive lunge that deals higher damage but incurs slightly higher self-recoil.",
             execute: function() {}
         },
         "Upper Attack": {
             name: "Upper Attack", cd: 6,
-            desc: "Pulls back briefly before delivering a scooping upward dash.",
+            desc: "Pulls back briefly before delivering a scooping upward dash. Potentially destabilizes the opponent.",
             execute: function() {}
         },
         "Barrage Attack": {
@@ -216,12 +216,12 @@ window.SkillsDB = {
         },
 		"Cyclone Loop": {
             name: "Cyclone Loop", cd: 6,
-            desc: "Execute a tight offensive loop in the same direction as the beyblade's spin.",
+            desc: "Execute a tight offensive loop in the same direction as the beyblade's forward spin.",
             execute: function() {}
         },
 		"Spin Burst": {
             name: "Spin Burst", cd: 8,
-            desc: "Charge the force of the beyblade's spin energy into a projectile force. Beware, you are anchored while this skill charges. This skill is powered using RPM.",
+            desc: "Charge the force of the beyblade's spin energy into a projectile. Beware, you are anchored while this skill charges. This skill is powerful, buy requires the beyblade's RPM to power it.",
 			//no internal function, this is handled entirely by arena.html; tweak skill variables there
         },
         "Cross Smash": {
@@ -328,6 +328,7 @@ window.SkillEngine = {
 				tpTargetX: 0,
 				tpTargetY: 0,
                 
+				smashBoostTimer: 0,
 				meteorDebuffTimer: 0,
 				meteorEndPenalty: 0,
                 defenseBoostTimer: 0,
@@ -652,6 +653,13 @@ window.SkillEngine = {
                 state.impactBoostTimer -= dt;
                 if (state.impactBoostTimer <= 0) {
                     bey.stats.recoilReduction -= 20;
+					bey.stats.knockbackPower -= 0.2; 
+                }
+            }
+			
+			if (state.smashBoostTimer > 0) {
+                state.smashtBoostTimer -= dt;
+                if (state.smashBoostTimer <= 0) {
 					bey.stats.knockbackPower -= 0.2; 
                 }
             }
@@ -1220,6 +1228,15 @@ window.SkillEngine = {
             let dashPower = 6; 
             attacker.vx += dashX * dashPower;
             attacker.vy += dashY * dashPower;
+			
+			// PREVENT DOUBLE-BUFFING: Only apply the math if the buff isn't already active!
+            if (!(attacker.skillState.smashBoostTimer > 0)) {
+                // SAFE MATH: Fallback to 0 if the stat doesn't exist yet
+                attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.2;
+            }
+            
+            // Set (or refresh) the timer
+            attacker.skillState.impactBoostTimer = 1900;
             
             attacker.activeAura = "rgba(0, 150, 255, 1.0)"; 
             attacker.activeAuraDuration = 600;
@@ -1368,7 +1385,7 @@ window.SkillEngine = {
 			attacker.tempSpeed = 1;
 			attacker.tempMobility = 1;
             attacker.activeAura = "rgba(236, 155, 56, 0.8)";
-            attacker.activeAuraDuration = 1500;
+            attacker.activeAuraDuration = 2000;
 			
 			// PREVENT DOUBLE-BUFFING: Only apply the math if the buff isn't already active!
             if (!(attacker.skillState.impactBoostTimer > 0)) {
