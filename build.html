@@ -1609,23 +1609,22 @@ function buildIsSaveReady() {
             spiritCharge: "SPIRIT CHARGE", cdr: "COOLDOWN RED.", lad: "LAD"
         };
 
-        let formattedStatsHtml = '';
+let statHtml = '';
 
-if (Object.keys(displayStats).length > 0) {
-    statOrder.forEach(key => {
-        if (displayStats[key] !== undefined) {
-            const displayValue = formatBuildStatValue(key, displayStats[key]);
-            formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayValue}</div>`;
-        }
-    });
+statOrder.forEach(key => {
+    if (totals[key] !== undefined) {
+        const displayValue = formatBuildStatValue(key, totals[key]);
+        statHtml += `<div><b>${statLabels[key]}:</b> ${displayValue}</div>`;
+    }
+});
 
-        statHtml += `<div style="grid-column: span 2; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; color: #00ffff;">
-                        <b>TYPE:</b> ${type} &nbsp;|&nbsp; <b>SPIN:</b> ${spinDirectionLabel}
-                     </div>`;
+statHtml += `<div style="grid-column: span 2; margin-top: 10px; padding-top: 10px; border-top: 1px solid #444; color: #00ffff;">
+                <b>TYPE:</b> ${type} &nbsp;|&nbsp; <b>SPIN:</b> ${spinDirectionLabel}
+             </div>`;
 
-        document.getElementById('total-stats').innerHTML = statHtml;
+document.getElementById('total-stats').innerHTML = statHtml;
 
-        const safeParse = window.parseKeywords || function(text) { return text; };
+const safeParse = window.parseKeywords || function(text) { return text; };
 
         let passiveHtml = '';
         if (passives.length === 0) passiveHtml = `<div style="color: #666; font-style: italic; font-size: 12px; margin-top: 5px;">None equipped</div>`;
