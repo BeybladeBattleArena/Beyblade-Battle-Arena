@@ -6,8 +6,8 @@ window.SkillsDB = {
         // --- EXISTING PASSIVES ---
         "Shell Armor": {
             name: "Shell Armor",
-            desc: "Increases base Defense by 10.",
-            apply: function(bey) { bey.stats.defense = (bey.stats.defense || 0) + 10; }
+            desc: "Increases base Defense by 3.",
+            apply: function(bey) { bey.stats.defense = (bey.stats.defense || 0) + 3; }
         },
 		"Recoil Rebounder": {
             name: "Recoil Rebounder",
@@ -165,12 +165,12 @@ window.SkillsDB = {
             }
         },
 		"Alter Approach (Flat)": {
-            name: "Alter Approach",
+            name: "Alter Approach (Flat)",
             desc: "Depending on manually prepared settings before the match starts, gain an additional 4% Attack and 3% Speed when a round begins. (Flat mode active).",
             apply: function(bey) {} 
         },
 		"Alter Approach (Semi-Flat)": {
-            name: "Alter Approach",
+            name: "Alter Approach (Semi-Flat)",
             desc: "Depending on manually prepared settings before the match starts, gain an additional 2% Defense, 3% Stamina, and 4% Endurance when a round begins. (Semi-Flat mode active).",
             apply: function(bey) {} 
         },
