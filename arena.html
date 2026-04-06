@@ -2656,11 +2656,24 @@
             }
             
             let currentSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
-            let baseDecay = 0.15 - (staminaStat * 0.001);
-            bey.currentRpm -= Math.max(0.1, baseDecay + (currentSpeed * 0.02) + (bey.wobbleFactor * 2.0));
-            
-            bey.currentRpm = Math.max(0, bey.currentRpm);
-            bey.currentHp = Math.max(0, bey.currentHp);
+			let baseDecay = 0.15 - (staminaStat * 0.001);
+			let frameScale = dt / 16.667;
+
+			// 1.0 = normal drain, 0.90 = 10% less drain, 1.10 = 10% more drain
+			let passiveRPMDrainMod = safeNum(bey.stats.passiveRPMDrainMod, 1.0);
+
+			let passiveRpmDrain = Math.max(
+				0.1,
+				baseDecay + (currentSpeed * 0.02) + (bey.wobbleFactor * 2.0)
+			);
+
+			// Apply the skill modifier here
+			passiveRpmDrain *= passiveRPMDrainMod;
+
+			bey.currentRpm -= passiveRpmDrain * frameScale;
+
+			bey.currentRpm = Math.max(0, bey.currentRpm);
+			bey.currentHp = Math.max(0, bey.currentHp);
         }
 
         processBey(playerBey, true); 

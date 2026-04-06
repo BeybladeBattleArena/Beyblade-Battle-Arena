@@ -14,9 +14,44 @@ window.SkillsDB = {
             desc: "When a collision occurs, reduce knockback by 10% and RPM damage by 2%. Then, temporarily increase Speed and Attack by 6% for 7 seconds. Cooldown: 28s.",
             apply: function(bey) {}
         },
+		"Smash Route": {
+            name: "Smash Route",
+            desc: "Smash Attacks that move from the outside ridge to the inside of the stadium basin gain an additional 8% Knockback Power.",
+            apply: function(bey) {}
+        },
+		"Pace Control": {
+            name: "Pace Control",
+            desc: "For the opening 15 seconds of the match, RPM loss over time from stadium floor friction is reduced by 10%.",
+            apply: function(bey) {} 
+        },
+		"Revengeance": {
+            name: "Revengeance",
+            desc: "If struck by an opponent while not actively engaging them, scoring a counter-collision of your own within 3 seconds boosts Knockback Power by 15% for 15 seconds.",
+            apply: function(bey) {} 
+        },
+		"Redirection": {
+            name: "Redirection",
+            desc: "On collision, imparts a lateral force that alters the opponent's knockback trajectory, pushing them to the side in the direction of this Beyblade's spin.",
+            apply: function(bey) {}
+        },
+		"Static Survival": {
+            name: "Static Survival",
+            desc: "While remaining close to the center of the stadium, gain an additional 10% Defense and 10% Endurance.",
+            apply: function(bey) {}
+        },
 		"Mode Change": {
             name: "Mode Change",
             desc: "When RPM reaches below 50%, the blade base's mode change mechanism switches from a Flat tip to a Semi-Flat tip, decreasing Attack and Grip by 3%, but increasing Endurance and Stamina by 7% and Defense and Recoil Reduction by 2%.",
+            apply: function(bey) {}
+        },
+		"Feral Friction": {
+            name: "Feral Friction",
+            desc: "Upon collision with an enemy, gain 2 Mobility, 5% Attack, and 2% Recoil Reduction. This effect wears off in 4 seconds unless another collision occurs. Does not stack.",
+            apply: function(bey) {}
+        },
+		"Relentless": {
+            name: "Relentless",
+            desc: "Scoring a chain of collisions within 3 seconds of each other grants +2% Attack and +1% Recoil Reduction per hit (Max 5 stacks). If 5 seconds pass without a collision, all stacks are lost.",
             apply: function(bey) {}
         },
 		"Metal Ball Defense": {
@@ -57,6 +92,11 @@ window.SkillsDB = {
                 bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.05; 
             }				
         },
+		"Ridge Rider": {
+            name: "Ridge Rider",
+            desc: "While traveling on the outer ridge (outside the stadium basin), gain an additional 12% Mobility and 8% Speed.",
+            apply: function(bey) {} // Active logic handled in the update loop
+        },
 		"Rolling Collision": {
             name: "Rolling Collision",
             desc: "Reduce knockback taken by 4% when impacting opponents.",
@@ -78,18 +118,27 @@ window.SkillsDB = {
 		"Rollback Drift": {
             name: "Rollback Drift",
             desc: "When heavy knockback is taken, initiate a strong curved drift toward whatever direction is being held for the duration of the knockback. If no direction is held, the Beyblade will drift toward the center of the arena instead. Reduces RPM loss slightly on collision, and grants +5% Attack and +5% Endurance for 8 seconds after activation.",
-            apply: function(bey) { 
-            }
+            apply: function(bey) {}
+        },
+		"Evasive Contact": {
+            name: "Evasive Contact",
+            desc: "Glancing collisions (sideswipes and off-center hits) deal 10% less damage to this Beyblade's RPM.",
+            apply: function(bey) {} // Active logic handled in the collision hook
         },
         "Spin Steal": {
             name: "Spin Steal",
-            desc: "When colliding with an opponent who has a higher RPM, instantly absorb some of their spin energy.",
+            desc: "When colliding with an opponent who spins in the opposite direction and has a higher RPM, instantly absorb some of their spin energy.",
             apply: function(bey) {} 
         },
         "Wall Rebound Assist": {
             name: "Wall Rebound Assist",
             desc: "Hitting the arena wall acts as a springboard, launching you back into the center with increased speed.",
             apply: function(bey) {} 
+        },
+		"Rebound Guard": {
+            name: "Rebound Guard",
+            desc: "Self-bounce is reduced slightly on clean, direct hits to the opponent.",
+            apply: function(bey) {}
         },
         "Sour Saucer": {
             name: "Sour Saucer",
@@ -100,8 +149,20 @@ window.SkillsDB = {
         },
         "Hyper Aggression": {
             name: "Hyper Aggression",
-            desc: "While current RPM is above 80% of this beyblade's maximum, gain a 10% boost to Attack and an 8% boost to Speed, but reduce Defense by 8%.",
+            desc: "While current RPM is above 80%, gain a 10% boost to Attack and an 8% boost to Speed, but reduce Defense by 8%.",
             apply: function(bey) {} 
+        },
+		"Late Surge": {
+            name: "Late Surge",
+            desc: "When RPM goes below 60%, gain an additional 2% Speed and 5% Knockback Power.",
+            apply: function(bey) {} 
+        },
+		"Impact Dampening": {
+            name: "Impact Dampening",
+            desc: "Specialized shock-absorbing material in the blade base permanently increases Defense by 2%, slightly reducing HP loss from all impacts.",
+            apply: function(bey) {
+                bey.stats.defense = (bey.stats.defense || 0) + ((bey.stats.defense || 0) * 0.02);
+            }
         },
 		"Alter Approach (Flat)": {
             name: "Alter Approach",
@@ -339,6 +400,33 @@ window.SkillEngine = {
 				metalBallState: "NONE",
                 wispBurnTimer: 0,
                 lastHp: bey.currentHp,
+				feralTimer: 0,
+                feralActive: false,
+                ffAtkBonus: 0,
+                ffRecBonus: 0,
+				revWindowTimer: 0,
+                revBuffTimer: 0,
+                revActive: false,
+                pcTimer: 0,
+                pcActive: false,
+                rgTimer: 0,
+                rgActive: false,
+                ecTimer: 0,
+                ecActive: false,
+				rrActive: false,
+                rrSpdBonus: 0,
+                rrMobBonus: 0,
+				redirectCd: 0,
+				smashRouteTimer: 0,
+                smashRouteActive: false,
+				ssActive: false,
+                ssDefBonus: 0,
+                ssEndBonus: 0,
+				relStacks: 0,
+                relWindowTimer: 0,
+                relDropTimer: 0,
+                relAtkTotal: 0,
+                relRecTotal: 0,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -363,6 +451,14 @@ window.SkillEngine = {
                     bey.stats.defense += (bey.stats.defense || 0) * 0.02;
                     bey.stats.stamina += (bey.stats.stamina || 0) * 0.03;
                     bey.stats.endurance += (bey.stats.endurance || 0) * 0.04;
+                }
+				// NEW: Pace Control 15-Second Wind Up!
+                if (bey.passives.includes("Pace Control")) {
+                    bey.skillState.pcTimer = 15000; // 15 seconds
+                    bey.skillState.pcActive = true;
+                    
+                    // We set a multiplier to 0.90 (which reduces the friction by 10%)
+                    bey.stats.passiveRPMDrainMod = 0.90; 
                 }
 				if (bey.passives.includes("Boss Hostility")) {
                     bey.skillState.bossHostilityAuraTimer = 90000; // 90 seconds in milliseconds!
@@ -564,14 +660,236 @@ window.SkillEngine = {
 
                 // PASSIVE: Spin Steal
                 if (bey.passives && bey.passives.includes("Spin Steal")) {
-                    if (opponent.currentRpm > bey.currentRpm) {
-                        bey.currentRpm += 2;
-                        opponent.currentRpm -= 2;
-                        if (Math.random() < 0.1) {
-                            bey.activeAura = "rgba(0, 255, 255, 0.8)";
-                            bey.activeAuraDuration = 400;
+                    
+                    // 1. Normalize the spin directions (fallback to 1/Right Spin if undefined)
+                    let mySpin = bey.spinDir || 1;
+                    let oppSpin = opponent.spinDir || 1;
+                    
+                    // 2. The Check: Are they spinning in opposite directions?
+                    if (mySpin !== oppSpin) {
+                        
+                        // 3. The original RPM check
+                        if (opponent.currentRpm > bey.currentRpm) {
+                            bey.currentRpm += 2;
+                            opponent.currentRpm -= 2;
+                            
+                            // Flash a cyan aura occasionally to show the steal happening
+                            if (Math.random() < 0.1) {
+                                bey.activeAura = "rgba(0, 255, 255, 0.8)";
+                                bey.activeAuraDuration = 400;
+                            }
                         }
                     }
+                }
+				
+				// PASSIVE: Redirection
+                if (bey.passives && bey.passives.includes("Redirection")) {
+                    
+                    // Only trigger once per collision event
+                    if (state.redirectCd <= 0) {
+                        
+                        // 1. Calculate the standard "Normal" vector (center-to-center)
+                        let dx = opponent.x - bey.x;
+                        let dy = opponent.y - bey.y;
+                        let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                        let nx = dx / dist;
+                        let ny = dy / dist;
+                        
+                        // 2. Read the spin direction (1 for Right/CW, -1 for Left/CCW)
+                        let mySpin = bey.spinDir || 1; 
+                        
+                        // 3. Calculate the Tangent Vector (90 degrees sideways)
+                        // By multiplying by mySpin, it automatically flips the sideways push for Left-Spin beys!
+                        let tangentX = -ny * mySpin;
+                        let tangentY = nx * mySpin;
+                        
+                        // 4. Calculate the redirection force (Base of 4, plus scaling off Knockback Power)
+                        let redirectForce = 4 + ((bey.stats.knockbackPower || 0) * 8);
+                        
+                        // 5. Shove the opponent sideways!
+                        opponent.vx += tangentX * redirectForce;
+                        opponent.vy += tangentY * redirectForce;
+                        
+                        // Set a 400ms cooldown so it doesn't multi-trigger during overlapping frames
+                        state.redirectCd = 400;
+                        
+                        // Optional: A quick white flash to visually emphasize the parry/deflection
+                        bey.activeAura = "rgba(255, 255, 255, 0.7)";
+                        bey.activeAuraDuration = 200;
+                    }
+                }
+				
+				// PASSIVE: Revengeance
+                if (bey.passives && bey.passives.includes("Revengeance")) {
+                    
+                    // --- VECTOR MATH: WHO IS HITTING WHO? ---
+                    // 1. Get the physical distance and angles between the two Beyblades
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Normalize our speed and calculate our "Heading" vs the Opponent
+                    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+                    let myHeading = ((bey.vx/mySpeed) * (dx/dist)) + ((bey.vy/mySpeed) * (dy/dist));
+                    
+                    // 3. Normalize their speed and calculate their "Heading" vs Us
+                    let oppSpeed = Math.max(0.1, Math.sqrt(opponent.vx**2 + opponent.vy**2));
+                    let oppHeading = ((opponent.vx/oppSpeed) * (-dx/dist)) + ((opponent.vy/oppSpeed) * (-dy/dist));
+                    
+                    // A heading > 0.5 means the Beyblade is traveling within roughly 60 degrees of dead-center toward the target.
+                    let isMovingToward = myHeading > 0.5; 
+                    let isOppMovingToward = oppHeading > 0.5;
+
+                    // --- THE REVENGE LOGIC ---
+                    // SCENARIO A: We have the 3-second window open, AND we just hit them back!
+                    if (state.revWindowTimer > 0 && isMovingToward) {
+                        
+                        // Apply the 15% knockback buff!
+                        if (!state.revActive) {
+                            bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.15;
+                            state.revActive = true;
+                        }
+                        
+                        state.revBuffTimer = 15000; // Start the 15-second buff
+                        state.revWindowTimer = 0;   // Close the revenge window
+                        
+                        // Glow dark red to signal the anger buff!
+                        bey.activeAura = "rgba(139, 0, 0, 0.8)"; 
+                        bey.activeAuraDuration = 1000;
+                    }
+                    // SCENARIO B: We just got sucker-punched!
+                    // Opponent is moving toward us, and we are NOT moving toward them.
+                    else if (isOppMovingToward && !isMovingToward) {
+                        state.revWindowTimer = 3000; // Open the 3-second window to strike back!
+                    }
+                }
+				
+				// PASSIVE: Relentless
+                if (bey.passives && bey.passives.includes("Relentless")) {
+                    
+                    // 1. Did we hit them within the 3-second combo window?
+                    if (state.relWindowTimer > 0) {
+                        
+                        // 2. Do we have less than 5 stacks? Add one!
+                        if (state.relStacks < 5) {
+                            
+                            // Find the true base stats (current stat minus what this skill already added)
+                            let baseAtk = (bey.stats.attack || 0) - state.relAtkTotal;
+                            let baseRec = (bey.stats.recoilReduction || 0) - state.relRecTotal;
+                            
+                            let atkBonus = baseAtk * 0.02;
+                            let recBonus = baseRec * 0.01;
+                            
+                            // Apply the stats!
+                            bey.stats.attack = (bey.stats.attack || 0) + atkBonus;
+                            bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) + recBonus;
+                            
+                            // Log the totals so we can delete them later
+                            state.relAtkTotal += atkBonus;
+                            state.relRecTotal += recBonus;
+                            
+                            state.relStacks++;
+                        }
+                    }
+                    
+                    // 3. ALWAYS refresh the 3-second combo window on EVERY hit!
+                    state.relWindowTimer = 3000; 
+                    
+                    // 4. If we have ANY stacks, refresh the 5-second survival timer!
+                    if (state.relStacks > 0) {
+                        state.relDropTimer = 5000;
+                        
+                        // Flash a fiery red aura that gets larger with more stacks!
+                        bey.activeAura = "rgba(255, 30, 0, 0.8)";
+                        bey.activeAuraDuration = 200 + (state.relStacks * 50); 
+                    }
+                }
+				
+				// PASSIVE: Evasive Contact
+                if (bey.passives && bey.passives.includes("Evasive Contact")) {
+                    
+                    // 1. Calculate distance and angles
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate the OPPONENT'S heading toward us
+                    // We use -dx and -dy because we want to know their angle relative to our center
+                    let oppSpeed = Math.max(0.1, Math.sqrt(opponent.vx**2 + opponent.vy**2));
+                    let oppHeading = ((opponent.vx/oppSpeed) * (-dx/dist)) + ((opponent.vy/oppSpeed) * (-dy/dist));
+                    
+                    // 3. If their heading is less than 0.6, they are grazing/sideswiping us!
+                    if (oppHeading < 0.6) {
+                        
+                        // Give them 200ms of extra RPM Damage Resistance 
+                        state.ecTimer = 200; 
+                        
+                        if (!state.ecActive) {
+                            // Boost RPM Damage Resistance by 10% (0.10)
+                            bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) + 0.10;
+                            state.ecActive = true;
+                            
+                            // Flash a swift, elusive blue aura to show the graze
+                            bey.activeAura = "rgba(0, 100, 255, 0.6)";
+                            bey.activeAuraDuration = 200;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Rebound Guard
+                if (bey.passives && bey.passives.includes("Rebound Guard")) {
+                    
+                    // 1. Calculate the distance and angle to the opponent
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate our heading
+                    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+                    let myHeading = ((bey.vx/mySpeed) * (dx/dist)) + ((bey.vy/mySpeed) * (dy/dist));
+                    
+                    // 3. If heading > 0.75, it's a clean, direct strike!
+                    if (myHeading > 0.75) {
+                        
+                        // Give them 200ms (roughly 12 frames) of extra Knockback Resist 
+                        // This guarantees the physics engine sees the buff while resolving the bounce!
+                        state.rgTimer = 200; 
+                        
+                        if (!state.rgActive) {
+                            // Boost knockback resistance by 6%
+                            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.06;
+                            state.rgActive = true;
+                            
+                            // Flash a sharp silver aura to show the guard absorbing the shock
+                            bey.activeAura = "rgba(192, 192, 192, 0.8)";
+                            bey.activeAuraDuration = 200;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Feral Friction
+                if (bey.passives && bey.passives.includes("Feral Friction")) {
+                    
+                    // 1. ALWAYS refresh the timer on hit, whether the buff is new or old!
+                    state.feralTimer = 4000; 
+
+                    // 2. If the buff ISN'T active yet, do the math and turn it on!
+                    if (!state.feralActive) {
+                        // Calculate the percentages
+                        state.ffAtkBonus = (bey.stats.attack || 0) * 0.05;
+                        state.ffRecBonus = (bey.stats.recoilReduction || 0) + 2;
+
+                        // Apply the flat stats and the percentages
+                        bey.stats.mobility = (bey.stats.mobility || 0) + 2;
+                        bey.stats.attack = (bey.stats.attack || 0) + state.ffAtkBonus;
+                        bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) + state.ffRecBonus;
+                        
+                        state.feralActive = true;
+                    }
+                    
+                    // Give it a fierce reddish-orange glow while active!
+                    bey.activeAura = "rgba(255, 69, 0, 0.6)";
+                    bey.activeAuraDuration = state.feralTimer; 
                 }
 				
 				// PASSIVE: Recoil Rebounder
@@ -660,7 +978,7 @@ window.SkillEngine = {
 			if (state.smashBoostTimer > 0) {
                 state.smashtBoostTimer -= dt;
                 if (state.smashBoostTimer <= 0) {
-					bey.stats.knockbackPower -= 0.2; 
+					bey.stats.knockbackPower -= 0.3; 
                 }
             }
 			
@@ -687,6 +1005,77 @@ window.SkillEngine = {
                     bey.stats.endurance += state.meteorEndPenalty;
                     state.meteorEndPenalty = 0; // Reset the tracker
                 }
+            }
+			
+			// --- REVENGEANCE TIMERS & CLEANUP ---
+            if (state.revWindowTimer > 0) {
+                state.revWindowTimer -= dt;
+            }
+
+            if (state.revBuffTimer > 0) {
+                state.revBuffTimer -= dt;
+                
+                // When the 15 seconds run out, strip the knockback buff!
+                if (state.revBuffTimer <= 0 && state.revActive) {
+                    bey.stats.knockbackPower -= 0.15;
+                    state.revActive = false;
+                }
+            }
+			
+			// --- FERAL FRICTION CLEANUP ---
+            if (state.feralTimer > 0) {
+                state.feralTimer -= dt;
+                
+                // If the timer hits 0 AND the buff is still attached, strip it away!
+                if (state.feralTimer <= 0 && state.feralActive) {
+                    bey.stats.mobility -= 2;
+                    bey.stats.attack -= state.ffAtkBonus;
+                    bey.stats.recoilReduction -= state.ffRecBonus;
+                    
+                    state.feralActive = false;
+                }
+            }
+			
+			// --- REBOUND GUARD CLEANUP ---
+            if (state.rgTimer > 0) {
+                state.rgTimer -= dt;
+                
+                if (state.rgTimer <= 0 && state.rgActive) {
+                    bey.stats.knockbackResist -= 0.06;
+                    state.rgActive = false;
+                }
+            }
+			
+			// --- PACE CONTROL TIMER & CLEANUP ---
+            if (state.pcTimer > 0) {
+                state.pcTimer -= dt;
+                
+                // Optional: A slow, calming green pulse so the player knows Pace Control is active!
+                if (Math.random() < 0.05) {
+                    bey.activeAura = "rgba(0, 255, 100, 0.3)";
+                    bey.activeAuraDuration = 400;
+                }
+
+                // When the 15 seconds run out, return floor friction to normal (1.0)
+                if (state.pcTimer <= 0 && state.pcActive) {
+                    bey.stats.passiveRPMDrainMod = 1.0;
+                    state.pcActive = false;
+                }
+            }
+			
+			// --- EVASIVE CONTACT CLEANUP ---
+            if (state.ecTimer > 0) {
+                state.ecTimer -= dt;
+                
+                if (state.ecTimer <= 0 && state.ecActive) {
+                    bey.stats.rpmDamageResist -= 0.10;
+                    state.ecActive = false;
+                }
+            }
+			
+			// --- REDIRECTION COOLDOWN ---
+            if (state.redirectCd > 0) {
+                state.redirectCd -= dt;
             }
 			
 			// --- PASSIVE: ROLLBACK DRIFT STEERING & CLEANUP ---
@@ -773,6 +1162,37 @@ window.SkillEngine = {
                 }
             }
 			
+			// --- RELENTLESS TIMERS & CLEANUP ---
+            if (state.relWindowTimer > 0) {
+                state.relWindowTimer -= dt;
+            }
+
+            if (state.relDropTimer > 0) {
+                state.relDropTimer -= dt;
+                
+                // If 5 seconds pass without a hit, they lose momentum! Strip all stacks.
+                if (state.relDropTimer <= 0 && state.relStacks > 0) {
+                    
+                    bey.stats.attack -= state.relAtkTotal;
+                    bey.stats.recoilReduction -= state.relRecTotal;
+                    
+                    // Reset the trackers back to zero
+                    state.relStacks = 0;
+                    state.relAtkTotal = 0;
+                    state.relRecTotal = 0;
+                }
+            }
+			
+			// --- SMASH ROUTE CLEANUP ---
+            if (state.smashRouteTimer > 0) {
+                state.smashRouteTimer -= dt;
+                
+                if (state.smashRouteTimer <= 0 && state.smashRouteActive) {
+                    bey.stats.knockbackPower -= 0.08;
+                    state.smashRouteActive = false;
+                }
+            }
+			
 			// --- BOSS HOSTILITY WISPY AURA ---
             if (state.bossHostilityAuraTimer > 0) {
                 state.bossHostilityAuraTimer -= dt;
@@ -844,6 +1264,94 @@ window.SkillEngine = {
                     state.highSpeedActive = false;
                 }
             }
+			
+			// --- PASSIVE: Static Survival ---
+            if (bey.passives && bey.passives.includes("Static Survival")) {
+                
+                // 1. Find the exact center of the arena
+                let cx = window.innerWidth / 2;
+                let cy = window.innerHeight / 2;
+                
+                // 2. Calculate the Beyblade's distance from the center
+                let distFromCenter = Math.sqrt((bey.x - cx)**2 + (bey.y - cy)**2);
+                
+                // 3. Define the "Center Zone" (the inner 25% of the arena's radius)
+                let maxR = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.85;
+                let centerRadius = maxR * 0.25; 
+                
+                let isInsideCenter = distFromCenter <= centerRadius;
+                
+                // 4. Toggle the Buffs!
+                if (isInsideCenter && !state.ssActive) {
+                    
+                    // Calculate the 10% bonuses
+                    state.ssDefBonus = (bey.stats.defense || 0) * 0.10;
+                    state.ssEndBonus = (bey.stats.endurance || 0) * 0.10;
+                    
+                    // Apply them
+                    bey.stats.defense = (bey.stats.defense || 0) + state.ssDefBonus;
+                    bey.stats.endurance = (bey.stats.endurance || 0) + state.ssEndBonus;
+                    
+                    state.ssActive = true;
+                } 
+                else if (!isInsideCenter && state.ssActive) {
+                    
+                    // Strip the exact bonuses away if they get knocked out of the center!
+                    bey.stats.defense -= state.ssDefBonus;
+                    bey.stats.endurance -= state.ssEndBonus;
+                    
+                    state.ssActive = false;
+                }
+                
+                // Optional: A steady, golden protective glow while fortified in the center
+                if (state.ssActive && Math.random() < 0.1) {
+                    bey.passiveAura = "rgba(255, 215, 0, 0.4)"; 
+                }
+            }
+			
+			// --- PASSIVE: Ridge Rider ---
+            if (bey.passives && bey.passives.includes("Ridge Rider")) {
+                
+                // 1. Find the center of the arena
+                let cx = window.innerWidth / 2;
+                let cy = window.innerHeight / 2;
+                
+                // 2. Calculate the Beyblade's distance from the exact center
+                let distFromCenter = Math.sqrt((bey.x - cx)**2 + (bey.y - cy)**2);
+                
+                // 3. Define the "Basin". (Assuming the arena fills 85% of the screen, we'll say the outer 50% is the ridge)
+                let maxR = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.85;
+                let basinRadius = maxR * 0.50; // Anything further out than this is the Ridge!
+                
+                let isOutsideBasin = distFromCenter > basinRadius;
+                
+                // 4. Toggle the Buffs!
+                if (isOutsideBasin && !state.rrActive) {
+                    
+                    // Calculate the bonuses
+                    state.rrSpdBonus = (bey.stats.speed || 0) * 0.08;
+                    state.rrMobBonus = (bey.stats.mobility || 0) * 0.12;
+                    
+                    // Apply them
+                    bey.stats.speed = (bey.stats.speed || 0) + state.rrSpdBonus;
+                    bey.stats.mobility = (bey.stats.mobility || 0) + state.rrMobBonus;
+                    
+                    state.rrActive = true;
+                } 
+                else if (!isOutsideBasin && state.rrActive) {
+                    
+                    // Strip the exact bonuses away once they dip back into the center
+                    bey.stats.speed -= state.rrSpdBonus;
+                    bey.stats.mobility -= state.rrMobBonus;
+                    
+                    state.rrActive = false;
+                }
+                
+                // Optional: A faint orange wind trail while actively riding the ridge
+                if (state.rrActive && Math.random() < 0.2) {
+                    bey.passiveAura = "rgba(255, 140, 0, 0.4)";
+                }
+            }
             
             if (bey.passives && bey.passives.includes("Hyper Aggression")) {
                 let isAboveThreshold = bey.currentRpm > (bey.maxRpm * 0.80);
@@ -865,6 +1373,34 @@ window.SkillEngine = {
                     bey.stats.defense += state.haDefPenalty;
                     
                     state.hyperAggressionActive = false;
+                }
+            }
+			
+			if (bey.passives && bey.passives.includes("Late Surge")) {
+                let isBelowThreshold = bey.currentRpm < (bey.maxRpm * 0.60);
+                
+                if (isBelowThreshold && !state.lateSurgeActive) {
+                    // 1. Calculate the bonus (using a unique 'ls' variable name)
+                    state.lsSpdBonus = (bey.stats.speed || 0) * 0.02;
+                    
+                    // 2. ACTUALLY APPLY THE BONUS!
+                    bey.stats.speed += state.lsSpdBonus;
+                    bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.05;
+                    
+                    // 3. Mark as active
+                    state.lateSurgeActive = true;
+                    
+                    // Optional: Give it a visual aura so the player knows it kicked in!
+                    // bey.activeAura = "rgba(255, 255, 0, 0.6)";
+                    // bey.activeAuraDuration = 600;
+                } 
+                else if (!isBelowThreshold && state.lateSurgeActive) {
+                    // 1. Remove the exact bonuses we added
+                    bey.stats.speed -= state.lsSpdBonus;
+                    bey.stats.knockbackPower -= 0.05;
+                    
+                    // 2. Mark as inactive
+                    state.lateSurgeActive = false;
                 }
             }
 
@@ -1232,7 +1768,7 @@ window.SkillEngine = {
 			// PREVENT DOUBLE-BUFFING: Only apply the math if the buff isn't already active!
             if (!(attacker.skillState.smashBoostTimer > 0)) {
                 // SAFE MATH: Fallback to 0 if the stat doesn't exist yet
-                attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.2;
+                attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.3;
             }
             
             // Set (or refresh) the timer
@@ -1241,8 +1777,55 @@ window.SkillEngine = {
             attacker.activeAura = "rgba(0, 150, 255, 1.0)"; 
             attacker.activeAuraDuration = 600;
             attacker.tempRecoilReduction = 3; 
-            attacker.tempDefense = 30; 
+            attacker.tempDefense = 30;
+
+			// --- PASSIVE: SMASH ROUTE ---
+            if (attacker.passives && attacker.passives.includes("Smash Route")) {
+                
+                // 1. Calculate the Ridge/Basin boundary
+                let cx = window.innerWidth / 2;
+                let cy = window.innerHeight / 2;
+                let maxR = Math.min(window.innerWidth, window.innerHeight) / 2 * 0.85;
+                let basinRadius = maxR * 0.50; 
+                
+                let distFromCenter = Math.sqrt((attacker.x - cx)**2 + (attacker.y - cy)**2);
+                
+                // 2. Are we starting the dash from OUTSIDE the basin?
+                if (distFromCenter > basinRadius) {
+                    
+                    // 3. Vector pointing from the attacker to the exact center
+                    let toCx = cx - attacker.x;
+                    let toCy = cy - attacker.y;
+                    let toCDist = Math.max(1, Math.sqrt(toCx*toCx + toCy*toCy));
+                    let dirToC_X = toCx / toCDist;
+                    let dirToC_Y = toCy / toCDist;
+                    
+                    // 4. Normalize the dash direction
+                    let dashDist = Math.max(1, Math.sqrt(dashX*dashX + dashY*dashY));
+                    let normDashX = dashX / dashDist;
+                    let normDashY = dashY / dashDist;
+                    
+                    // 5. DOT PRODUCT: Are we dashing INWARD? 
+                    // (Any number greater than 0 means we are heading toward the center side of the stadium)
+                    let headingInward = (normDashX * dirToC_X) + (normDashY * dirToC_Y);
+                    
+                    if (headingInward > 0) {
+                        
+                        // Apply the 8% Knockback buff for the 600ms dash duration!
+                        if (!attacker.skillState.smashRouteActive) {
+                            attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.08;
+                            attacker.skillState.smashRouteActive = true;
+                        }
+                        attacker.skillState.smashRouteTimer = 600; 
+                        
+                        // Overwrite the aura to a fierce Orange so the player knows the route was successful!
+                        attacker.activeAura = "rgba(255, 140, 0, 1.0)";
+                    }
+                }
+            }
+				
         }
+		
 		else if (attackName === "Meteor Dash") {
             
 			// 🔊 PLAY BOOST DASH SOUND!
