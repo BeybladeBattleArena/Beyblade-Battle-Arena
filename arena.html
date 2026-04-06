@@ -2659,19 +2659,30 @@
 			let baseDecay = 0.15 - (staminaStat * 0.001);
 			let frameScale = dt / 16.667;
 
-			// 1.0 = normal drain, 0.90 = 10% less drain, 1.10 = 10% more drain
-			let passiveRPMDrainMod = safeNum(bey.stats.passiveRPMDrainMod, 1.0);
+			// LAD from parts
+			let ladValue = safeNum(bey.stats.lad, 0.0);
+			ladValue = Math.max(0.0, Math.min(0.9, ladValue));
 
-			let passiveRpmDrain = Math.max(
-				0.1,
-				baseDecay + (currentSpeed * 0.02) + (bey.wobbleFactor * 2.0)
-			);
+			// Skill-based passive drain modifier
+			// 1.0 = normal drain
+			// 0.90 = 10% less passive drain
+			// 1.10 = 10% more passive drain
+			let passiveRpmDrainMod = safeNum(bey.stats.passiveRpmDrainMod, 1.0);
 
-			// Apply the skill modifier here
-			passiveRpmDrain *= passiveRPMDrainMod;
+			// Split stable vs wobble drain
+			let stableDrain = baseDecay + (currentSpeed * 0.02);
+			let wobbleDrain = bey.wobbleFactor * 2.0;
+
+			// LAD only affects wobble drain
+			wobbleDrain *= (1.0 - ladValue);
+
+			// Recombine
+			let passiveRpmDrain = Math.max(0.1, stableDrain + wobbleDrain);
+
+			// Skill modifier affects the full passive drain
+			passiveRpmDrain *= passiveRpmDrainMod;
 
 			bey.currentRpm -= passiveRpmDrain * frameScale;
-
 			bey.currentRpm = Math.max(0, bey.currentRpm);
 			bey.currentHp = Math.max(0, bey.currentHp);
         }
