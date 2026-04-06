@@ -717,6 +717,55 @@ setupBuildPageSizing();
         sfx.play().catch(() => {});
     };
 	
+	function scaleLADValue(rawLAD) {
+    const numeric = Number(rawLAD);
+    if (!Number.isFinite(numeric)) return null;
+
+    // 0.1 -> 1, 0.6 -> 6, 0.94 -> 9.4
+    return Math.round(numeric * 100) / 10;
+}
+
+function getLADStarCount(rawLAD) {
+    const scaled = scaleLADValue(rawLAD);
+    if (scaled == null) return 0;
+
+    if (scaled >= 7) return 3;
+    if (scaled >= 4) return 2;
+    if (scaled >= 1) return 1;
+    return 0;
+}
+
+function formatLADDisplay(rawLAD) {
+    const scaled = scaleLADValue(rawLAD);
+    if (scaled == null) return String(rawLAD ?? '');
+
+    const numberText = Number.isInteger(scaled)
+        ? String(scaled)
+        : scaled.toFixed(1).replace(/\.0$/, '');
+
+    const stars = '★'.repeat(getLADStarCount(rawLAD));
+
+    return stars ? `${numberText} ${stars}` : numberText;
+}
+
+function formatBuildStatValue(statKey, value) {
+    if (value == null) return '';
+
+    if (statKey === 'LAD') {
+        return formatLADDisplay(value);
+    }
+
+    if (statKey === 'weight') {
+        return `${value}g`;
+    }
+
+    if (["recoilReduction", "spiritCharge", "cdr"].includes(statKey)) {
+        return `${value}%`;
+    }
+
+    return String(value);
+}
+	
 	function playNegativeSfx() {
     const sfx = new Audio('./audio/sounds/menu_cancel_or_error.wav');
     sfx.volume = 0.7;
@@ -987,54 +1036,7 @@ function buildIsSaveReady() {
                 parts: getResolvedBuildForSave()
             };
 			
-			function scaleLADValue(rawLAD) {
-    const numeric = Number(rawLAD);
-    if (!Number.isFinite(numeric)) return null;
-
-    // 0.1 -> 1, 0.6 -> 6, 0.94 -> 9.4
-    return Math.round(numeric * 100) / 10;
-}
-
-function getLADStarCount(rawLAD) {
-    const scaled = scaleLADValue(rawLAD);
-    if (scaled == null) return 0;
-
-    if (scaled >= 7) return 3;
-    if (scaled >= 4) return 2;
-    if (scaled >= 1) return 1;
-    return 0;
-}
-
-function formatLADDisplay(rawLAD) {
-    const scaled = scaleLADValue(rawLAD);
-    if (scaled == null) return String(rawLAD ?? '');
-
-    const numberText = Number.isInteger(scaled)
-        ? String(scaled)
-        : scaled.toFixed(1).replace(/\.0$/, '');
-
-    const stars = '★'.repeat(getLADStarCount(rawLAD));
-
-    return stars ? `${numberText} ${stars}` : numberText;
-}
-
-function formatBuildStatValue(statKey, value) {
-    if (value == null) return '';
-
-    if (statKey === 'LAD') {
-        return formatLADDisplay(value);
-    }
-
-    if (statKey === 'weight') {
-        return `${value}g`;
-    }
-
-    if (["recoilReduction", "spiritCharge", "cdr"].includes(statKey)) {
-        return `${value}%`;
-    }
-
-    return String(value);
-}
+			
             
             const userRef = doc(db, "users", window.CurrentUser.uid);
             updateDoc(userRef, { saves: window.PlayerData.saves }).then(() => {
@@ -1604,7 +1606,7 @@ function formatBuildStatValue(statKey, value) {
             stamina: "STAMINA", endurance: "ENDURANCE", speed: "SPEED",
             mobility: "MOBILITY", grip: "GRIP", balance: "BALANCE",
             weight: "WEIGHT", recoil: "RECOIL", recoilReduction: "RECOIL RED.",
-            spiritCharge: "SPIRIT CHARGE", cdr: "COOLDOWN RED." lad: "LAD"
+            spiritCharge: "SPIRIT CHARGE", cdr: "COOLDOWN RED.", lad: "LAD"
         };
 
         let formattedStatsHtml = '';
