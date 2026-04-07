@@ -1346,11 +1346,12 @@ function buildIsSaveReady() {
 
     if (Object.keys(displayStats).length > 0) {
         statOrder.forEach(key => {
-            if (displayStats[key] !== undefined) {
-                let suffix = percentStats.includes(key) ? "%" : (key === "weight" ? "g" : "");
-                formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayStats[key]}${suffix}</div>`;
-            }
-        });
+    if (displayStats[key] !== undefined) {
+        // Use your specialized formatter here!
+        const displayValue = formatBuildStatValue(key, displayStats[key]);
+        formattedStatsHtml += `<div class="inspect-stat-item"><b>${statLabels[key]}:</b> ${displayValue}</div>`;
+    }
+});
     } else {
         formattedStatsHtml = `<div style="grid-column: span 5; text-align: left; color: #888;">No Base Stats. Check Skills.</div>`;
     }
