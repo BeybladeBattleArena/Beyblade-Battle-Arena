@@ -285,6 +285,11 @@ window.SkillsDB = {
             desc: "Charge the force of the beyblade's spin energy into a projectile. Beware, you are anchored while this skill charges. This skill is powerful, buy requires the beyblade's RPM to power it.",
 			//no internal function, this is handled entirely by arena.html; tweak skill variables there
         },
+		"Side Swipe": {
+            name: "Side Swipe", cd: 6,
+            desc: "Leap a short distance in the chosen direction, hesitate briefly, and then follows up with a longer distance leap in a new chosen direction.",
+            execute: function() {} 
+        },
         "Cross Smash": {
             name: "Cross Smash", cd: 6,
             desc: "A devastating, concentrated blow utilizing the secondary contact points of a Sub-Attack Ring.",
@@ -427,6 +432,7 @@ window.SkillEngine = {
                 relDropTimer: 0,
                 relAtkTotal: 0,
                 relRecTotal: 0,
+				sideSwipeTimer: 0,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -1482,6 +1488,49 @@ window.SkillEngine = {
                     state.actionState = "NORMAL"; // Fully reformed!
                 }
             }
+			
+			// --- SIDE SWIPE PHYSICS & TIMING ---
+            if (state.actionState === "SIDE_SWIPE_PAUSE") {
+                // Optional: Slightly bleed velocity here to sell the "hesitation"
+                bey.vx *= 0.95; 
+                bey.vy *= 0.95;
+
+                state.sideSwipeTimer -= dt;
+                
+                // The 300ms pause is over! Fire the second leap!
+                if (state.sideSwipeTimer <= 0) {
+                    let dX, dY;
+                    
+                    // Grab the LIVE joystick input for the exact frame the second dash fires
+                    let liveJoyX = isPlayer ? joyX : 0;
+                    let liveJoyY = isPlayer ? joyY : 0;
+
+                    // If the player is holding a direction, dash that way
+                    if (liveJoyX !== 0 || liveJoyY !== 0) {
+                        dX = liveJoyX;
+                        dY = liveJoyY;
+                    } else {
+                        // If no direction is pressed (or it's the CPU), auto-target the opponent
+                        let oppX = opponent.x - bey.x;
+                        let oppY = opponent.y - bey.y;
+                        let dist = Math.max(1, Math.sqrt(oppX*oppX + oppY*oppY));
+                        dX = oppX / dist;
+                        dY = oppY / dist;
+                    }
+
+                    // The second leap is 1.5x the length of the original (5 * 1.5 = 7.5)
+                    let secondDashPower = 7;
+                    bey.vx = dX * secondDashPower; 
+                    bey.vy = dY * secondDashPower;
+
+                    // A brighter flash to emphasize the heavier second hit
+                    bey.activeAura = "rgba(50, 255, 100, 1.0)";
+                    bey.activeAuraDuration = 400;
+
+                    // Return to normal physics
+                    state.actionState = "NORMAL";
+                }
+            }
 
             // --- AERIAL LANCE (Hang Time & Plunge) ---
             if (state.actionState === "AIRBORNE_LANCE") {
@@ -1877,6 +1926,23 @@ window.SkillEngine = {
                 timer: 0,
                 opacity: 0.65 // <--- WE WILL USE THIS IN PART 2!
             };
+        }
+		else if (attackName === "Side Swipe") {
+            // First Leap: Use the initial cast direction
+            let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
+            let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
+
+            let initialDashPower = 2.5; 
+            attacker.vx = dashX * initialDashPower;
+            attacker.vy = dashY * initialDashPower;
+
+            // Visual flair for the first dash
+            attacker.activeAura = "rgba(50, 200, 100, 0.7)";
+            attacker.activeAuraDuration = 300;
+
+            // Trigger the State Machine for the second phase!
+            attacker.skillState.actionState = "SIDE_SWIPE_PAUSE";
+            attacker.skillState.sideSwipeTimer = 300; // Wait exactly 300ms
         }
         else if (attackName === "Spike Attack") {
             let dashX = 0; 
