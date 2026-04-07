@@ -1581,8 +1581,8 @@ window.SkillEngine = {
 			// --- SIDE SWIPE PHYSICS & TIMING ---
             if (state.actionState === "SIDE_SWIPE_PAUSE") {
                 // Optional: Slightly bleed velocity here to sell the "hesitation"
-                bey.vx *= 0.9; 
-                bey.vy *= 0.9;
+                bey.vx *= 0.92; 
+                bey.vy *= 0.92;
 
                 state.sideSwipeTimer -= dt;
                 
@@ -1962,6 +1962,23 @@ window.SkillEngine = {
                 }
             }
 				
+        }
+		
+		else if (attackName === "Charge Dash") {
+            let state = attacker.skillState;
+            
+            // Switch the beyblade into the charging state
+            state.actionState = "CHARGING_DASH";
+            state.chargeTimer = 0;
+            state.chargeLevel = 1;
+            
+            // Brake hard so the beyblade doesn't wander off while charging
+            attacker.vx *= 0.2;
+            attacker.vy *= 0.2;
+            
+            // Optional: A quick white flash to show the charge has initiated
+            attacker.activeAura = "rgba(255, 255, 255, 0.8)";
+            attacker.activeAuraDuration = 200;
         }
 		
 		else if (attackName === "Meteor Dash") {
