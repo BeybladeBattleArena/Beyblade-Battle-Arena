@@ -1519,7 +1519,7 @@ window.SkillEngine = {
                     }
 
                     // The second leap is 1.5x the length of the original (5 * 1.5 = 7.5)
-                    let secondDashPower = 7;
+                    let secondDashPower = 7.5;
                     bey.vx = dX * secondDashPower; 
                     bey.vy = dY * secondDashPower;
 
@@ -1932,7 +1932,7 @@ window.SkillEngine = {
             let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
             let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
 
-            let initialDashPower = 2.5; 
+            let initialDashPower = 4.75; 
             attacker.vx = dashX * initialDashPower;
             attacker.vy = dashY * initialDashPower;
 
