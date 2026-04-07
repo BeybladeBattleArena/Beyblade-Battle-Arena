@@ -1481,6 +1481,7 @@ function buildIsSaveReady() {
         part.stats.balance = (part.stats.balance ?? 0) - 2;
         part.stats.speed = (part.stats.speed ?? 0) - 1;
         part.stats.defense = (part.stats.defense ?? 0) + 3;
+		part.stats.lad = (part.stats.lad ?? 0) - 0.55;
                 if (part.passives) {
                     part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Semi-Flat)" : p);
                 }
@@ -1491,6 +1492,7 @@ function buildIsSaveReady() {
         part.stats.balance = (part.stats.balance ?? 0) + 2;
         part.stats.speed = (part.stats.speed ?? 0) + 1;
         part.stats.defense = (part.stats.defense ?? 0) - 3;
+		part.stats.lad = (part.stats.lad ?? 0) + 0.55;
                 if (part.passives) {
                     part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Flat)" : p);
                 }

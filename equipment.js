@@ -2557,7 +2557,7 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Manual", "Change", "Balancer", "Flat", "Sharp", "Tip", "Plastic" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ManualBalancer_sideview.png",  
-            stats: { hp: 15, rpm: 125, speed: 12, defense: 6, attack: 5, endurance: 4, grip: 20, balance: 12, stamina: 7, mobility: 10, recoilReduction: 2, weight: 14, lad: 0.3 },
+            stats: { hp: 15, rpm: 125, speed: 12, defense: 6, attack: 5, endurance: 4, grip: 20, balance: 12, stamina: 7, mobility: 10, recoilReduction: 2, weight: 14, lad: 0.32 },
 			passives: ["Alter Approach (Flat)", "Rolling Collision"], 
 			attacks: [],
 			
