@@ -1477,20 +1477,20 @@ function buildIsSaveReady() {
         if (part.id === 'bb_19') {
             if (part.contactTipShape === "Flat") {
                 part.contactTipShape = "Semi-Flat";
-                part.stats.grip = 22;
-                part.stats.balance = 2;
-                part.stats.speed = 1;
-                part.stats.defense = 1;
+        part.stats.grip = (part.stats.grip ?? 0) - 4;
+        part.stats.balance = (part.stats.balance ?? 0) - 2;
+        part.stats.speed = (part.stats.speed ?? 0) - 1;
+        part.stats.defense = (part.stats.defense ?? 0) + 3;
                 if (part.passives) {
                     part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Semi-Flat)" : p);
                 }
             } 
             else if (part.contactTipShape === "Semi-Flat") {
                 part.contactTipShape = "Flat";
-                part.stats.grip = 24;
-                part.stats.balance = 1;
-                part.stats.speed = 2;
-                part.stats.defense = -1;
+        part.stats.grip = (part.stats.grip ?? 0) + 4;
+        part.stats.balance = (part.stats.balance ?? 0) + 2;
+        part.stats.speed = (part.stats.speed ?? 0) + 1;
+        part.stats.defense = (part.stats.defense ?? 0) - 3;
                 if (part.passives) {
                     part.passives = part.passives.map(p => p.includes("Alter Approach") ? "Alter Approach (Flat)" : p);
                 }
