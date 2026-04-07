@@ -1492,8 +1492,8 @@ window.SkillEngine = {
 			// --- SIDE SWIPE PHYSICS & TIMING ---
             if (state.actionState === "SIDE_SWIPE_PAUSE") {
                 // Optional: Slightly bleed velocity here to sell the "hesitation"
-                bey.vx *= 0.95; 
-                bey.vy *= 0.95;
+                bey.vx *= 0.7; 
+                bey.vy *= 0.7;
 
                 state.sideSwipeTimer -= dt;
                 
@@ -1519,7 +1519,7 @@ window.SkillEngine = {
                     }
 
                     // The second leap is 1.5x the length of the original (5 * 1.5 = 7.5)
-                    let secondDashPower = 7.5;
+                    let secondDashPower = 7;
                     bey.vx = dX * secondDashPower; 
                     bey.vy = dY * secondDashPower;
 
@@ -1932,7 +1932,7 @@ window.SkillEngine = {
             let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
             let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
 
-            let initialDashPower = 4.75; 
+            let initialDashPower = 7; 
             attacker.vx = dashX * initialDashPower;
             attacker.vy = dashY * initialDashPower;
 
