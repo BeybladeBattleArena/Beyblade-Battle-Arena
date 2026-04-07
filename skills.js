@@ -976,7 +976,7 @@ window.SkillEngine = {
             }
 			
 			if (state.smashBoostTimer > 0) {
-                state.smashtBoostTimer -= dt;
+                state.smashBoostTimer -= dt;
                 if (state.smashBoostTimer <= 0) {
 					bey.stats.knockbackPower -= 0.3; 
                 }
@@ -1816,7 +1816,7 @@ window.SkillEngine = {
                             attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + 0.08;
                             attacker.skillState.smashRouteActive = true;
                         }
-                        attacker.skillState.smashRouteTimer = 600; 
+                        attacker.skillState.smashRouteTimer = 450; 
                         
                         // Overwrite the aura to a fierce Orange so the player knows the route was successful!
                         attacker.activeAura = "rgba(255, 140, 0, 1.0)";
