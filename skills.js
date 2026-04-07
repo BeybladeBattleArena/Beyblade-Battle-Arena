@@ -243,6 +243,20 @@ window.SkillsDB = {
             desc: "A high-velocity dash scaling off Speed that tracks the opponent's trajectory.",
             execute: function() {}
         },
+		"Charge Dash": {
+            name: "Charge Dash", cd: 8,
+            desc: "Hold the skill button to charge power. Releasing unleashes a dash that scales in speed, attack, and knockback over 3 levels.",
+            execute: function(attacker, defender) {
+                // This doesn't launch the attack! It just switches the beyblade into a charging state.
+                attacker.skillState.actionState = "CHARGING_DASH";
+                attacker.skillState.chargeTimer = 0;
+                attacker.skillState.chargeLevel = 1;
+                
+                // Brake hard so the beyblade doesn't wander off while charging
+                attacker.vx *= 0.55;
+                attacker.vy *= 0.55;
+            }
+        },
         "Grindblade Lunge": {
             name: "Grindblade Lunge", cd: 8,
             desc: "Induces an intentional Wobble to hook the opponent into a damaging grapple.",
@@ -433,6 +447,11 @@ window.SkillEngine = {
                 relAtkTotal: 0,
                 relRecTotal: 0,
 				sideSwipeTimer: 0,
+				chargeTimer: 0,
+                chargeLevel: 1,
+                chargeDashBuffTimer: 0,
+                cdAtkBuff: 0,
+                cdKbBuff: 0,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -1409,6 +1428,76 @@ window.SkillEngine = {
                     state.lateSurgeActive = false;
                 }
             }
+			
+			// --- CHARGE DASH PHYSICS & VISUALS ---
+            if (state.actionState === "CHARGING_DASH") {
+                // Apply constant friction so the Beyblade stays relatively anchored
+                bey.vx *= 0.9;
+                bey.vy *= 0.9;
+
+                state.chargeTimer += dt;
+
+                // 1. Determine Charge Level (1s for Medium, 2s for Powerful)
+                if (state.chargeTimer >= 2000) {
+                    state.chargeLevel = 3;
+                } else if (state.chargeTimer >= 1000) {
+                    state.chargeLevel = 2;
+                } else {
+                    state.chargeLevel = 1;
+                }
+
+                // 2. Handle Visuals Based on Level
+                let rad = bey.visualRadius || bey.radius || 15;
+
+                if (state.chargeLevel === 1) { // WEAK
+                    bey.activeAura = "rgba(255, 255, 0, 0.4)"; // Faint Yellow
+                    bey.activeAuraSize = 1.2;
+                } 
+                else if (state.chargeLevel === 2) { // MEDIUM
+                    bey.activeAura = "rgba(255, 165, 0, 0.7)"; // Strong Orange
+                    bey.activeAuraSize = 1.5;
+                } 
+                else if (state.chargeLevel === 3) { // POWERFUL
+                    bey.activeAura = "rgba(255, 69, 0, 1.0)"; // Blazing Red-Orange
+                    bey.activeAuraSize = 1.8;
+
+                    // Level 3 Electrical Crackles!
+                    if (Math.random() < 0.25 && window.particles) {
+                        let ang = Math.random() * Math.PI * 2;
+                        
+                        // Spawn exactly on the rim of the beyblade
+                        let sparkX = bey.x + Math.cos(ang) * rad;
+                        let sparkY = bey.y + Math.sin(ang) * rad;
+
+                        window.particles.push({
+                            x: sparkX, y: sparkY,
+                            // Fly erratically outward to look like a spark
+                            vx: (Math.random() - 0.5) * 8 + (Math.cos(ang) * 2),
+                            vy: (Math.random() - 0.5) * 8 + (Math.sin(ang) * 2),
+                            life: 1.0,
+                            decay: 0.1, // Fades very fast to simulate a lightning flash
+                            color: '#00ffff', // Cyan lightning color
+                            size: Math.random() * 2 + 1
+                        });
+                    }
+                }
+                
+                // Keep refreshing the aura so it stays locked on while charging
+                bey.activeAuraDuration = 100; 
+            }
+
+            // --- CHARGE DASH BUFF CLEANUP ---
+            if (state.chargeDashBuffTimer > 0) {
+                state.chargeDashBuffTimer -= dt;
+                
+                // Once the dash ends, strip the exact math buffs we applied
+                if (state.chargeDashBuffTimer <= 0) {
+                    bey.stats.attack -= state.cdAtkBuff;
+                    bey.stats.knockbackPower -= state.cdKbBuff;
+                    state.cdAtkBuff = 0;
+                    state.cdKbBuff = 0;
+                }
+            }
 
 // --- PHANTOM WARP PHYSICS & PARTICLES ---
             if (state.actionState === "TELEPORT_OUT") {
@@ -1492,8 +1581,8 @@ window.SkillEngine = {
 			// --- SIDE SWIPE PHYSICS & TIMING ---
             if (state.actionState === "SIDE_SWIPE_PAUSE") {
                 // Optional: Slightly bleed velocity here to sell the "hesitation"
-                bey.vx *= 0.75; 
-                bey.vy *= 0.75;
+                bey.vx *= 0.9; 
+                bey.vy *= 0.9;
 
                 state.sideSwipeTimer -= dt;
                 
@@ -1938,11 +2027,11 @@ window.SkillEngine = {
 
             // Visual flair for the first dash
             attacker.activeAura = "rgba(50, 200, 100, 0.7)";
-            attacker.activeAuraDuration = 350;
+            attacker.activeAuraDuration = 400;
 
             // Trigger the State Machine for the second phase!
             attacker.skillState.actionState = "SIDE_SWIPE_PAUSE";
-            attacker.skillState.sideSwipeTimer = 350; // Wait exactly 300ms
+            attacker.skillState.sideSwipeTimer = 400; // Wait exactly 300ms
         }
         else if (attackName === "Spike Attack") {
             let dashX = 0; 
@@ -2125,4 +2214,64 @@ else if (attackName === "Sharp Shooter") {
             }, 500);
         }
     }
+	
+	releaseCharge: function(attacker, defender, joyX = 0, joyY = 0) {
+        let state = attacker.skillState;
+        
+        // Safety check: Only fire if they were actually charging
+        if (state.actionState !== "CHARGING_DASH") return; 
+
+        // 1. Calculate Dash Direction
+        let dX, dY;
+        if (joyX !== 0 || joyY !== 0) {
+            // Dash in joystick direction
+            let dist = Math.sqrt(joyX*joyX + joyY*joyY);
+            dX = joyX / dist; dY = joyY / dist;
+        } else {
+            // Auto-target the opponent if no joystick input
+            let oppX = defender.x - attacker.x;
+            let oppY = defender.y - attacker.y;
+            let dist = Math.max(1, Math.sqrt(oppX*oppX + oppY*oppY));
+            dX = oppX / dist; dY = oppY / dist;
+        }
+
+        // 2. Assign Stats based on Charge Level
+        let dashPower = 5;
+        let atkBuffPct = 0;
+        let kbBuffPct = 0.06;
+
+        if (state.chargeLevel === 2) {
+            dashPower = 6.5;
+            atkBuffPct = 0.08;
+            kbBuffPct = 0.12;
+        } else if (state.chargeLevel === 3) {
+            dashPower = 7.5;
+            atkBuffPct = 0.15;
+            kbBuffPct = 0.18;
+        }
+
+        // 3. Save the math so we can safely remove it later
+        state.cdAtkBuff = (attacker.stats.attack || 0) * atkBuffPct;
+        state.cdKbBuff = kbBuffPct;
+
+        // 4. Apply the Buffs!
+        attacker.stats.attack = (attacker.stats.attack || 0) + state.cdAtkBuff;
+        attacker.stats.knockbackPower = (attacker.stats.knockbackPower || 0) + state.cdKbBuff;
+
+        // 5. Fire the Dash!
+        attacker.vx = dX * dashPower;
+        attacker.vy = dY * dashPower;
+
+        // Give them 1.5 seconds (1500ms) of buffed stats to make sure the hit connects
+        state.chargeDashBuffTimer = 1500; 
+
+        // 6. Reset the State Machine
+        state.actionState = "NORMAL";
+        state.chargeTimer = 0;
+        state.chargeLevel = 1;
+        
+        // Let the aura linger briefly as a "trail"
+        attacker.activeAuraDuration = 400; 
+    }
+	
 };

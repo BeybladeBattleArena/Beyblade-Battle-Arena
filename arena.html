@@ -868,7 +868,18 @@
         }
     });
     
-    window.addEventListener('keyup', e => { let k = e.key.toLowerCase(); if(keys.hasOwnProperty(k)) { keys[k] = false; } });
+    window.addEventListener('keyup', e => { 
+        let k = e.key.toLowerCase(); 
+        if(keys.hasOwnProperty(k)) { keys[k] = false; } 
+
+        // ADD THIS: Release the charge when the key is let go!
+        if (gameState === "BATTLE" && !roundConcluding) {
+            if (k === '1' && activeSkills.length > 0) releaseSkill(0);
+            if (k === '2' && activeSkills.length > 1) releaseSkill(1);
+            if (k === '3' && activeSkills.length > 2) releaseSkill(2);
+            if (k === '4' && activeSkills.length > 3) releaseSkill(3);
+        }
+    });
 
     const joyZone = document.getElementById('joystick-zone');
     function handleTouchJoy(e) { 
@@ -1588,19 +1599,39 @@
     }
 
     function buildSkillsUI() {
-        const menu = document.getElementById('skills-menu');
-        menu.innerHTML = '';
-        activeSkills.forEach((skill, i) => {
-            let btn = document.createElement('div');
-            btn.className = 'skill-btn';
-            btn.id = `skill-btn-${i}`;
-            
-            let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
-            btn.innerHTML = `${hotkeyLabel} ${skill.name}`;
-            
-            btn.onpointerdown = (e) => { e.preventDefault(); useSkill(i); };
-            menu.appendChild(btn);
-        });
+    const menu = document.getElementById('skills-menu');
+    menu.innerHTML = '';
+    activeSkills.forEach((skill, i) => {
+        let btn = document.createElement('div');
+        btn.className = 'skill-btn';
+        btn.id = `skill-btn-${i}`;
+        
+        let hotkeyLabel = `<div class="hotkey-badge">[${i+1}]</div>`;
+        btn.innerHTML = `${hotkeyLabel} ${skill.name}`;
+        
+        // --- PRESS DOWN (Starts the charge or fires instant skills) ---
+        btn.onpointerdown = (e) => { 
+            e.preventDefault(); // Prevents mobile zoom/scrolling
+            useSkill(i); 
+        };
+
+        // --- LET GO (Releases the charge dash) ---
+        btn.onpointerup = (e) => {
+            e.preventDefault();
+            releaseSkill(i);
+        };
+
+        // --- FAILSAFES (If the finger/mouse slides off the button while holding) ---
+        btn.onpointerleave = (e) => {
+            releaseSkill(i);
+        };
+        btn.onpointercancel = (e) => {
+            releaseSkill(i);
+        };
+
+        menu.appendChild(btn);
+    });
+	}
         
         if (playerUltimate) {
             let ultBtn = document.createElement('div');
@@ -2099,6 +2130,18 @@
             playerBey.tutorialSpecialUsed = true;
         }
     }
+	
+	function releaseSkill(index) {
+    if (roundConcluding) return; 
+    let skill = activeSkills[index];
+    if (!skill) return;
+
+    // Check if the Beyblade is currently charging a dash
+    if (playerBey.skillState.actionState === "CHARGING_DASH" && skill.name === "Charge Dash") {
+        // Fire the dash!
+        window.SkillEngine.releaseCharge(playerBey, cpuBey, joyX, joyY); 
+    }
+	}
 
     function useUltimate() {
         if (roundConcluding) return;
