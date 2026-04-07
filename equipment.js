@@ -1963,9 +1963,9 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Standard", "Tip", "Metal", "Semi-Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/SemiFlat_DeltaOrange_sideview.png",  
-            stats: { rpm: 110, speed: 10, defense: 3, attack: 8, grip: 18, balance: 14, stamina: 4, mobility: 5, weight: 15 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { rpm: 110, speed: 10, defense: 5, attack: 3, grip: 18, balance: 16, stamina: 6, mobility: 6, weight: 15, lad: 0.5 },
+			passives: ["Pace Control", "Rolling Collision"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2019,9 +2019,9 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Volcano", "Tip", "Metal", "Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/VolcanoFlatBase_IfritRed_sideview.png",  
-            stats: { rpm: 120, speed: 15, endurance: -1, attack: 16, grip: 24, balance: 12, stamina: -1, mobility: 9, weight: 12 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { rpm: 120, speed: 14, defense: 2, attack: 7, grip: 20, balance: 6, stamina: -1, mobility: 10, weight: 14, lad: 0.15 },
+			passives: ["Hyper Aggression", "Smash Route"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2051,9 +2051,9 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Standard", "Tip", "Metal", "Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/FlatBase_SpinDragonWhite_sideview.png",  
-            stats: { rpm: 130, speed: 12, defense: -1, attack: 14, grip: 22, balance: 13, stamina: -1, mobility: 9, weight: 13 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { rpm: 125, speed: 16, defense: 1, attack: 5, grip: 24, balance: 10, stamina: -3, mobility: 12, weight: 13, lad: 0.2 },
+			passives: ["Ridge Rider", "Relentless"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2099,9 +2099,10 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Fossil", "Claw", "Tyranno", "Tip", "Rubber", "Semi-Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/FossilClawBase_TyrannoF_sideview.png",  
-            stats: { rpm: 120, speed: 8, defense: 4, attack: 20, grip: 30, balance: 11, stamina: -4, mobility: -2, weight: 18 },
+            statsRight: { rpm: 115, speed: 6, defense: 12, attack: 4, endurance: 10, grip: 32, balance: 12, stamina: -3, mobility: 1, recoil: 8, recoilReduction: 6, weight: 18, lad: 0.1 },
+			statsLeft: { rpm: 115, speed: 6, defense: 4, attack: 10, endurance: -4, grip: 32, balance: 8, stamina: -4, mobility: 1, recoil: 18, recoilReduction: 0, weight: 18, lad: 0.1 },
 			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2123,9 +2124,9 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Standard", "Tip", "Metal", "Sharp"], 
 			fallbackImage: "./images/beyblade_parts/BB/SharpBase_PoltaRed_sideview.png",  
-            stats: { rpm: 130, speed: 5, defense: 1, endurance: 4, attack: 3, grip: 4, balance: 14, stamina: 3, mobility: 2, weight: 12 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { rpm: 140, speed: 4, defense: 2, endurance: -2, attack: 2, grip: 5, balance: 6, stamina: 12, mobility: 2, weight: 12, lad: 0.05 },
+			passives: ["Static Survival", "Centrifugal Synergy"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2171,9 +2172,9 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Cloud", "Pastern", "Tip", "Rubber", "Semi-Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/CloudPasternBase_MoonsongStampede_sideview.png",  
-            stats: { hp: 20, rpm: 130, speed: 10, defense: 8, attack: 11, grip: 28, balance: 11, stamina: -2, mobility: -2, weight: 17 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { hp: 20, rpm: 130, speed: 10, defense: 9, attack: 7, grip: 26, balance: 14, stamina: 3, mobility: 2, weight: 17, lad: 0.35 },
+			passives: ["Wing Guard", "Impact Point"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2195,9 +2196,9 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Weighted", "Heavy", "Orbit", "Tip", "Metal", "Semi-Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/HeavyOrbitBase_Green_sideview.png",  
-            stats: { rpm: 120, speed: -1, defense: 16, grip: 4, balance: 15, stamina: 5, endurance: 5, weight: 17 },
-			passives: [], 
-			attacks: [{ name: "Concentrate Defense", cd: 6 }],
+            stats: { rpm: 115, speed: -1, defense: 18, attack: 4, grip: 5, balance: 18, stamina: 6, endurance: 8, weight: 19, lad: 0.75 },
+			passives: ["Centrifugal Synergy", "Impact Dampening"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2227,7 +2228,7 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Tilt", "Shift", "Rubber", "Tip", "Metal", "Sharp"], 
 			fallbackImage: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_sideview.png",  
-            stats: { hp: 20, rpm: 110, defense: 3, grip: 8, balance: 8, stamina: 6, mobility: 10, recoilReduction: 1, weight: 13 },
+            stats: { hp: 20, rpm: 125, defense: 6, attack: 2, grip: 8, balance: 15, stamina: 8, mobility: 10, recoilReduction: 8, weight: 13, lad: 0.6 },
 			passives: ["Counterattack"], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
@@ -2267,9 +2268,9 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["G", "Special", "Ball", "Ball Bearing", "Tip", "Plastic", "Flat"], 
 			fallbackImage: "./images/beyblade_parts/BB/StrataDragoonGSpecialBase_sideview.png",  
-            stats: { hp: 20, rpm: 125, defense: -1, endurance: -1, grip: 11, balance: 8, stamina: 4, mobility: 5, recoilReduction: 1, weight: 15 },
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+            stats: { hp: 15, rpm: 130, defense: -2, attack: 9, endurance: -2, grip: 14, balance: 10, stamina: 3, mobility: 8, recoilReduction: 2, weight: 15, lad: 0.25 },
+			passives: ["Ball Bearing Stabilizer", "Hyper Aggression"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -2291,8 +2292,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Sweet", "Embrace", "Mochi", "Tip", "Rubber", "Flat", "Peak Performance"], 
 			fallbackImage: "./images/beyblade_parts/BB/SweetEmbrace_SakuraBlossom_sideview.png",  
-            stats: { hp: 30, rpm: 115, endurance: 1, grip: 29, balance: 8, stamina: 1, recoilReduction: 3, weight: 15 },
-			passives: ["Peak Performance"], 
+            stats: { hp: 40, rpm: 110, defense: 6, attack: 4, endurance: 4, grip: 30, balance: 5, stamina: 1, mobility: 6, recoilReduction: 5, weight: 14, lad: 0.7 },
+			passives: ["Peak Performance", "Rebound Guard"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2323,8 +2324,8 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Low", "Barrel", "Point", "Tip", "Metal", "Sharp", "Critical Counter"], 
 			fallbackImage: "./images/beyblade_parts/BB/LowBarrelPoint_FenrirFBlue_sideview.png",  
-            stats: { rpm: 160, defense: 2, endurance: 3, grip: 10, balance: 2, stamina: 8, mobility: 1, weight: 15 },
-			passives: ["Critical Counter"], 
+            stats: { rpm: 150, speed: 6, defense: 11, attack: 2, endurance: 3, grip: 5, balance: 5, stamina: 10, mobility: 3, weight: 14, lad: 0.1 },
+			passives: ["Critical Counter", "Shell Armor"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2347,8 +2348,8 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Drift", "Guard", "Semi-Flat", "Tip", "Plastic", "Rollback Drift"], 
 			fallbackImage: "./images/beyblade_parts/BB/DriftGuard_DarkCobalt_sideview.png",  
-            stats: { rpm: 150, attack: 1, defense: 2, endurance: 2, grip: 14, stamina: 2, mobility: -1, weight: 15 },
-			passives: ["Rollback Drift"], 
+            stats: { rpm: 130, speed: 8, defense: 13, attack: 2, endurance: 12, grip: 10, balance: 14, stamina: 6, mobility: 5, weight: 14, lad: 0.9 },
+			passives: ["Rollback Drift", "Evasive Contact"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2379,8 +2380,8 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Pulse", "Core", "Sharp", "Tip", "Plastic", "Cooldown Reduction", "CDR" ], 
 			fallbackImage: "./images/beyblade_parts/BB/PulseCore_Violet_sideview.png",  
-            stats: { rpm: 130, defense: 1, endurance: 3, grip: 12, stamina: 2, mobility: 1, cdr: 4, weight: 13 },
-			passives: [], 
+            stats: { rpm: 155, speed: 3, defense: -1, attack: -2, endurance: 3, grip: 4, balance: 10, stamina: 16, mobility: 2, cdr: 6, weight: 12, lad: 0.15 },
+			passives: ["Static Survival", "Pace Control"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2411,8 +2412,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Pivot", "Flat", "Tip", "Metal", "Recoil", "Rebounder", "Reduction" ], 
 			fallbackImage: "./images/beyblade_parts/BB/PivotFlat_sideview.png",  
-            stats: {  rpm: 120, speed: 10, defense: -1, attack: 12, grip: 22, balance: 14, endurance: -2, mobility: 11, recoilReduction: 4, weight: 12  },
-			passives: ["Recoil Rebounder"], 
+            stats: { rpm: 120, speed: 15, defense: 4, attack: 6, endurance: 2, grip: 22, balance: 10, stamina: -2, mobility: 13, recoilReduction: 7, weight: 12, lad: 0.35 },
+			passives: ["Recoil Rebounder", "Rebound Guard"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2443,8 +2444,8 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Thorn", "Semi-Flat", "Tip", "Metal" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png",  
-            stats: {  rpm: 100, speed: 8, defense: 1, attack: 6, grip: 21, balance: 15, mobility: 11, recoil: 1, weight: 13  },
-			passives: [], 
+            stats: { rpm: 115, speed: 11, defense: -2, attack: 7, endurance: -2, grip: 18, balance: 8, stamina: 2, mobility: 9, recoil: 12, weight: 14, lad: 0.4 },
+			passives: ["Impact Point", "Relentless"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2467,8 +2468,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Auto", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal"], 
 			fallbackImage: "./images/beyblade_parts/BB/AutoChangeBase_sideview.png",  
-            stats: {  rpm: 115, speed: 10, endurance: 1, attack: 1, grip: 22, balance: 14, mobility: 13, recoil: 1, weight: 15  },
-			passives: ["Mode Change"], 
+            stats: { rpm: 120, speed: 12, defense: 5, attack: 5, endurance: 2, grip: 18, balance: 14, stamina: 3, mobility: 10, recoilReduction: 2, weight: 14, lad: 0.55 },
+			passives: ["Mode Change", "Evasive Contact"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2491,8 +2492,8 @@ window.equipmentDB = {
 			contactTipShape: "Semi-Flat",
             tags: ["Metal", "Ball", "Semi-Flat", "Tip", "Metal" ], 
 			fallbackImage: "./images/beyblade_parts/BB/MetalBallBase_sideview.png",  
-            stats: {  rpm: 120, stamina: 1, defense: 5, endurance: 1, grip: 21, balance: -1, mobility: -1, attack: -1, recoilReduction: 2, weight: 17  },
-			passives: ["Metal Ball Defense"], 
+            stats: { hp: 40, rpm: 125, speed: 5, defense: 14, attack: 2, endurance: 10, grip: 12, balance: 12, stamina: 4, mobility: 3, recoilReduction: 5, weight: 17, lad: 0.5 },
+			passives: ["Metal Ball Defense", "Impact Dampening"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2515,8 +2516,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Grip", "Base", "Flat", "Tip", "Rubber"], 
 			fallbackImage: "./images/beyblade_parts/BB/GripBase_DragoonGripAttackerWhite_sideview.png",  
-            stats: {  rpm: 120, speed: 11, endurance: -2, stamina: -2, attack: 4, grip: 29, mobility: 13, recoil: 2, weight: 13  },
-			passives: ["Hyper Aggression"], 
+            stats: { rpm: 120, speed: 17, attack: 10, endurance: -4, grip: 32, balance: 8, stamina: -2, mobility: 14, recoil: 11, weight: 13, lad: 0.1 },
+			passives: ["Hyper Aggression", "Impact Point"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2556,8 +2557,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Manual", "Change", "Balancer", "Flat", "Sharp", "Tip", "Plastic" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ManualBalancer_sideview.png",  
-            stats: {  rpm: 130, hp: 10, defense: -1, speed: 1, stamina: 1, endurance: 4, grip: 24, mobility: 3, attack: 3, recoilReduction: 2, weight: 15  },
-			passives: ["Alter Approach"], 
+            stats: { hp: 15, rpm: 125, speed: 12, defense: 6, attack: 5, endurance: 4, grip: 20, balance: 12, stamina: 7, mobility: 10, recoilReduction: 2, weight: 14, lad: 0.3 },
+			passives: ["Alter Approach (Flat)", "Rolling Collision"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2580,8 +2581,8 @@ window.equipmentDB = {
 			contactTipShape: "Flat",
             tags: ["Shooter", "Change", "Mode Change", "Flat", "Semi-Flat", "Tip", "Metal" ], 
 			fallbackImage: "./images/beyblade_parts/BB/ShooterChangeBase_sideview.png",  
-            stats: {  rpm: 120, defense: 2, stamina: -1, endurance: -3, balance: 5, speed: 2, grip: 23, mobility: 12, attack: 4, weight: 14  },
-			passives: ["Mode Change"], 
+            stats: { rpm: 120, speed: 11, defense: 6, attack: 4, endurance: 2, grip: 20, balance: 12, stamina: 2, mobility: 9, weight: 14, lad: 0.4 },
+			passives: ["Mode Change", "Redirection", "Relentless"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -2604,9 +2605,9 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Basin", "Sharp", "Tip", "Metal" ], 
 			fallbackImage: "./images/beyblade_parts/BB/Basin_SharpBase_SickleSeeker_sideview.png",  
-            stats: { rpm: 110, speed: 3, defense: 3, endurance: 5, grip: 8, balance: 15, stamina: 4, weight: 14 },
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+            stats: { rpm: 135, speed: 5, defense: 8, attack: 3, endurance: 6, grip: 6, balance: 8, stamina: 10, mobility: 4, weight: 14, lad: 0.15 },
+			passives: ["Static Survival", "Evasive Contact"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
