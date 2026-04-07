@@ -1492,8 +1492,8 @@ window.SkillEngine = {
 			// --- SIDE SWIPE PHYSICS & TIMING ---
             if (state.actionState === "SIDE_SWIPE_PAUSE") {
                 // Optional: Slightly bleed velocity here to sell the "hesitation"
-                bey.vx *= 0.7; 
-                bey.vy *= 0.7;
+                bey.vx *= 0.75; 
+                bey.vy *= 0.75;
 
                 state.sideSwipeTimer -= dt;
                 
@@ -1932,17 +1932,17 @@ window.SkillEngine = {
             let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
             let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
 
-            let initialDashPower = 7; 
+            let initialDashPower = 9; 
             attacker.vx = dashX * initialDashPower;
             attacker.vy = dashY * initialDashPower;
 
             // Visual flair for the first dash
             attacker.activeAura = "rgba(50, 200, 100, 0.7)";
-            attacker.activeAuraDuration = 300;
+            attacker.activeAuraDuration = 350;
 
             // Trigger the State Machine for the second phase!
             attacker.skillState.actionState = "SIDE_SWIPE_PAUSE";
-            attacker.skillState.sideSwipeTimer = 300; // Wait exactly 300ms
+            attacker.skillState.sideSwipeTimer = 350; // Wait exactly 300ms
         }
         else if (attackName === "Spike Attack") {
             let dashX = 0; 
