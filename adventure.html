@@ -806,6 +806,7 @@
                         if (unlockedNames.length > 0) alertMsg += `\n\nUnlocked Opponents:\n${unlockedNames.join(", ")}`;
                         if (unlockedPartNames.length > 0) alertMsg += `\n\nAcquired New Parts:\n${unlockedPartNames.join("\n")}`;
                         
+						if (window.savePlayerData) window.savePlayerData();
                         alert(alertMsg);
                         window.navigateTo('coursebattle.html');
                         return;
