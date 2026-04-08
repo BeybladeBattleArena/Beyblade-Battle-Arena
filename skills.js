@@ -1846,20 +1846,23 @@ window.SkillEngine = {
         p1.skillState.timeSinceCollision = 0;
         cpu.skillState.timeSinceCollision = 0;
 
-        if (p1.skillState.z > 5 || cpu.skillState.z > 5) {
-            if (p1.skillState.actionState === "LUNGE_HOP" && p1.skillState.z > 0 && !cpu.skillState.isGrappled) {
-                this.engageGrapple(p1, cpu);
-            } else if (cpu.skillState.actionState === "LUNGE_HOP" && cpu.skillState.z > 0 && !p1.skillState.isGrappled) {
-                this.engageGrapple(cpu, p1);
-            }
-            return false; 
-        }
+        // 1. --- THE UPPERCUT LAUNCH CHECK MUST BE FIRST ---
         if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
             this.applyUppercutLaunch(p1, cpu);
             return false; // Skip standard bounce physics, we are popping them up!
         } 
         else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
             this.applyUppercutLaunch(cpu, p1);
+            return false; 
+        }
+
+        // 2. --- THEN THE Z-HEIGHT / GRAPPLE CHECK ---
+        if (p1.skillState.z > 5 || cpu.skillState.z > 5) {
+            if (p1.skillState.actionState === "LUNGE_HOP" && p1.skillState.z > 0 && !cpu.skillState.isGrappled) {
+                this.engageGrapple(p1, cpu);
+            } else if (cpu.skillState.actionState === "LUNGE_HOP" && cpu.skillState.z > 0 && !p1.skillState.isGrappled) {
+                this.engageGrapple(cpu, p1);
+            }
             return false; 
         }
 
@@ -1877,7 +1880,7 @@ window.SkillEngine = {
         
         // 2. Pop them up on the Z-axis! 
         // (At z=10, standard 0.5 gravity brings them down in roughly 300ms, matching the stun perfectly)
-        defender.z = 25; 
+        defState.z = 25; 
         
         // 3. Shove them backwards in the direction of the uppercut
         defender.vx = attacker.vx * 1.5;
