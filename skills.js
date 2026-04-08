@@ -117,7 +117,7 @@ window.SkillsDB = {
         },
 		"Rollback Drift": {
             name: "Rollback Drift",
-            desc: "When heavy knockback is taken, initiate a strong curved drift toward whatever direction is being held for the duration of the knockback. If no direction is held, the Beyblade will drift toward the center of the arena instead. Reduces RPM loss slightly on collision, and grants +5% Attack and +5% Endurance for 8 seconds after activation.",
+            desc: "When heavy knockback is taken, initiate a strong curved drift toward whatever direction is being held for the duration of the knockback. If no direction is held, the Beyblade will drift toward the center of the arena instead. Reduces RPM loss slightly on collision, and grants +5% Attack and +5% Endurance for 6 seconds after activation.",
             apply: function(bey) {}
         },
 		"Evasive Contact": {
