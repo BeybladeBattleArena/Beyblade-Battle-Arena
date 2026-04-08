@@ -294,6 +294,11 @@ window.SkillsDB = {
             desc: "Charge the force of the beyblade's spin energy into a projectile. Beware, you are anchored while this skill charges. This skill is powerful, buy requires the beyblade's RPM to power it.",
 			//no internal function, this is handled entirely by arena.html; tweak skill variables there
         },
+		"Extreme Speed": {
+            name: "Extreme Speed", cd: 7,
+            desc: "A blindingly fast, bullet-like dash that leaves very little time for the opponent to react.",
+            execute: function() {} 
+        },
 		"Side Swipe": {
             name: "Side Swipe", cd: 6,
             desc: "Leap a short distance in the chosen direction, hesitate briefly, and then follows up with a longer distance leap in a new chosen direction.",
@@ -447,6 +452,8 @@ window.SkillEngine = {
                 chargeDashBuffTimer: 0,
                 cdAtkBuff: 0,
                 cdKbBuff: 0,
+				esDashTimer: 0,
+                esStopTimer: 0,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -1845,6 +1852,46 @@ window.SkillEngine = {
             }, 300);
         }
 		
+		// --- EXTREME SPEED PHYSICS & AFTER-IMAGES ---
+            if (state.actionState === "EXTREME_SPEED_DASH") {
+                state.esDashTimer -= dt;
+
+                // SPAWN AFTER-IMAGES!
+                // We drop a phantom clone roughly every frame or two while dashing
+                if (Math.random() < 0.6 && window.particles) {
+                    window.particles.push({
+                        x: bey.x, 
+                        y: bey.y,
+                        vx: 0, vy: 0, // After-images stand completely still
+                        life: 1.0, 
+                        decay: 0.08, // Fade out very quickly like a ghost
+                        color: 'rgba(200, 200, 255, 0.5)', // Ghostly pale blue/white
+                        // Make the particle the exact size of the Beyblade to look like a clone!
+                        size: bey.visualRadius || bey.radius || 15 
+                    });
+                }
+
+                // Phase 1 Over: Slam the Brakes!
+                if (state.esDashTimer <= 0) {
+                    state.actionState = "EXTREME_SPEED_STOP";
+                    bey.vx = 0;
+                    bey.vy = 0;
+                }
+            } 
+            else if (state.actionState === "EXTREME_SPEED_STOP") {
+                // Phase 2: The Anchor
+                // Force velocity to 0 every frame so impacts don't move it while anchored
+                bey.vx = 0;
+                bey.vy = 0;
+                
+                state.esStopTimer -= dt;
+
+                // Time's up! Return to normal physics
+                if (state.esStopTimer <= 0) {
+                    state.actionState = "NORMAL";
+                }
+            }
+		
 		else if (attackName === "Phantom Warp") {
             let state = attacker.skillState;
 
@@ -1960,6 +2007,32 @@ window.SkillEngine = {
                 }
             }
 				
+        }
+		
+		else if (attackName === "Extreme Speed") {
+            // --- ⚙️ ADJUSTABLE PARAMETERS ⚙️ ---
+            let dashSpeed = 25;     // Velocity of the dash (Very high!)
+            let dashDuration = 150; // How long the high-speed dash lasts (150ms = very short)
+            let stopDuration = 400; // How long the beyblade freezes in place afterward (400ms)
+            // -----------------------------------
+
+            // 1. Calculate direction (Joystick or auto-target)
+            let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
+            let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
+
+            // 2. Apply the massive speed burst
+            attacker.vx = dashX * dashSpeed;
+            attacker.vy = dashY * dashSpeed;
+
+            // 3. Trigger the State Machine
+            attacker.skillState.actionState = "EXTREME_SPEED_DASH";
+            attacker.skillState.esDashTimer = dashDuration;
+            
+            // We store the stop duration here so the update loop knows how long to freeze it later!
+            attacker.skillState.esStopTimer = stopDuration; 
+
+            // 4. Ensure no normal aura plays
+            attacker.activeAuraDuration = 0; 
         }
 		
 		else if (attackName === "Charge Dash") {
