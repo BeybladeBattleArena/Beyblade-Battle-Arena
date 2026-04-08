@@ -1185,6 +1185,41 @@ window.SkillEngine = {
                     }
                 }
 				
+				// PASSIVE: Rollback Drift
+                if (bey.passives && bey.passives.includes("Rollback Drift")) {
+                    
+                    // Measure how fast we are moving immediately after the impact
+                    let knockbackSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+                    
+                    // If it was a heavy hit (> 5)...
+                    if (knockbackSpeed > 5) {
+                        
+                        // If the buff wasn't already active, calculate and apply the stats!
+                        if (state.rollbackTimer <= 0) {
+                            
+                            let baseAtk = bey.stats.attack || 0;
+                            let baseEnd = bey.stats.endurance || 0;
+                            
+                            // Calculate the 5% bonuses
+                            state.rdAtkBonus = baseAtk * 0.05;
+                            state.rdEndBonus = baseEnd * 0.05;
+                            
+                            // Apply the buffs (+5% Atk, +5% End, +4% RPM Resist)
+                            bey.stats.attack += state.rdAtkBonus;
+                            bey.stats.endurance += state.rdEndBonus;
+                            bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) + 0.04;
+                            
+                            // Visual cue: A sweeping, airy blue flash for the drift
+                            bey.activeAura = "rgba(0, 191, 255, 0.8)"; // DeepSkyBlue
+                            bey.activeAuraDuration = 400;
+                        }
+                        
+                        // ALWAYS refresh the timers on a heavy hit!
+                        state.rollbackTimer = 6000;  // 6 seconds for the stat buffs
+                        state.driftForceTimer = 350; // 350ms of active directional drift steering
+                    }
+                }
+				
 				// PASSIVE: Mass Grinder (Collision Effect)
                 if (bey.passives && bey.passives.includes("Mass Grinder")) {
                     
