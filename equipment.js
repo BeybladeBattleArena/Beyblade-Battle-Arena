@@ -2101,7 +2101,8 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/BB/FossilClawBase_TyrannoF_sideview.png",  
             statsRight: { rpm: 115, speed: 6, defense: 12, attack: 4, endurance: 10, grip: 32, balance: 12, stamina: -3, mobility: 1, recoil: 8, recoilReduction: 6, weight: 18, lad: 0.1 },
 			statsLeft: { rpm: 115, speed: 6, defense: 4, attack: 10, endurance: -4, grip: 32, balance: 8, stamina: -4, mobility: 1, recoil: 18, recoilReduction: 0, weight: 18, lad: 0.1 },
-			passives: [], 
+			passivesRight: ["Feral Friction", "Counterattack"],
+			passivesLeft: ["Revengeance", "Counterattack"],			
 			attacks: [],
 			
 			//The Array of Unlockable Designs
