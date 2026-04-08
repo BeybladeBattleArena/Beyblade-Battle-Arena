@@ -247,14 +247,9 @@ window.SkillsDB = {
             name: "Charge Dash", cd: 8,
             desc: "Hold the skill button to charge power. Releasing unleashes a dash that scales in speed, attack, and knockback over 3 levels.",
             execute: function(attacker, defender) {
-                // This doesn't launch the attack! It just switches the beyblade into a charging state.
-                attacker.skillState.actionState = "CHARGING_DASH";
-                attacker.skillState.chargeTimer = 0;
-                attacker.skillState.chargeLevel = 1;
-                
                 // Brake hard so the beyblade doesn't wander off while charging
-                attacker.vx *= 0.55;
-                attacker.vy *= 0.55;
+                attacker.vx *= 0.5;
+                attacker.vy *= 0.5;
             }
         },
         "Grindblade Lunge": {
@@ -1575,6 +1570,9 @@ window.SkillEngine = {
 
                 if (state.tpTimer <= 0) {
                     state.actionState = "NORMAL"; // Fully reformed!
+					
+					// Start the cooldown now that the teleport is finished!
+                    if (window.startSkillCooldown) window.startSkillCooldown(bey, "Phantom Warp");
                 }
             }
 			
@@ -2289,6 +2287,9 @@ else if (attackName === "Sharp Shooter") {
         
         // Let the aura linger briefly as a "trail"
         attacker.activeAuraDuration = 400; 
+		
+		// Start the cooldown now that the dash has been unleashed!
+        if (window.startSkillCooldown) window.startSkillCooldown(attacker, "Charge Dash");
     }
 	
 };

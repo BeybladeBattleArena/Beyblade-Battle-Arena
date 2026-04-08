@@ -2122,14 +2122,29 @@
 		
 		
         if (skill.currentCd <= 0 && window.SkillEngine) {
-            window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY); 
-            let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100);
-            skill.currentCd = skill.baseCd * cdrMod;
-            
+            window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY);
+
+				if (skill.name !== "Phantom Warp" && skill.name !== "Charge Dash") {
+                let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100);
+                skill.currentCd = skill.baseCd * cdrMod;
+				}
+			                        
             // Mark special usage for tutorial
             playerBey.tutorialSpecialUsed = true;
         }
     }
+	
+	window.startSkillCooldown = function(bey, skillName) {
+        // If it's the player, find the skill in their active UI array
+        if (bey === playerBey) {
+            let skill = activeSkills.find(s => s.name === skillName);
+            if (skill) {
+                let cdrMod = 1.0 - ((bey.stats.cdr || 0) / 100);
+                skill.currentCd = skill.baseCd * cdrMod;
+            }
+        }
+        // (Optional) If you later give the CPU skills, you can handle CPU cooldowns here too!
+    };
 	
 	function releaseSkill(index) {
     if (roundConcluding) return; 
