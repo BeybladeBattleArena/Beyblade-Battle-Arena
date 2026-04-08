@@ -2229,8 +2229,8 @@ window.equipmentDB = {
             tags: ["Tilt", "Shift", "Rubber", "Tip", "Metal", "Sharp"], 
 			fallbackImage: "./images/beyblade_parts/BB/TiltShiftBase_LightBlue_sideview.png",  
             stats: { hp: 20, rpm: 125, defense: 6, attack: 2, grip: 8, balance: 15, stamina: 8, mobility: 10, recoilReduction: 8, weight: 13, lad: 0.6 },
-			passives: ["Counterattack"], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+			passives: ["Counterattack", "Evasive Contact"], 
+			attacks: [],
 			
 			//The Array of Unlockable Designs
             styles: [
