@@ -289,6 +289,11 @@ window.SkillsDB = {
             desc: "Execute a tight offensive loop in the same direction as the beyblade's forward spin.",
             execute: function() {}
         },
+		"Ridge Uppercut": {
+            name: "Ridge Uppercut", cd: 8,
+            desc: "Winds up briefly in reverse before launching a tilted, forward dash. Opponents struck are popped into the air and briefly stunned.",
+            execute: function() {}
+        },
 		"Spin Burst": {
             name: "Spin Burst", cd: 8,
             desc: "Charge the force of the beyblade's spin energy into a projectile. Beware, you are anchored while this skill charges. This skill is powerful, buy requires the beyblade's RPM to power it.",
@@ -454,6 +459,13 @@ window.SkillEngine = {
                 cdKbBuff: 0,
 				esDashTimer: 0,
                 esStopTimer: 0,
+				ruTimer: 0,
+                ruTargetX: 0,
+                ruTargetY: 0,
+                airborneStunTimer: 0,
+                isAirborneStunned: false,
+                visualTiltX: 0, // Your renderer can read these to tilt the sprite!
+                visualTiltY: 0,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -1666,6 +1678,59 @@ window.SkillEngine = {
                 }
             }
 			
+// --- RIDGE UPPERCUT PHYSICS ---
+            if (state.actionState === "RIDGE_UPPERCUT_WINDUP") {
+                state.ruTimer -= dt;
+                
+                // Windup over! Fire the forward dash!
+                if (state.ruTimer <= 0) {
+                    state.actionState = "RIDGE_UPPERCUT_DASH";
+                    state.ruTimer = 400; // The dash lasts 400ms max (unless it hits something early)
+                    
+                    bey.vx = state.ruTargetX * 5;
+                    bey.vy = state.ruTargetY * 5;
+                    
+                    bey.activeAura = "rgba(255, 100, 0, 0.9)"; // Fierce orange impact glow
+                    bey.activeAuraDuration = 400;
+                }
+            }
+            else if (state.actionState === "RIDGE_UPPERCUT_DASH") {
+                state.ruTimer -= dt;
+                
+                // --- THE SUBTLE TILT LOGIC ---
+                // We apply the tilt during the "midpoint" of the dash (between 100ms and 300ms)
+                if (state.ruTimer <= 300 && state.ruTimer >= 100) {
+                    // Apply a 15% tilt strictly on the axis we are traveling in
+                    state.visualTiltX = state.ruTargetX * 0.15; 
+                    state.visualTiltY = state.ruTargetY * 0.15;
+                } else {
+                    // Flatten out at the very end
+                    state.visualTiltX = 0; 
+                    state.visualTiltY = 0;
+                }
+                
+                // Dash missed or timed out naturally
+                if (state.ruTimer <= 0) {
+                    state.actionState = "NORMAL";
+                    state.visualTiltX = 0;
+                    state.visualTiltY = 0;
+                }
+            }
+
+            // --- AIRBORNE STUN PHYSICS ---
+            if (state.actionState === "AIRBORNE_STUN") {
+                state.airborneStunTimer -= dt;
+                
+                // By forcing the state to AIRBORNE_STUN, standard player joystick inputs 
+                // won't work on them, acting as a perfect CC (Crowd Control) stun!
+
+                // Standard gravity handles the fall, but we enforce the end of the stun strictly
+                if (state.airborneStunTimer <= 0) {
+                    state.actionState = "NORMAL";
+                    state.isAirborneStunned = false;
+                    state.z = 0; // Force them flat on the stadium floor
+                }
+            }
 
             // --- AERIAL LANCE (Hang Time & Plunge) ---
             if (state.actionState === "AIRBORNE_LANCE") {
@@ -1789,7 +1854,50 @@ window.SkillEngine = {
             }
             return false; 
         }
+        if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
+            this.applyUppercutLaunch(p1, cpu);
+            return false; // Skip standard bounce physics, we are popping them up!
+        } 
+        else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
+            this.applyUppercutLaunch(cpu, p1);
+            return false; 
+        }
+
         return true; 
+    },
+	
+	applyUppercutLaunch: function(attacker, defender) {
+        let defState = defender.skillState;
+        let atkState = attacker.skillState;
+
+        // 1. Stun the defender
+        defState.actionState = "AIRBORNE_STUN";
+        defState.airborneStunTimer = 300; 
+        defState.isAirborneStunned = true;
+        
+        // 2. Pop them up on the Z-axis! 
+        // (At z=10, standard 0.5 gravity brings them down in roughly 300ms, matching the stun perfectly)
+        defState.z = 10; 
+        
+        // 3. Shove them backwards in the direction of the uppercut
+        defender.vx = attacker.vx * 1.5;
+        defender.vy = attacker.vy * 1.5;
+        
+        // Deal a flat chunk of HP/RPM damage
+        defender.currentHp -= 4;
+        defender.currentRpm -= 20;
+        
+        // 4. Anchor the Attacker to sell the heavy impact
+        atkState.ruTimer = 0; 
+        atkState.actionState = "NORMAL";
+        atkState.visualTiltX = 0;
+        atkState.visualTiltY = 0;
+        attacker.vx *= 0.2; 
+        attacker.vy *= 0.2;
+
+        // Visual flash for the heavy hit
+        defender.activeAura = "rgba(255, 0, 0, 0.8)";
+        defender.activeAuraDuration = 400;
     },
 
     onDamageTaken: function(victim, attacker, hpDmg, rpmDmg) {
@@ -2144,6 +2252,28 @@ window.SkillEngine = {
 			attacker.tempAttack = 2;
             attacker.tempRecoilReduction = 1.5; 
             attacker.tempDefense = 20; 
+        }
+		else if (attackName === "Ridge Uppercut") {
+            let state = attacker.skillState;
+            
+            // 1. Calculate the initial direction
+            let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
+            let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
+
+            // 2. Windup: Coast backwards slightly 
+            attacker.vx = -dashX * 2;
+            attacker.vy = -dashY * 2;
+            
+            // 3. Store the actual forward direction for Phase 2
+            state.ruTargetX = dashX;
+            state.ruTargetY = dashY;
+            
+            // 4. Trigger the State Machine
+            state.actionState = "RIDGE_UPPERCUT_WINDUP";
+            state.ruTimer = 200; // 200ms reverse windup
+            
+            attacker.activeAura = "rgba(200, 200, 200, 0.6)"; // Pale grey gathering wind
+            attacker.activeAuraDuration = 200;
         }
         else if (attackName === "Cross Smash") {
             let dashX = 0; 
