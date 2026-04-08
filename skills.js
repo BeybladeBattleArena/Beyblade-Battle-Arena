@@ -1875,12 +1875,11 @@ window.SkillEngine = {
 
         // 1. Stun the defender
         defState.actionState = "AIRBORNE_STUN";
-        defState.airborneStunTimer = 300; 
+        defState.airborneStunTimer = 400; 
         defState.isAirborneStunned = true;
         
-        // 2. Pop them up on the Z-axis! 
-        // (At z=10, standard 0.5 gravity brings them down in roughly 300ms, matching the stun perfectly)
-        defState.z = 25; 
+        // 2. THE FIX: Use the native Z variable your game already understands!
+        defender.z = 25; 
         
         // 3. Shove them backwards in the direction of the uppercut
         defender.vx = attacker.vx * 1.5;
