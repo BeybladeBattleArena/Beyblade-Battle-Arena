@@ -1877,7 +1877,7 @@ window.SkillEngine = {
         
         // 2. Pop them up on the Z-axis! 
         // (At z=10, standard 0.5 gravity brings them down in roughly 300ms, matching the stun perfectly)
-        defState.z = 25; 
+        defender.z = 25; 
         
         // 3. Shove them backwards in the direction of the uppercut
         defender.vx = attacker.vx * 1.5;
