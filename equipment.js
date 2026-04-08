@@ -1814,8 +1814,8 @@ window.equipmentDB = {
                 },
                 { 
                     styleId: "SG_basic_luminia",
-                    styleName: "Left Spin Gear Red (Ifrit)", 
-                    styleColorSample: "#a9381d", 
+                    styleName: "Left Spin Gear Luminia", 
+                    styleColorSample: "#e5f2dc", 
                     styleRarity: 5,
                     image: "./images/beyblade_parts/SG/StandardSG_Left_Luminia_sideview.png", 
                     topDownImage: "./images/beyblade_parts/SG/StandardSG_Left_Luminia_topdown.png" 

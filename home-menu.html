@@ -244,6 +244,26 @@
         if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
         return part.fallbackImage || part[key] || '';
     }
+	
+	function getBuildSpinDirection(save) {
+    if (!save) return 'right';
+
+    // Check a few likely places, just in case your saved build structure varies
+    const raw =
+        save.spinDirection ??
+        save.parts?.spinDirection ??
+        save.parts?.bladeBase?.spinDirection ??
+        save.parts?.spinGear?.spinDirection ??
+        'right';
+
+    const dir = String(raw).toLowerCase().trim();
+
+    if (dir === 'left' || dir === 'l' || dir === 'ccw' || dir === 'counterclockwise') {
+        return 'left';
+    }
+
+    return 'right';
+	}
 
     window.renderShowcase = function() {
         const stack = document.getElementById('hub-bey-stack');
@@ -259,6 +279,10 @@
             return;
         }
 
+		// Set spin direction for the showcase
+		const spinDirection = getBuildSpinDirection(currentSave);
+		stack.style.animationDirection = (spinDirection === 'left') ? 'reverse' : 'normal';
+		
         // Limit name to 20 chars
         let displayName = currentSave.name || `Build ${activeSaveIndex + 1}`;
         if (displayName.length > 20) displayName = displayName.substring(0, 20) + "...";

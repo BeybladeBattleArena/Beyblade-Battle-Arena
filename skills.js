@@ -140,13 +140,6 @@ window.SkillsDB = {
             desc: "Self-bounce is reduced slightly on clean, direct hits to the opponent.",
             apply: function(bey) {}
         },
-        "Sour Saucer": {
-            name: "Sour Saucer",
-            desc: "A bizarre center of gravity grants +8 Grip, but creates highly unpredictable movement patterns. In addition, collision with an enemy temporarily reduces the enemy's Recoil Reduction by 6%.",
-            apply: function(bey) {
-                bey.stats.grip = (bey.stats.grip || 0) + 8;
-            }
-        },
         "Hyper Aggression": {
             name: "Hyper Aggression",
             desc: "While current RPM is above 80%, gain a 10% boost to Attack and an 8% boost to Speed, but reduce Defense by 8%.",
@@ -196,7 +189,93 @@ window.SkillsDB = {
             desc: "For Boss Beys, they are hostile.",
             apply: function(bey) {} 
         },
-
+		
+		// -- Attack Ring Passives --
+		"Bite Point": {
+            name: "Bite Point",
+            desc: "The blade features aggressive contact points. Imparts +3 Recoil permanently. Clean, direct hits deal an additional 8% HP damage.",
+            apply: function(bey) {}
+        },
+		"Ramping Edge": {
+            name: "Ramping Edge",
+            desc: "The slope of the blade's contact points works well for lifting opponents from below. Increases Upper Attack's HP and RPM damage by 2%, and increases the chance of destabilizing the opponent by 7%.",
+            apply: function(bey) {}
+        },
+		"Slip Face Edge": {
+            name: "Slip Face Edge",
+            desc: "The blade features a smooth, curving face. Gain an additional 5% Recoil Reduction and 3% Knockback Resistance during glancing collisions.",
+            apply: function(bey) {}
+        },
+		
+		// -- Weight Disk Passives --
+		"Outer Flywheel": {
+            name: "Outer Flywheel",
+            desc: "While RPM is above 65% of maximum, the outer weight distribution grants +4 Endurance, +2 Stamina, and 10% Knockback Resistance, but decreases Mobility by 2.",
+            apply: function(bey) {}
+        },
+		"Sour Saucer": {
+            name: "Sour Saucer",
+            desc: "A bizarre center of gravity grants +8 Grip, but creates highly unpredictable movement patterns. In addition, collision with an enemy temporarily reduces the enemy's Recoil Reduction by 6%.",
+            apply: function(bey) {
+                bey.stats.grip = (bey.stats.grip || 0) + 8;
+            }
+        },
+		"Settled Axis": {
+            name: "Settled Axis",
+            desc: "Every 3 seconds without a collision, the beyblade's axis settles more deeply, granting +1 Balance, +5% LAD, and +4% Endurance. This effect can stack up to 5 times, but all stacks are lost during a collision.",
+            apply: function(bey) {}
+        },
+		"Weighted Follow-Through": {
+            name: "Weighted Follow-Through",
+            desc: "When dealing a clean, direct hit to an opponent, that attack gains an additional 8% Knockback Power and your Beyblade gains an additional 12% Knockback Resistance for 2 seconds.",
+            apply: function(bey) {}
+        },
+		"Impact Governor": {
+            name: "Impact Governor",
+            desc: "When hit by an opponent's special skill or attack, instantly gain 4% Knockback Resistance and 25% HP Damage Resistance for 3 seconds. Cooldown: 22s.",
+            apply: function(bey) {}
+        },
+		"Edge Reserve": {
+            name: "Edge Reserve",
+            desc: "When the beyblade enters a wobbling state for the first time, instantly gain +12% LAD, +14% Balance, and +12% Defense for 4 seconds.",
+            apply: function(bey) {}
+        },
+		"Counterweight Balance": {
+            name: "Counterweight Balance",
+            desc: "After taking notable knockback, the beyblade's counterweights balance it out, granting +2 Mobility, +2 Stamina, and +8% Recoil Reduction for 5 seconds.",
+            apply: function(bey) {}
+        },
+		"Counterweight Shift": {
+            name: "Counterweight Shift",
+            desc: "After taking notable knockback, the beyblade's counterweights shift aggressively, granting +2 Attack, +2 Speed, and +6% Recoil Resistance for 4 seconds.",
+            apply: function(bey) {}
+        },
+		"Mass Grinder": {
+            name: "Mass Grinder",
+            desc: "The rough edges grind heavily on impact. Grants +1 Stamina. Each beyblade involved in a collision takes an additional 8% RPM damage.",
+            apply: function(bey) {}
+        },
+		"Centerweight": {
+            name: "Centerweight",
+            desc: "The beyblade's core weight provides immense stability. While occupying the stadium basin, gain +2 Defense and +3% Knockback Resistance.",
+            apply: function(bey) {}
+        },
+		"Catch Deflector": {
+            name: "Catch Deflector",
+            desc: "The beyblade's outermost curvature catches and deflects glancing blows. Off-center collisions deal 10% less RPM damage to this beyblade.",
+            apply: function(bey) {}
+        },
+		"Dead-Spin Bias": {
+            name: "Dead-Spin Bias",
+            desc: "As RPM falls below 50%, the weight distribution shifts to prioritize survival. Gain 9% LAD and +3 Endurance, but lose 2 Attack.",
+            apply: function(bey) {} // Logic handled in the active update loop
+        },
+		"Weighted Rage": {
+            name: "Weighted Rage",
+            desc: "As momentum fails, the beyblade sacrifices stability for pure aggression. When RPM falls below 50%, gain +2 Attack, +2 Speed, +1 Mobility, and +4% Knockback Resistance, but lose 1 Defense, 2 Balance, and 3 Endurance.",
+            apply: function(bey) {} // Logic handled in the active update loop
+        },
+		
         // --- LAUNCHER & TOOL MODIFIERS ---
         "Launcher: RPM Boost": {
             name: "Launcher: RPM Boost",
@@ -409,6 +488,7 @@ window.SkillEngine = {
 				rdEndBonus: 0,
 				cycloneTimer: 0,
 				cycloneTotalTime: 0,
+				upperattackDebuffTimer: 0,
 				tpTimer: 0,
 				tpTargetX: 0,
 				tpTargetY: 0,
@@ -466,10 +546,43 @@ window.SkillEngine = {
                 isAirborneStunned: false,
                 visualTiltX: 0, // Your renderer can read these to tilt the sprite!
                 visualTiltY: 0,
+				
+				bpTimer: 0,
+                bpActive: false,
+				rampingEdgeTimer: 0,
+                rampingEdgeActive: false,
+				sfeTimer: 0,
+                sfeActive: false,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
                 sourDebuffAmount: 0,
+				ofActive: false,
+				saStacks: 0,
+                saBalTotal: 0,
+                saLadTotal: 0,
+                saEndTotal: 0,
+				wftTimer: 0,
+                wftActive: false,
+				igCd: 0,
+                igTimer: 0,
+                igActive: false,
+				erUsed: false,
+                erActive: false,
+                erTimer: 0,
+                erBalBonus: 0,
+                erDefBonus: 0,
+				cwbTimer: 0,
+                cwbActive: false,
+				cwsTimer: 0,
+                cwsActive: false,
+                mgTimer: 0,
+                mgActive: false,
+				cwActive: false,
+				catchdeflectTimer: 0,
+                catchdeflectdActive: false,
+				dsbActive: false,
+				wrActive: false,
                 
 				bossHostilityAuraTimer: 0,
 				
@@ -491,6 +604,19 @@ window.SkillEngine = {
                     bey.stats.stamina += (bey.stats.stamina || 0) * 0.03;
                     bey.stats.endurance += (bey.stats.endurance || 0) * 0.04;
                 }
+				// --- PASSIVE: Bite Point (Constant Stat) ---
+                if (bey.passives && bey.passives.includes("Bite Point")) {
+                    bey.stats.recoil = (bey.stats.recoil || 0) + 3;
+                }
+				// --- PASSIVE: Ramping Edge (Constant Stat) ---
+                if (bey.passives && bey.passives.includes("Ramping Edge")) {
+                    bey.stats.statusInflictChance = (bey.stats.statusInflictChance || 0) + 0.07;
+                }
+				// --- PASSIVE: Mass Grinder (Constant Stat) ---
+				if (bey.passives && bey.passives.includes("Mass Grinder")) {
+                    bey.stats.stamina = (bey.stats.stamina || 0) + 1;
+                }
+				
 				// NEW: Pace Control 15-Second Wind Up!
                 if (bey.passives.includes("Pace Control")) {
                     bey.skillState.pcTimer = 15000; // 15 seconds
@@ -721,6 +847,49 @@ window.SkillEngine = {
                     }
                 }
 				
+				// --- ACTIVE SKILL HIT: Upper Attack ---
+                if (bey.skillState.actionState === "UPPER_DASHING") {
+                    
+                    // 1. Calculate heading to ensure it is a clean, direct hit
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+                    let myHeading = ((bey.vx/mySpeed) * (dx/dist)) + ((bey.vy/mySpeed) * (dy/dist));
+                    
+                    // 2. Direct hit threshold (> 0.75)
+                    if (myHeading > 0.75) {
+                        
+                        // 1. PASSIVE TRIGGER: Ramping Edge (2% Damage Multiplier)
+                        if (bey.passives && bey.passives.includes("Ramping Edge")) {
+                            state.rampingEdgeTimer = 200; // Keep the damage amp active for the collision frame
+                            
+                            if (!state.rampingEdgeActive) {
+                                // Shred 0.02 resistance = +2% Damage Taken!
+                                opponent.stats.hpDamageResist = (opponent.stats.hpDamageResist || 0) - 0.02;
+                                opponent.stats.rpmDamageResist = (opponent.stats.rpmDamageResist || 0) - 0.02;
+                                state.rampingEdgeActive = true;
+                            }
+                        }
+                        
+                        // 3. Roll the 20% Chance! (Math.random() returns a decimal between 0.0 and 1.0)
+                        let baseChance = 0.20; // Native 20% chance
+                        let bonusChance = bey.stats.statusInflictChance || 0; // Grab any passive bonuses
+                        let finalChance = baseChance + bonusChance;
+                            if (Math.random() < finalChance) {
+                            opponent.skillState.upperattackDebuffTimer = 2000; // Apply the 2-second debuff to the opponent
+                            
+                            // Visual cue: A sickly purple/green flash on the opponent to show their balance was corrupted!
+                            opponent.activeAura = "rgba(138, 43, 226, 0.8)"; // BlueViolet
+                            opponent.activeAuraDuration = 400;
+                        }
+                    }
+                    
+                    // Always reset the state on impact so we don't accidentally proc this twice in one hit!
+                    bey.skillState.actionState = "NORMAL";
+                }
+				
 				// PASSIVE: Redirection
                 if (bey.passives && bey.passives.includes("Redirection")) {
                     
@@ -870,6 +1039,232 @@ window.SkillEngine = {
                             
                             // Flash a swift, elusive blue aura to show the graze
                             bey.activeAura = "rgba(0, 100, 255, 0.6)";
+                            bey.activeAuraDuration = 200;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Bite Point (Collision Effect)
+                if (bey.passives && bey.passives.includes("Bite Point")) {
+                    
+                    // 1. Calculate distance and angle to the opponent
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate our heading
+                    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+                    let myHeading = ((bey.vx/mySpeed) * (dx/dist)) + ((bey.vy/mySpeed) * (dy/dist));
+                    
+                    // 3. If heading > 0.75, it's a clean, driving forward hit!
+                    if (myHeading > 0.75) {
+                        
+                        // Keep the damage multiplier active for the exact moment of collision
+                        state.bpTimer = 200; 
+                        
+                        if (!state.bpActive) {
+                            // Subtract 0.08 from the opponent's resistance. 
+                            // This translates perfectly to taking +8% HP Damage!
+                            opponent.stats.hpDamageResist = (opponent.stats.hpDamageResist || 0) - 0.08;
+                            
+                            state.bpActive = true;
+                            
+                            // Visual cue: A savage, tearing crimson flash to show the bite connecting
+                            bey.activeAura = "rgba(139, 0, 0, 0.8)"; // DarkRed
+                            bey.activeAuraDuration = 250;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Weighted Follow-Through
+                if (bey.passives && bey.passives.includes("Weighted Follow-Through")) {
+                    
+                    // 1. Calculate distance and angle to the opponent
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate our heading
+                    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+                    let myHeading = ((bey.vx/mySpeed) * (dx/dist)) + ((bey.vy/mySpeed) * (dy/dist));
+                    
+                    // 3. If heading > 0.75, it's a clean, driving forward hit!
+                    if (myHeading > 0.75) {
+                        
+                        // ALWAYS refresh the 2-second timer on a clean hit
+                        state.wftTimer = 2000; 
+                        
+                        if (!state.wftActive) {
+                            // Apply the buffs! (+8% KB Power, +12% KB Resist)
+                            bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.08;
+                            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.12;
+                            state.wftActive = true;
+                            
+                            // Visual cue: A dense, heavy iron-grey flash to sell the weight of the impact
+                            bey.activeAura = "rgba(105, 105, 105, 0.8)";
+                            bey.activeAuraDuration = 300;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Counterweight Balance
+                if (bey.passives && bey.passives.includes("Counterweight Balance")) {
+                    
+                    // Measure how fast we are moving immediately after the impact
+                    let knockbackSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+                    
+                    // If the speed is greater than 8, it was a heavy, "notable" knockback!
+                    if (knockbackSpeed > 5) {
+                        
+                        // ALWAYS refresh the timer if we keep taking heavy hits
+                        state.cwbTimer = 5000; 
+                        
+                        if (!state.cwbActive) {
+                            // Apply the buffs! (+2 Mobility, +2 Stamina, +8 Recoil Reduction)
+                            bey.stats.mobility = (bey.stats.mobility || 0) + 2;
+                            bey.stats.stamina = (bey.stats.stamina || 0) + 2;
+                            bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) + 8;
+                            
+                            state.cwbActive = true;
+                            
+                            // Visual cue: A deep, stabilizing indigo/purple aura
+                            bey.activeAura = "rgba(75, 0, 130, 0.8)";
+                            bey.activeAuraDuration = 400;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Counterweight Shift
+                if (bey.passives && bey.passives.includes("Counterweight Shift")) {
+                    
+                    // Measure how fast we are moving immediately after the impact
+                    let knockbackSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+                    
+                    // Using your confirmed threshold of 5!
+                    if (knockbackSpeed > 5) {
+                        
+                        // ALWAYS refresh the timer if we keep taking heavy hits
+                        state.cwsTimer = 4000; // 4 seconds
+                        
+                        if (!state.cwsActive) {
+                            // Apply the aggressive buffs! (+2 Attack, +2 Speed, +6 Recoil Reduction)
+                            bey.stats.attack = (bey.stats.attack || 0) + 2;
+                            bey.stats.speed = (bey.stats.speed || 0) + 2; // (Change to mobility if that is your engine's stat!)
+                            bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) + 6;
+                            
+                            state.cwsActive = true;
+                            
+                            // Visual cue: A sharp, aggressive crimson/red aura
+                            bey.activeAura = "rgba(220, 20, 60, 0.8)";
+                            bey.activeAuraDuration = 400;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Impact Governor
+                if (bey.passives && bey.passives.includes("Impact Governor")) {
+                    
+                    // Check if the skill is off cooldown AND the opponent is using a special move!
+                    // (Any actionState other than NORMAL means they are actively executing a skill)
+                    if (state.igCd <= 0 && opponent.skillState.actionState !== "NORMAL" && opponent.skillState.actionState !== "AIRBORNE_STUN") {
+                        
+                        state.igTimer = 3000; // Provide 3 seconds of heavy protection
+                        state.igCd = 22000;   // Start the 22-second cooldown
+                        
+                        if (!state.igActive) {
+                            // Apply the buffs! (+4% KB Resist, +25% HP Damage Resist)
+                            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.04;
+                            bey.stats.hpDamageResist = (bey.stats.hpDamageResist || 0) + 0.25; 
+                            
+                            state.igActive = true;
+                            
+                            // Visual cue: A sudden, unyielding gold/yellow shield
+                            bey.activeAura = "rgba(255, 215, 0, 0.9)";
+                            bey.activeAuraDuration = 500;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Mass Grinder (Collision Effect)
+                if (bey.passives && bey.passives.includes("Mass Grinder")) {
+                    
+                    // Refresh the timer on every single frame they are touching
+                    state.mgTimer = 200; // 200ms is just enough time for the onCollision hit to process
+                    
+                    if (!state.mgActive) {
+                        // Subtract 0.08 from BOTH beyblades' resistance. 
+                        // Because of your math (1 - resist), this perfectly translates to +8% damage taken!
+                        bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) - 0.08;
+                        opponent.stats.rpmDamageResist = (opponent.stats.rpmDamageResist || 0) - 0.08;
+                        
+                        state.mgActive = true;
+                        
+                        // Visual cue: A harsh, grating orange/white aura to simulate sparks flying off the jagged edges
+                        bey.activeAura = "rgba(255, 140, 0, 0.6)";
+                        bey.activeAuraDuration = 200;
+                    }
+                }
+				
+				// PASSIVE: Slip Face Edge
+                if (bey.passives && bey.passives.includes("Slip Face Edge")) {
+                    
+                    // 1. Calculate the vector pointing FROM the opponent TO us
+                    let dx = bey.x - opponent.x;
+                    let dy = bey.y - opponent.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate the opponent's actual travel heading
+                    let oppSpeed = Math.max(0.1, Math.sqrt(opponent.vx**2 + opponent.vy**2));
+                    let oppHeading = ((opponent.vx/oppSpeed) * (dx/dist)) + ((opponent.vy/oppSpeed) * (dy/dist));
+                    
+                    // 3. A heading below 0.85 means it's an off-center, glancing blow!
+                    if (oppHeading < 0.85) {
+                        
+                        // Keep the shield active for the exact moment of collision
+                        state.sfeTimer = 200; 
+                        
+                        if (!state.sfeActive) {
+                            // Apply the buffs! (+5 Recoil Reduction, +3% KB Resist)
+                            // (Recoil Reduction uses flat numbers for percentages, KB Resist uses decimals)
+                            bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) + 5;
+                            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.03;
+                            
+                            state.sfeActive = true;
+                            
+                            // Visual cue: A smooth, sweeping silver/white flash 
+                            bey.activeAura = "rgba(192, 192, 192, 0.8)"; // Silver
+                            bey.activeAuraDuration = 200;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Catch Deflector
+                if (bey.passives && bey.passives.includes("Catch Deflector")) {
+                    
+                    // 1. Calculate the vector pointing FROM the opponent TO us
+                    let dx = bey.x - opponent.x;
+                    let dy = bey.y - opponent.y;
+                    let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                    
+                    // 2. Calculate the opponent's actual travel heading
+                    let oppSpeed = Math.max(0.1, Math.sqrt(opponent.vx**2 + opponent.vy**2));
+                    let oppHeading = ((opponent.vx/oppSpeed) * (dx/dist)) + ((opponent.vy/oppSpeed) * (dy/dist));
+                    
+                    // 3. A heading of 1.0 means they hit us dead-center. 
+                    // Anything below 0.85 means they hit us off-center or grazed the side!
+                    if (oppHeading < 0.85) {
+                        
+                        // Keep the shield active for the exact moment of collision
+                        state.catchdeflectTimer = 200; 
+                        
+                        if (!state.cdActive) {
+                            // Apply the buff! (+10% RPM Damage Resistance)
+                            bey.stats.rpmDamageResist = (bey.stats.rpmDamageResist || 0) + 0.10;
+                            
+                            state.catchdeflectActive = true;
+                            
+                            // Visual cue: A brief, sharp cyan flash to represent a deflected spark
+                            bey.activeAura = "rgba(0, 255, 255, 0.7)";
                             bey.activeAuraDuration = 200;
                         }
                     }
@@ -1046,6 +1441,15 @@ window.SkillEngine = {
                 }
             }
 			
+			// --- FORCED WOBBLE DEBUFF (Upper Attack) ---
+            if (state.upperattackDebuffTimer > 0) {
+                state.upperattackDebuffTimer -= dt;
+                
+                // Artificially crank the wobble factor while the debuff is active!
+                // Using Math.max ensures we don't accidentally lower their natural wobble if they are already dying.
+                bey.wobbleFactor = Math.max(bey.wobbleFactor || 0, 0.65); 
+            }
+			
 			// --- REVENGEANCE TIMERS & CLEANUP ---
             if (state.revWindowTimer > 0) {
                 state.revWindowTimer -= dt;
@@ -1072,6 +1476,148 @@ window.SkillEngine = {
                     bey.stats.recoilReduction -= state.ffRecBonus;
                     
                     state.feralActive = false;
+                }
+            }
+			
+			// --- WEIGHTED FOLLOW-THROUGH CLEANUP ---
+            if (state.wftTimer > 0) {
+                state.wftTimer -= dt;
+                
+                // When 2 seconds pass, strip the exact stats away
+                if (state.wftTimer <= 0 && state.wftActive) {
+                    bey.stats.knockbackPower -= 0.08;
+                    bey.stats.knockbackResist -= 0.12;
+                    state.wftActive = false;
+                }
+            }
+			
+			// --- RAMPING EDGE CLEANUP ---
+            if (state.rampingEdgeTimer > 0) {
+                state.rampingEdgeTimer -= dt;
+                
+                // When they bounce off and the micro-timer ends, remove the damage multiplier
+                if (state.rampingEdgeTimer <= 0 && state.rampingEdgeActive) {
+                    
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.hpDamageResist += 0.02;
+                    enemy.stats.rpmDamageResist += 0.02;
+                    
+                    state.rampingEdgeActive = false;
+                }
+            }
+			
+			// --- COUNTERWEIGHT BALANCE CLEANUP ---
+            if (state.cwbTimer > 0) {
+                state.cwbTimer -= dt;
+                
+                // When 5 seconds pass, strip the exact stats away
+                if (state.cwbTimer <= 0 && state.cwbActive) {
+                    bey.stats.mobility -= 2;
+                    bey.stats.stamina -= 2;
+                    bey.stats.recoilReduction -= 8;
+                    
+                    state.cwbActive = false;
+                }
+            }
+			
+			// --- COUNTERWEIGHT SHIFT CLEANUP ---
+            if (state.cwsTimer > 0) {
+                state.cwsTimer -= dt;
+                
+                // When 4 seconds pass, strip the exact stats away
+                if (state.cwsTimer <= 0 && state.cwsActive) {
+                    bey.stats.attack -= 2;
+                    bey.stats.speed -= 2;
+                    bey.stats.recoilReduction -= 6;
+                    
+                    state.cwsActive = false;
+                }
+            }
+			
+			// --- IMPACT GOVERNOR CLEANUP ---
+            if (state.igCd > 0) {
+                state.igCd -= dt;
+            }
+            
+            if (state.igTimer > 0) {
+                state.igTimer -= dt;
+                
+                // When the 3-second protection window ends, strip the stats away
+                if (state.igTimer <= 0 && state.igActive) {
+                    bey.stats.knockbackResist -= 0.04;
+                    bey.stats.hpDamageResist -= 0.25;
+                    state.igActive = false;
+                }
+            }
+			
+			// --- MASS GRINDER CLEANUP ---
+            if (state.mgTimer > 0) {
+                state.mgTimer -= dt;
+                
+                // When they separate and the 200ms timer ends, remove the grinding penalty
+                if (state.mgTimer <= 0 && state.mgActive) {
+                    
+                    // 1. Restore our own resistance
+                    bey.stats.rpmDamageResist += 0.08;
+                    
+                    // 2. Safely find the opponent and restore their resistance too
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.rpmDamageResist += 0.08;
+                    
+                    state.mgActive = false;
+                }
+            }
+			
+			// --- SLIP FACE EDGE CLEANUP ---
+            if (state.sfeTimer > 0) {
+                state.sfeTimer -= dt;
+                
+                // When they bounce off and the micro-timer ends, remove the buffs
+                if (state.sfeTimer <= 0 && state.sfeActive) {
+                    bey.stats.recoilReduction -= 5;
+                    bey.stats.knockbackResist -= 0.03;
+                    
+                    state.sfeActive = false;
+                }
+            }
+			
+			// --- CATCH DEFLECTOR CLEANUP ---
+            if (state.catchdeflectTimer > 0) {
+                state.catchdeflectTimer -= dt;
+                
+                // When they bounce off and the micro-timer ends, remove the resistance
+                if (state.catchdeflectTimer <= 0 && state.catchdeflectActive) {
+                    bey.stats.rpmDamageResist -= 0.10;
+                    state.catchdeflectActive = false;
+                }
+            }
+			
+			// --- EDGE RESERVE CLEANUP ---
+            if (state.erTimer > 0) {
+                state.erTimer -= dt;
+                
+                // When 4 seconds pass, strip the exact stats away
+                if (state.erTimer <= 0 && state.erActive) {
+                    bey.stats.lad -= 0.12;
+                    bey.stats.balance -= state.erBalBonus;
+                    bey.stats.defense -= state.erDefBonus;
+                    
+                    state.erActive = false; // Turn the buff off (but erUsed remains true so it doesn't fire again!)
+                }
+            }
+			
+			// --- BITE POINT CLEANUP ---
+            if (state.bpTimer > 0) {
+                state.bpTimer -= dt;
+                
+                // When they bounce off and the micro-timer ends, remove the damage multiplier
+                if (state.bpTimer <= 0 && state.bpActive) {
+                    
+                    // Safely find the opponent and restore their resistance
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.hpDamageResist += 0.08;
+                    
+                    state.bpActive = false;
                 }
             }
 			
@@ -1389,6 +1935,209 @@ window.SkillEngine = {
                 // Optional: A faint orange wind trail while actively riding the ridge
                 if (state.rrActive && Math.random() < 0.2) {
                     bey.passiveAura = "rgba(255, 140, 0, 0.4)";
+                }
+            }
+			
+			// --- PASSIVE: Outer Flywheel ---
+            if (bey.passives && bey.passives.includes("Outer Flywheel")) {
+                let isAboveThreshold = bey.currentRpm > (bey.maxRpm * 0.65);
+                
+                if (isAboveThreshold && !state.ofActive) {
+                    // Turn it ON: Add the stats
+                    bey.stats.endurance = (bey.stats.endurance || 0) + 4;
+                    bey.stats.stamina = (bey.stats.stamina || 0) + 2;
+                    bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.10;
+                    bey.stats.mobility = (bey.stats.mobility || 0) - 2;
+                    
+                    state.ofActive = true;
+                } 
+                else if (!isAboveThreshold && state.ofActive) {
+                    // Turn it OFF: Strip the exact stats away
+                    bey.stats.endurance -= 4;
+                    bey.stats.stamina -= 2;
+                    bey.stats.knockbackResist -= 0.10;
+                    bey.stats.mobility += 2;
+                    
+                    state.ofActive = false;
+                }
+
+                // Visual Indicator: A steady, slightly oversized grey/silver ring
+                if (state.ofActive) {
+                    bey.passiveAura = "rgba(200, 200, 200, 0.4)";
+                    bey.passiveAuraSize = 0.55; // Pushes the glow slightly further out
+                }
+            }
+			
+			// --- PASSIVE: Dead-Spin Bias ---
+            if (bey.passives && bey.passives.includes("Dead-Spin Bias")) {
+                
+                // Check if our current RPM has fallen below the halfway mark
+                let isBelowThreshold = bey.currentRpm < (bey.maxRpm * 0.5);
+                
+                if (isBelowThreshold && !state.dsbActive) {
+                    // Turn it ON: Add the survival stats, drop the attack
+                    bey.stats.lad = (bey.stats.lad || 0) + 0.09;
+                    bey.stats.endurance = (bey.stats.endurance || 0) + 3;
+                    bey.stats.attack = (bey.stats.attack || 0) - 2;
+                    
+                    state.dsbActive = true;
+                } 
+                else if (!isBelowThreshold && state.dsbActive) {
+                    // Turn it OFF: (Just in case they get healed/buffed back above 50% RPM!)
+                    bey.stats.lad -= 0.09;
+                    bey.stats.endurance -= 3;
+                    bey.stats.attack += 2;
+                    
+                    state.dsbActive = false;
+                }
+
+                // Visual Indicator: A low, desperate yellow-green glow
+                if (state.dsbActive) {
+                    bey.passiveAura = "rgba(154, 205, 50, 0.4)"; // YellowGreen
+                    bey.passiveAuraSize = 0.50; 
+                }
+            }
+			
+			// --- PASSIVE: Weighted Rage ---
+            if (bey.passives && bey.passives.includes("Weighted Rage")) {
+                
+                let isBelowThreshold = bey.currentRpm < (bey.maxRpm * 0.5);
+                
+                if (isBelowThreshold && !state.wrActive) {
+                    // Turn it ON: Add the aggression stats, drop the survival stats
+                    bey.stats.attack = (bey.stats.attack || 0) + 2;
+                    bey.stats.speed = (bey.stats.speed || 0) + 2;
+                    bey.stats.mobility = (bey.stats.mobility || 0) + 1;
+                    bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.04;
+                    
+                    bey.stats.defense = (bey.stats.defense || 0) - 1;
+                    bey.stats.balance = (bey.stats.balance || 0) - 2;
+                    bey.stats.endurance = (bey.stats.endurance || 0) - 3;
+                    
+                    state.wrActive = true;
+                } 
+                else if (!isBelowThreshold && state.wrActive) {
+                    // Turn it OFF: Strip the aggression, restore the survival stats
+                    bey.stats.attack -= 2;
+                    bey.stats.speed -= 2;
+                    bey.stats.mobility -= 1;
+                    bey.stats.knockbackResist -= 0.04;
+                    
+                    bey.stats.defense += 1;
+                    bey.stats.balance += 2;
+                    bey.stats.endurance += 3;
+                    
+                    state.wrActive = false;
+                }
+
+                // Visual Indicator: A violent, throbbing red-orange aura
+                if (state.wrActive) {
+                    // Make the aura pulse rapidly to simulate a "raging" heartbeat
+                    let pulse = 0.48 + (Math.sin(Date.now() * 0.015) * 0.04); 
+                    bey.passiveAura = "rgba(255, 69, 0, 0.5)"; // OrangeRed
+                    bey.passiveAuraSize = pulse; 
+                }
+            }
+			
+			// --- PASSIVE: Centerweight ---
+            if (bey.passives && bey.passives.includes("Centerweight")) {
+                
+                // 1. Calculate how far we are from the exact center of the arena (0, 0)
+                // If your arena center is somewhere else (like 400, 300), change it to:
+                // Math.sqrt((bey.x - 400)**2 + (bey.y - 300)**2)
+                let distFromCenter = Math.sqrt(bey.x**2 + bey.y**2);
+                
+                // 2. Define the "Basin". I'm using a radius of 100 pixels. 
+                // Tweak this number to perfectly fit the visual slope of your stadium!
+                let inBasin = distFromCenter < 100; 
+                
+                if (inBasin && !state.cwActive) {
+                    // Turn it ON: Add the stats (+2 Defense, +3% KB Resist)
+                    bey.stats.defense = (bey.stats.defense || 0) + 2;
+                    bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.03;
+                    
+                    state.cwActive = true;
+                } 
+                else if (!inBasin && state.cwActive) {
+                    // Turn it OFF: They got knocked out of the center!
+                    bey.stats.defense -= 2;
+                    bey.stats.knockbackResist -= 0.03;
+                    
+                    state.cwActive = false;
+                }
+
+                // 3. Visual Indicator: A dense, heavy blue ring pulled tight to the core
+                if (state.cwActive) {
+                    bey.passiveAura = "rgba(0, 0, 139, 0.4)"; // Deep dark blue
+                    bey.passiveAuraSize = 0.40; // Notice this is smaller than your default 0.48, representing center gravity!
+                }
+            }
+			
+			// --- PASSIVE: Edge Reserve ---
+            if (bey.passives && bey.passives.includes("Edge Reserve")) {
+                
+                // Trigger only if wobbling AND we haven't used this passive yet this match
+                if (bey.wobbleFactor > 0 && !state.erUsed) {
+                    
+                    state.erUsed = true;
+                    state.erActive = true;
+                    state.erTimer = 4000; // 4 seconds of survival time
+                    
+                    // 1. Calculate the percentage-based bonuses from their base stats
+                    let baseBal = bey.stats.balance || 0;
+                    let baseDef = bey.stats.defense || 0;
+                    
+                    state.erBalBonus = baseBal * 0.14; // 14% of current balance
+                    state.erDefBonus = baseDef * 0.12; // 12% of current defense
+                    
+                    // 2. Apply the buffs!
+                    bey.stats.lad = (bey.stats.lad || 0) + 0.12;
+                    bey.stats.balance += state.erBalBonus;
+                    bey.stats.defense += state.erDefBonus;
+                    
+                    // 3. Visual cue: A bright, sparking lime-green/yellow flash of sudden energy
+                    bey.activeAura = "rgba(173, 255, 47, 0.9)"; 
+                    bey.activeAuraDuration = 800; // A slightly longer flash so the player notices it!
+                }
+            }
+			
+			// --- PASSIVE: Settled Axis ---
+            if (bey.passives && bey.passives.includes("Settled Axis")) {
+                
+                // 1. Calculate how many stacks we SHOULD have right now (1 stack per 3000ms, max 5)
+                let targetStacks = Math.min(5, Math.floor(state.timeSinceCollision / 3000));
+                
+                // 2. Did our stack count change? (Either we gained one over time, or we hit 0 from a collision!)
+                if (targetStacks !== state.saStacks) {
+                    
+                    // A. Strip away whatever buffs we currently have applied
+                    bey.stats.balance = (bey.stats.balance || 0) - state.saBalTotal;
+                    bey.stats.lad = (bey.stats.lad || 0) - state.saLadTotal;
+                    bey.stats.endurance = (bey.stats.endurance || 0) - state.saEndTotal;
+                    
+                    // B. Calculate the new buffs based on the new stack count
+                    let baseEnd = (bey.stats.endurance || 0); // Grab the true base endurance
+                    
+                    state.saBalTotal = targetStacks * 1;
+                    state.saLadTotal = targetStacks * 0.05;
+                    state.saEndTotal = baseEnd * (0.04 * targetStacks); // 4% per stack
+                    
+                    // C. Apply the new buffs!
+                    bey.stats.balance += state.saBalTotal;
+                    bey.stats.lad += state.saLadTotal;
+                    bey.stats.endurance += state.saEndTotal;
+                    
+                    // D. Update our current stack count
+                    state.saStacks = targetStacks;
+                }
+                
+                // 3. Visual Indicator: A serene, stabilizing cyan aura that pulses faster with more stacks
+                if (state.saStacks > 0) {
+                    // The higher the stacks, the more likely the aura is to draw on this frame
+                    if (Math.random() < 0.1 * state.saStacks) {
+                        bey.passiveAura = "rgba(0, 255, 255, 0.3)";
+                        bey.passiveAuraSize = 0.48 + (state.saStacks * 0.02); // Aura physically grows as it stacks!
+                    }
                 }
             }
             

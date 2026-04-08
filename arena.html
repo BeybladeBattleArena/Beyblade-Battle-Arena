@@ -2845,9 +2845,20 @@
                 let cDmgToP_HP = Math.max(0.5, (cAtk * 0.5) + (impactSpeed * 1.0) - (pDef * 0.4));
                 let cDmgToP_RPM = Math.max(1.0, (cAtk * impactSpeed * 0.3) - (pEnd * 0.8));
 
-                playerBey.currentHp -= cDmgToP_HP; playerBey.currentRpm -= cDmgToP_RPM * (1 - safeNum(playerBey.stats.rpmDamageResist, 0));
-                cpuBey.currentHp -= pDmgToC_HP; cpuBey.currentRpm -= pDmgToC_RPM * (1 - safeNum(cpuBey.stats.rpmDamageResist, 0));
-                matchStats.totalDamageDealt += pDmgToC_HP;
+                // 1. Calculate the actual damage AFTER the opponent's resistance is applied
+				let finalDamageToCpu = pDmgToC_HP * (1 - safeNum(cpuBey.stats.hpDamageResist, 0));
+				let finalDamageToPlayer = cDmgToP_HP * (1 - safeNum(playerBey.stats.hpDamageResist, 0));
+
+				// 2. Subtract that final damage from the HP pools
+				playerBey.currentHp -= finalDamageToPlayer;
+				cpuBey.currentHp -= finalDamageToCpu;
+
+				// 3. Apply the RPM damage (Exactly how you already had it)
+				playerBey.currentRpm -= cDmgToP_RPM * (1 - safeNum(playerBey.stats.rpmDamageResist, 0));
+				cpuBey.currentRpm -= pDmgToC_RPM * (1 - safeNum(cpuBey.stats.rpmDamageResist, 0));
+
+				// 4. Update the match stats with the TRUE damage you dealt!
+				matchStats.totalDamageDealt += finalDamageToCpu;
 
                 let pRecoilStat = safeNum(playerBey.stats.recoil, 0); let pRecoilReduc = safeNum(playerBey.stats.recoilReduction, 0) + safeNum(playerBey.tempRecoilReduction, 0);
                 let cRecoilStat = safeNum(cpuBey.stats.recoil, 0); let cRecoilReduc = safeNum(cpuBey.stats.recoilReduction, 0) + safeNum(cpuBey.tempRecoilReduction, 0);
