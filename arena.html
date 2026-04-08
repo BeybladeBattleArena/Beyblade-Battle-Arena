@@ -2953,17 +2953,14 @@
             }
 
             let renderZ = bey.z || 0;
-            let scale = 1 + (renderZ * 0.003); 
             let skillZ = (bey.skillState && bey.skillState.z) ? bey.skillState.z : 0;
-            if (skillZ > 0) scale += skillZ * 0.03; 
-            
+            let totalZ = renderZ + skillZ;
+
+            let scale = 1 + (totalZ * 0.003); 
             let activeVisualRadius = bey.visualRadius || bey.radius;
             let renderSize = activeVisualRadius * 8.0 * scale;
 
-            // 2. CREATE 'totalZ' FOR THE SHADOW AND THE LIFT
-            let totalZ = renderZ + skillZ;
-
-            // 3. YOUR ORIGINAL SHADOW CODE (Safely updated to use totalZ)
+            // 2. DRAW THE SHADOW ON THE FLOOR
             if (totalZ > 0) {
                 ctx.save();
                 ctx.beginPath();
@@ -2974,14 +2971,14 @@
                 ctx.restore();
             }
 
-            // --- 4. THE NEW LIFT AND TILT SECTION ---
-            ctx.save(); // Lock the canvas so we don't break the rest of the game
+            // 3. MAIN BEYBLADE RENDERING BLOCK
+            ctx.save(); // Lock the canvas for this Beyblade
 
-            // A. Lift the image UP on the screen based on totalZ
+            // A. Combine your Wobble and the Uppercut visual lift into ONE translation!
             let visualLift = totalZ * 1.5; 
-            ctx.translate(bey.x, bey.y - visualLift);
+            ctx.translate(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY - visualLift);
 
-            // B. Apply the Uppercut Tilt (if it's happening)
+            // B. Apply the Uppercut Tilt (if active)
             if (bey.skillState) {
                 let tiltX = bey.skillState.visualTiltX || 0;
                 let tiltY = bey.skillState.visualTiltY || 0;
@@ -2990,10 +2987,9 @@
                 }
             }
 
-            ctx.save();
-            ctx.translate(bey.x + wobbleOffsetX, bey.y + wobbleOffsetY - renderZ);
-			if (bey.opacity !== undefined) ctx.globalAlpha = bey.opacity;
-			if (bey.scale !== undefined) ctx.scale(bey.scale, bey.scale);
+            // C. Apply existing Opacity and Scale checks
+            if (bey.opacity !== undefined) ctx.globalAlpha = bey.opacity;
+            if (bey.scale !== undefined) ctx.scale(bey.scale, bey.scale);
             
             let rpmRatio = bey.maxRpm > 0 ? bey.currentRpm / bey.maxRpm : 0;
             let windFactor = 0;
