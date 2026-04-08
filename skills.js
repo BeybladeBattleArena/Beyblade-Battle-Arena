@@ -169,9 +169,9 @@ window.SkillsDB = {
         },
         "Centrifugal Synergy": {
             name: "Centrifugal Synergy",
-            desc: "The dual-axis spin grants exceptional stability, increasing Endurance by 8.",
+            desc: "The centered spin force grants exceptional stability, increasing Endurance by 5.",
             apply: function(bey) {
-                bey.stats.endurance = (bey.stats.endurance || 0) + 8;
+                bey.stats.endurance = (bey.stats.endurance || 0) + 5;
             }
         },
         "Ball Bearing Stabilizer": {
