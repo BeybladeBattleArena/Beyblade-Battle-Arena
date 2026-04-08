@@ -1625,6 +1625,47 @@ window.SkillEngine = {
                     state.actionState = "NORMAL";
                 }
             }
+			
+			// --- EXTREME SPEED PHYSICS & AFTER-IMAGES ---
+            if (state.actionState === "EXTREME_SPEED_DASH") {
+                state.esDashTimer -= dt;
+
+                // SPAWN AFTER-IMAGES!
+                // We drop a phantom clone roughly every frame or two while dashing
+                if (Math.random() < 0.6 && window.particles) {
+                    window.particles.push({
+                        x: bey.x, 
+                        y: bey.y,
+                        vx: 0, vy: 0, // After-images stand completely still
+                        life: 1.0, 
+                        decay: 0.08, // Fade out very quickly like a ghost
+                        color: 'rgba(200, 200, 255, 0.5)', // Ghostly pale blue/white
+                        // Make the particle the exact size of the Beyblade to look like a clone!
+                        size: bey.visualRadius || bey.radius || 15 
+                    });
+                }
+
+                // Phase 1 Over: Slam the Brakes!
+                if (state.esDashTimer <= 0) {
+                    state.actionState = "EXTREME_SPEED_STOP";
+                    bey.vx = 0;
+                    bey.vy = 0;
+                }
+            } 
+            else if (state.actionState === "EXTREME_SPEED_STOP") {
+                // Phase 2: The Anchor
+                // Force velocity to 0 every frame so impacts don't move it while anchored
+                bey.vx = 0;
+                bey.vy = 0;
+                
+                state.esStopTimer -= dt;
+
+                // Time's up! Return to normal physics
+                if (state.esStopTimer <= 0) {
+                    state.actionState = "NORMAL";
+                }
+            }
+			
 
             // --- AERIAL LANCE (Hang Time & Plunge) ---
             if (state.actionState === "AIRBORNE_LANCE") {
@@ -1851,46 +1892,6 @@ window.SkillEngine = {
                 state.airLanceTimer = 2000; 
             }, 300);
         }
-		
-		// --- EXTREME SPEED PHYSICS & AFTER-IMAGES ---
-            if (state.actionState === "EXTREME_SPEED_DASH") {
-                state.esDashTimer -= dt;
-
-                // SPAWN AFTER-IMAGES!
-                // We drop a phantom clone roughly every frame or two while dashing
-                if (Math.random() < 0.6 && window.particles) {
-                    window.particles.push({
-                        x: bey.x, 
-                        y: bey.y,
-                        vx: 0, vy: 0, // After-images stand completely still
-                        life: 1.0, 
-                        decay: 0.08, // Fade out very quickly like a ghost
-                        color: 'rgba(200, 200, 255, 0.5)', // Ghostly pale blue/white
-                        // Make the particle the exact size of the Beyblade to look like a clone!
-                        size: bey.visualRadius || bey.radius || 15 
-                    });
-                }
-
-                // Phase 1 Over: Slam the Brakes!
-                if (state.esDashTimer <= 0) {
-                    state.actionState = "EXTREME_SPEED_STOP";
-                    bey.vx = 0;
-                    bey.vy = 0;
-                }
-            } 
-            else if (state.actionState === "EXTREME_SPEED_STOP") {
-                // Phase 2: The Anchor
-                // Force velocity to 0 every frame so impacts don't move it while anchored
-                bey.vx = 0;
-                bey.vy = 0;
-                
-                state.esStopTimer -= dt;
-
-                // Time's up! Return to normal physics
-                if (state.esStopTimer <= 0) {
-                    state.actionState = "NORMAL";
-                }
-            }
 		
 		else if (attackName === "Phantom Warp") {
             let state = attacker.skillState;
