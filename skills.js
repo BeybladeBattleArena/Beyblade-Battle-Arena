@@ -573,6 +573,7 @@ window.SkillEngine = {
                 ruTargetX: 0,
                 ruTargetY: 0,
                 airborneStunTimer: 0,
+				airborneStunTotal: 0,
                 isAirborneStunned: false,
                 visualTiltX: 0, // Your renderer can read these to tilt the sprite!
                 visualTiltY: 0,
@@ -2834,6 +2835,11 @@ window.SkillEngine = {
                 // By forcing the state to AIRBORNE_STUN, standard player joystick inputs 
                 // won't work on them, acting as a perfect CC (Crowd Control) stun!
 
+					const total = state.airborneStunTotal || 400;
+					const progress = 1 - Math.max(0, state.airborneStunTimer) / total;
+
+					state.z = 25 * Math.sin(progress * Math.PI);
+					
                 // Standard gravity handles the fall, but we enforce the end of the stun strictly
                 if (state.airborneStunTimer <= 0) {
                     state.actionState = "NORMAL";
@@ -2993,7 +2999,8 @@ window.SkillEngine = {
 
         // 1. Stun the defender
         defState.actionState = "AIRBORNE_STUN";
-        defState.airborneStunTimer = 400; 
+        defState.airborneStunTimer = 400;
+		defState.airborneStunTotal = 400;
         defState.isAirborneStunned = true;
         
         // 2. THE FIX: Use the native Z variable your game already understands!
