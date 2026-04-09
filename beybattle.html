@@ -399,43 +399,99 @@
     }
 
 		window.enterArena = function() {
-        // --- NEW: THE MIRROR MATCH INJECTOR ---
-        if (selectedOpponent.id === "opp_mirorbey") {
-            let pBuild = window.ActiveBey; // The player's featured build
-            
-            // Generate the total stats of the player's build
-            let mStats = { hp: 0, rpm: 0, attack: 0, recoil: 0, recoilReduction: 0, defense: 0, endurance: 0, stamina: 0, balance: 0, weight: 0, speed: 0, mobility: 0, grip: 0, spiritCharge: 0, cdr: 0 };
-            let mPassives = [];
-            let mAttacks = [];
-            let mUltimate = null;
+    // --- MIRROR MATCH INJECTOR ---
+    if (selectedOpponent.id === "opp_mirorbey") {
+        const pBuild = window.ActiveBey;
+        if (!pBuild) return;
 
-            Object.values(pBuild.parts).forEach(part => {
-                if (!part) return;
-                if (part.stats) {
-                    for (let s in part.stats) { if (mStats[s] !== undefined) mStats[s] += part.stats[s]; }
-                }
-                if (part.passives) part.passives.forEach(p => mPassives.push(p));
-                if (part.attacks) part.attacks.forEach(a => mAttacks.push(a));
-                if (part.ultimate) mUltimate = part.ultimate;
-            });
+        // Prefer the SAVED flattened build data first
+        let mStats = null;
+        let mPassives = [];
+        let mAttacks = [];
+        let mUltimate = null;
 
-            // Overwrite Miror B's data with the player's data!
-            selectedOpponent.stats = mStats;
-            selectedOpponent.passives = mPassives;
-            selectedOpponent.attacks = mAttacks;
-            selectedOpponent.ultimate = mUltimate;
-            selectedOpponent.beyName = `Miror ${pBuild.name}`;
-            
-            // Attempt to grab the Bit Beast name if it exists on the chip
-            if (pBuild.parts.bitChip && pBuild.parts.bitChip.name) {
-                selectedOpponent.bitBeast = `Miror ${pBuild.parts.bitChip.name}`;
+        if (pBuild.stats && typeof pBuild.stats === "object") {
+            // Deep copy saved flattened stats, including new stats like lad
+            mStats = JSON.parse(JSON.stringify(pBuild.stats));
+        } else {
+            // Fallback: rebuild from parts if no saved stats exist
+            mStats = {
+                hp: 0,
+                rpm: 0,
+                attack: 0,
+                recoil: 0,
+                recoilReduction: 0,
+                defense: 0,
+                endurance: 0,
+                stamina: 0,
+                balance: 0,
+                weight: 0,
+                speed: 0,
+                mobility: 0,
+                grip: 0,
+                spiritCharge: 0,
+                cdr: 0,
+                lad: 0
+            };
+
+            if (pBuild.parts) {
+                Object.values(pBuild.parts).forEach(part => {
+                    if (!part || !part.stats) return;
+                    for (let s in part.stats) {
+                        if (mStats[s] === undefined) mStats[s] = 0;
+                        mStats[s] += part.stats[s];
+                    }
+                });
             }
         }
 
-	// Save the customized opponent to the global state
-        window.ActiveOpponent = selectedOpponent; 
-        window.navigateTo('arena.html');
-    } // <-- Ends enterArena properly. (The duplicate lines that were here are gone!)
+        if (Array.isArray(pBuild.passives)) {
+            // Deep copy saved flattened passives
+            mPassives = JSON.parse(JSON.stringify(pBuild.passives));
+        } else if (pBuild.parts) {
+            Object.values(pBuild.parts).forEach(part => {
+                if (part && Array.isArray(part.passives)) {
+                    part.passives.forEach(p => mPassives.push(p));
+                }
+            });
+        }
+
+        if (Array.isArray(pBuild.attacks)) {
+            // Deep copy saved flattened attacks
+            mAttacks = JSON.parse(JSON.stringify(pBuild.attacks));
+        } else if (pBuild.parts) {
+            Object.values(pBuild.parts).forEach(part => {
+                if (part && Array.isArray(part.attacks)) {
+                    part.attacks.forEach(a => mAttacks.push(a));
+                }
+            });
+        }
+
+        if (pBuild.ultimate) {
+            mUltimate = JSON.parse(JSON.stringify(pBuild.ultimate));
+        } else if (pBuild.parts) {
+            Object.values(pBuild.parts).forEach(part => {
+                if (part && part.ultimate) {
+                    mUltimate = JSON.parse(JSON.stringify(part.ultimate));
+                }
+            });
+        }
+
+        // Overwrite Miror Bey's combat data with the player's saved build data
+        selectedOpponent.stats = mStats;
+        selectedOpponent.passives = mPassives;
+        selectedOpponent.attacks = mAttacks;
+        selectedOpponent.ultimate = mUltimate;
+        selectedOpponent.beyName = `Miror ${pBuild.name || "Bey"}`;
+
+        if (pBuild.parts && pBuild.parts.bitChip && pBuild.parts.bitChip.name) {
+            selectedOpponent.bitBeast = `Miror ${pBuild.parts.bitChip.name}`;
+        }
+    }
+
+    window.ActiveOpponent = selectedOpponent;
+    window.navigateTo('arena.html');
+} // <-- Ends enterArena properly. (The duplicate lines that were here are gone!)
 
     // ==========================================
     // --- NEW: SEAMLESS RETURN LOGIC ---

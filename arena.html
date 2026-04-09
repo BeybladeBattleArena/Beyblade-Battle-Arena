@@ -1575,28 +1575,66 @@
     }
 
     function extractBuildData() {
-        activeSkills = []; playerUltimate = null;
-        if (playerBuild.parts) {
-            const categories = { bladeBase: 'bladeBases', spinGear: 'spinGears', weightDisk: 'weightDisks', attackRing: 'attackRings', subAttackRing: 'subAttackRings', bitChip: 'bitChips' };
-            
-            Object.keys(playerBuild.parts).forEach(key => {
-                let partData = playerBuild.parts[key];
-                if (!partData) return;
-                
-                let partObj = partData;
-                let partId = typeof partData === 'string' ? partData : partData.id;
-                if (partId && window.equipmentDB && categories[key]) {
-                    let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
-                    if (found) partObj = found;
-                }
-                
-                if (partObj) {
-                    if (partObj.attacks) partObj.attacks.forEach(atk => { activeSkills.push({ name: atk.name, baseCd: atk.cd * 1000, currentCd: 0 }); });
-                    if (partObj.ultimate) playerUltimate = partObj.ultimate;
-                }
+    activeSkills = [];
+    playerUltimate = null;
+
+    // 1. Prefer saved flattened attacks on the build itself
+    if (Array.isArray(playerBuild.attacks) && playerBuild.attacks.length > 0) {
+        playerBuild.attacks.forEach(atk => {
+            if (!atk) return;
+            activeSkills.push({
+                name: atk.name,
+                baseCd: (atk.cd || 0) * 1000,
+                currentCd: 0
             });
+        });
+
+        // Optional: still allow ultimate from saved build if you ever store it there
+        if (playerBuild.ultimate) {
+            playerUltimate = playerBuild.ultimate;
         }
+
+        return;
     }
+
+    // 2. Fallback to old part-based behavior if no saved flattened attacks exist
+    if (playerBuild.parts) {
+        const categories = {
+            bladeBase: 'bladeBases',
+            spinGear: 'spinGears',
+            weightDisk: 'weightDisks',
+            attackRing: 'attackRings',
+            subAttackRing: 'subAttackRings',
+            bitChip: 'bitChips'
+        };
+
+        Object.keys(playerBuild.parts).forEach(key => {
+            let partData = playerBuild.parts[key];
+            if (!partData) return;
+
+            let partObj = partData;
+            let partId = typeof partData === 'string' ? partData : partData.id;
+
+            if (partId && window.equipmentDB && categories[key]) {
+                let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
+                if (found) partObj = found;
+            }
+
+            if (partObj) {
+                if (partObj.attacks) {
+                    partObj.attacks.forEach(atk => {
+                        activeSkills.push({
+                            name: atk.name,
+                            baseCd: atk.cd * 1000,
+                            currentCd: 0
+                        });
+                    });
+                }
+                if (partObj.ultimate) playerUltimate = partObj.ultimate;
+            }
+        });
+    }
+}
 
     function buildSkillsUI() {
     const menu = document.getElementById('skills-menu');
@@ -1952,15 +1990,32 @@
             cpuBey.activeAttacks = cpuData.attacks ? cpuData.attacks.map(a => ({ name: a.name, baseCd: a.cd * 1000, currentCd: 0 })) : [];
             cpuBey.ultimate = cpuData.ultimate || null; cpuBey.spirit = 0;
 				
-				playerBey.passives = [];
+				
 				cpuBey.passives = [];
+				playerBey.passives = [];
 
-			if (playerBuild.parts) Object.values(playerBuild.parts).forEach(part => { 
-				if (part && part.passives) part.passives.forEach(p => { 
-					if (!playerBey.passives.includes(p)) playerBey.passives.push(p);
-					if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) window.SkillsDB.passives[p].apply(playerBey); 
-				}); 
-			});
+				// Prefer saved flattened passives first
+				if (Array.isArray(playerBuild.passives) && playerBuild.passives.length > 0) {
+					playerBuild.passives.forEach(p => {
+						if (!playerBey.passives.includes(p)) playerBey.passives.push(p);
+						if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) {
+							window.SkillsDB.passives[p].apply(playerBey);
+						}
+					});
+				} 
+				// Fallback to old part-based behavior only if saved passives don't exist
+				else if (playerBuild.parts) {
+					Object.values(playerBuild.parts).forEach(part => {
+						if (part && part.passives) {
+							part.passives.forEach(p => {
+								if (!playerBey.passives.includes(p)) playerBey.passives.push(p);
+								if (window.SkillsDB.passives[p] && window.SkillsDB.passives[p].apply) {
+									window.SkillsDB.passives[p].apply(playerBey);
+								}
+							});
+						}
+					});
+				}
 
 			if (typeof cpuData !== 'undefined' && cpuData.passives) cpuData.passives.forEach(p => { 
 				if (!cpuBey.passives.includes(p)) cpuBey.passives.push(p);
