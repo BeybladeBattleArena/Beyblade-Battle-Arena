@@ -61,9 +61,11 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Starter", "Delta", "Wing", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/DeltaWing.png",  
-            stats: { attack: 21, defense: 10, endurance: 12, recoil: 14, weight: 14, recoilReduction: 5 },
+            statsRight: { attack: 22, hp: 25, defense: 7, recoil: 15, balance: 4, weight: 12, endurance: 10, stamina: 4, speed: 4, mobility: 4, recoilReduction: 3 },
+			statsLeft: { attack: 17, hp: 20, defense: 9, recoil: 10, balance: 4, weight: 12, endurance: 8, stamina: 4, speed: 4, mobility: 6, recoilReduction: 6 },
+			radius: 14,
 			passives: ["Wing Guard"], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+			attacks: [{ name: "Smash Attack", cd: 5 }, { name: "Lateral Bound", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -125,11 +127,12 @@ window.equipmentDB = {
             id: "ar_01", // Generalized ID
             name: "Cross Dragon", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Dragoon", "Cross", "Spike", "Dragon", "Spike Attack"], 
+            tags: ["Dragoon", "Cross", "Spike", "Dragon", "Spike Attack", "Bite Point", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossDragon.png", 
-            stats: { attack: 28, defense: 9, recoil: 22, weight: 10, recoilReduction: 2 },
-			passives: [], 
-			attacks: [{ name: "Spike Attack", cd: 4 }],
+            stats: { attack: 28, hp: 20, defense: 5, recoil: 22, balance: 4, weight: 10, endurance: 3, stamina: 1, mobility: 4, speed: 4 }
+			radius: 14,
+			passives: ["Bite Point"], 
+			attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -171,12 +174,12 @@ window.equipmentDB = {
             id: "ar_02", // Generalized ID
             name: "Tri-Cutter", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Tri-Cutter", "Spike", "Spike Attack"], 
+            tags: ["Tri-Cutter", "Spike", "Spike Attack", "Barrage Attack", "Twin Contact Rhythm"], 
 			fallbackImage: "./images/beyblade_parts/AR/TriCutter.png",
-            stats: { attack: 18, defense: 14, recoil: 19, weight: 9, mobility: 5, speed: 4, stamina: 2 },
+            stats: { attack: 18, hp: 25, defense: 9, recoil: 13, balance: 4, weight: 9, endurance: 4, stamina: 4, mobility: 5, speed: 4, recoilReduction: 2 },
 			radius: 13,
-			passives: [], 
-			attacks: [{ name: "Spike Attack", cd: 4 }],
+			passives: ["Twin Contact Rhythm"], 
+			attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Barrage Attack", cd: 6 }],
 						
 			//The Array of Unlockable Designs
             styles: [
@@ -210,11 +213,14 @@ window.equipmentDB = {
             id: "ar_03", // Generalized ID
             name: "Wing Cross", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Wing Cross", "Wing", "Spin Steal"], 
+            tags: ["Wing Cross", "Wing", "Slip Face Edge", "Hook Cross", "Smash Attack", "Concentrate Defense"], 
 			fallbackImage: "./images/beyblade_parts/AR/WingCross.png",
-            stats: { attack: 18, defense: 4, recoil: 18, weight: 13, mobility: 2, endurance: 3, stamina: 4 },
-			passives: ["Spin Steal"], 
-			attacks: [],
+			statsLeft:  { attack: 15, hp: 25, defense: 13, recoil: 7, balance: 3, weight: 13, endurance: 8, stamina: 6, mobility: 3, speed: 3, recoilReduction: 5 },
+			statsRight: { attack: 22, hp: 20, defense: 8, recoil: 16, balance: 3, weight: 13, endurance: 2, stamina: 4, mobility: 4, speed: 4, recoilReduction: 2 },
+			radius: 15,
+			passivesLeft: ["Slip Face Edge"],
+			passivesRight: ["Hook Cross"],			
+			attacks: [{ name: "Smash Attack", cd: 5 }, { name: "Concentrate Defense", cd: 7 }],
 						
 			//The Array of Unlockable Designs
             styles: [
@@ -240,11 +246,15 @@ window.equipmentDB = {
             id: "ar_04", // Generalized ID
             name: "Fossil Jaw", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Fossil", "Jaw", "Rex", "Smash Attack"], 
+            tags: ["Fossil", "Jaw", "Rex", "Upper Attack", "Ramping Edge", "Slip Face Edge", "Heavy Ram", "Concentrate Defense"], 
 			fallbackImage: "./images/beyblade_parts/AR/FossilJaw.png",  
-            stats: { attack: 30, defense: 7, recoil: 19, weight: 18, recoilReduction: 4, endurance: 3, speed: -2 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+			statsRight: { attack: 26, hp: 30, defense: 6, recoil: 18, balance: 2, weight: 18, endurance: 3, stamina: -2, speed: -2, mobility: 2, recoilReduction: 2 },
+			statsLeft:  { attack: 14, hp: 35, defense: 14, recoil: 8, balance: 3, weight: 18, endurance: 8, stamina: 2, speed: -2, mobility: 2, recoilReduction: 6 },
+			radius: 16,
+			passivesRight: ["Ramping Edge"],
+			passivesLeft: ["Slip Face Edge"],			
+			attacksRight: [{ name: "Upper Attack", cd: 6 }, { name: "Heavy Ram", cd: 8 }],
+			attacksLeft: [{ name: "Heavy Ram", cd: 5 }, { name: "Concentrate Defense", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -262,11 +272,15 @@ window.equipmentDB = {
             id: "ar_05", // Generalized ID
             name: "Howling Fang", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Howling", "Fang", "Upper Attack"], 
+            tags: ["Howling", "Fang", "Upper Attack", "Ramping Edge", "Twin Contact Rhythm", "Lateral Bound", "Spike Attack", "Side Swipe"], 
 			fallbackImage: "./images/beyblade_parts/AR/HowlingFang.png",  
-            stats: { attack: 26, defense: 10, recoil: 11, weight: 14, mobility: 1, recoilReduction: 4, endurance: 6, stamina: 2 },
-			passives: [], 
-			attacks: [{ name: "Upper Attack", cd: 6 }],
+			statsRight: { attack: 20, hp: 25, defense: 13, recoil: 9, balance: 5, weight: 13, endurance: 8, stamina: 3, speed: 4, mobility: 5, recoilReduction: 5 },
+			statsLeft:  { attack: 24, hp: 20, defense: 7, recoil: 14, balance: 4, weight: 13, endurance: 4, stamina: 3, speed: 4, mobility: 5, recoilReduction: 1 },
+			radius: 14,
+			passivesRight: ["Ramping Edge"],
+			passivesLeft: ["Twin Contact Rhythm"],			
+			attacksRight: [{ name: "Upper Attack", cd: 6 }, { name: "Lateral Bound", cd: 5 }],
+			attacksLeft: [{ name: "Spike Attack", cd: 4 }, { name: "Side Swipe", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -284,11 +298,12 @@ window.equipmentDB = {
             id: "ar_06", // Generalized ID
             name: "Hexa-Strike", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Hex", "Hexa", "Strike", "Hexa-Strike", "Smash Attack"], 
+            tags: ["Hex", "Hexa", "Strike", "Hexa-Strike", "Spike Attack", "Grindblade Lunge", "Bite Point"], 
 			fallbackImage: "./images/beyblade_parts/AR/HexaStrike.png",  
-            stats: { attack: 22, defense: 7, recoil: 11, weight: 14, recoilReduction: 1, endurance: 10 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            stats: { attack: 23, hp: 25, defense: 8, recoil: 13, balance: 6, weight: 14, endurance: 10, stamina: 3, speed: 4, mobility: 4, recoilReduction: 2 },
+			radius: 14,
+			passives: ["Bite Point"], 
+			attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Grindblade Lunge", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -314,11 +329,15 @@ window.equipmentDB = {
             id: "ar_07", // Generalized ID
             name: "Sandstrike", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Sand", "Strike", "Barrage Attack"], 
+            tags: ["Sand", "Strike", "Smash Attack", "Spike Attack", "Lateral Bound", "Bite Point", "Evasive Contact"], 
 			fallbackImage: "./images/beyblade_parts/AR/Sandstrike.png",  
-            stats: { attack: 21, defense: 11, recoil: 10, weight: 13, recoilReduction: 2, mobility: 5, speed: 5 },
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+   			statsRight: { attack: 26, hp: 20, defense: 6, recoil: 15, balance: 2, weight: 13, endurance: 2, stamina: 3, speed: 5, mobility: 5, recoilReduction: 1 },
+			statsLeft:  { attack: 13, hp: 25, defense: 11, recoil: 5, balance: 2, weight: 13, endurance: 10, stamina: 5, speed: 5, mobility: 5, recoilReduction: 5 },
+			radius: 14,
+			passivesRight: ["Bite Point"],
+			passivesLeft: ["Evasive Contact"],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Lateral Bound", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -336,11 +355,15 @@ window.equipmentDB = {
             id: "ar_09", // Generalized ID
             name: "Lunar Gallop", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Lunar", "Gallop", "Barrage Attack"], 
+            tags: ["Lunar", "Gallop", "Smash Attack", "Concentrate Impact", "Heavy Ram", "Chase Wing", "Hook Cross"], 
 			fallbackImage: "./images/beyblade_parts/AR/LunarGallop.png",  
-            stats: { attack: 22, defense: 9, endurance: 1, stamina: 1, recoil: 9, weight: 17, recoilReduction: 2, mobility: -2, speed: 5 },
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+            statsRight: { attack: 23, hp: 30, defense: 10, recoil: 17, balance: 5, weight: 17, endurance: 4, stamina: 2, mobility: -1, speed: 5, recoilReduction: 2 },
+			statsLeft: { attack: 20, hp: 40, defense: 12, recoil: 11, balance: 5, weight: 17, endurance: 7, stamina: 4, mobility: -2, speed: 5, recoilReduction: 3 },
+			radius: 15,
+			passivesRight: ["Chase Wing"],
+			passivesLeft: ["Hook Cross"],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Concentrate Impact", cd: 8 }],
+			attacksLeft: [{ name: "Heavy Ram", cd: 5 }, { name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -358,11 +381,15 @@ window.equipmentDB = {
             id: "ar_10", // Generalized ID
             name: "Master of Flames", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Master", "of", "Ifrit", "Flames", "Smash Attack"], 
+            tags: ["Master", "of", "Ifrit", "Flames", "Smash Attack", "Spike Attack", "Heavy Ram", "Offensive Guard", "Impact Point"], 
 			fallbackImage: "./images/beyblade_parts/AR/MasterOfFlames.png",  
-            stats: { attack: 26, defense: 4, stamina: 2, endurance: 9, recoil: 16, weight: 16, mobility: 3, speed: 3 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+   			statsRight: { attack: 25, hp: 25, defense: 9, recoil: 14, balance: 3, weight: 16, endurance: 8, stamina: 2, mobility: 4, speed: 3, recoilReduction: 4 },
+			statsLeft: { attack: 24, hp: 20, defense: 4, recoil: 22, balance: 2, weight: 16, endurance: 3, stamina: 1, mobility: 5, speed: 4, recoilReduction: 2 },
+			radius: 15,
+			passivesRight: ["Impact Point"],
+			passivesLeft: ["Offensive Guard"],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Heavy Ram", cd: 5 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -390,11 +417,14 @@ window.equipmentDB = {
             type: "Attack Ring", 
 			subRing: true,
 			subRingType: "Free",
-            tags: ["Great", "Dragon", "Sub-Attack Ring", "SAR", "Sub"], 
+            tags: ["Great", "Dragon", "Sub-Attack Ring", "SAR", "Sub", "Smash Attack", "Chase Wing", "Smash Route"], 
 			fallbackImage: "./images/beyblade_parts/AR/GreatDragon.png",  
-            stats: { attack: 20, recoil: 8, defense: 5, weight: 13, recoilReduction: 2, mobility: 2, speed: 4 },
-			passives: [], 
-			attacks: [],
+			statsRight: { attack: 20, hp: 15, defense: 5, recoil: 10, balance: 4, weight: 9, endurance: 3, stamina: 5, speed: 5, mobility: 4, recoilReduction: 2 },
+			statsLeft: { attack: 22, hp: 15, defense: 4, recoil: 20, balance: 4, weight: 9, endurance: 1, stamina: 4, speed: 5, mobility: 4, },
+			radius: 16,
+			passivesRight: ["Smash Route"],
+			passivesLeft: ["Chase Wing"],
+			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -412,11 +442,15 @@ window.equipmentDB = {
             id: "ar_12", // Generalized ID
             name: "Petal Swirl", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Petal", "Swirl", "Upper Attack"], 
+            tags: ["Petal", "Swirl", "Upper Attack", "Smash Attack", "Barrage Attack", "Concentrate Defense", "Slip Face Edge", "Twin Contact Rhythm"], 
 			fallbackImage: "./images/beyblade_parts/AR/PetalSwirl_SakuraBlossom.png",  
-            stats: { attack: 25, recoil: 10, stamina: 5, defense: 3, endurance: 3, weight: 15, mobility: 2, speed: 3 },
-			passives: [], 
-			attacks: [{ name: "Upper Attack", cd: 6 }],
+            statsRight: { attack: 16, hp: 25, defense: 12, recoil: 8, balance: 5, weight: 14, endurance: 6, stamina: 8, speed: 3, mobility: 4, recoilReduction: 5 },
+			statsLeft: { attack: 24, hp: 20, defense: 6, recoil: 15, balance: 4, weight: 14, endurance: 3, stamina: 6, speed: 4, mobility: 4, recoilReduction: 1 },
+			radius: 14,
+			passivesRight: ["Slip Face Edge"],
+			passivesLeft: ["Twin Contact Rhythm"],			
+			attacksRight: [{ name: "Upper Attack", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
+			attacksLeft: [{ name: "Barrage Attack", cd: 6 }, { name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -442,11 +476,14 @@ window.equipmentDB = {
             id: "ar_13", // Generalized ID
             name: "Feral Crescent", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Feral", "Crescent", "Sharp Shooter"], 
+            tags: ["Feral", "Crescent", "Sharp Shooter", "Side Swipe", "Grindblade Lunge", "Spike Attack", "Recoil Rebounder", "Feral Friction"], 
 			fallbackImage: "./images/beyblade_parts/AR/FeralCrescent.png",  
-            stats: { attack: 26, defense: 8, recoil: 11, balance: 5, weight: 15, recoilReduction: 3, mobility: 3, endurance: 4, stamina: 3 },
-			passives: [], 
-			attacks: [{ name: "Sharp Shooter", cd: 6 }],
+            statsRight: { attack: 24, hp: 20, defense: 8, recoil: 11, balance: 4, weight: 13, endurance: 5, stamina: 4, speed: 5, mobility: 4, recoilReduction: 6 },
+			statsLeft: { attack: 27, hp: 25, defense: 5, recoil: 21, balance: 4, weight: 13, endurance: 1, stamina: 3, speed: 5, mobility: 5, recoilReduction: 1 },
+			passivesRight: ["Recoil Rebounder"],
+			passivesLeft: ["Feral Friction"],
+			attacksRight: [{ name: "Sharp Shooter", cd: 6 }, { name: "Side Swipe", cd: 6 }],
+			attacksLeft: [{ name: "Grindblade Lunge", cd: 8 }, { name: "Spike Attack", cd: 4 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -464,11 +501,15 @@ window.equipmentDB = {
             id: "ar_14", // Generalized ID
             name: "Cross Talon", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Cross", "Talon", "Smash Attack"], 
+            tags: ["Cross", "Talon", "Smash Attack", "Charge Dash", "Extreme Speed", "Ridge Ridger", "Pace Control"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossTalon.png",  
-            stats: { attack: 23, balance: 6, recoil: 9, weight: 13, recoilReduction: 3, mobility: 3, endurance: 5, speed: 1, stamina: 3 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            statsRight: { attack: 24, hp: 20, defense: 6, recoil: 15, balance: 7, weight: 13, endurance: 5, stamina: 5, speed: 5, mobility: 4, recoilReduction: 2 },
+			statsLeft: { attack: 20, hp: 20, defense: 8, recoil: 10, balance: 7, weight: 13, endurance: 7, stamina: 5, speed: 5, mobility: 4, recoilReduction: 3 },
+			radius: 13,
+			passivesRight: ["Ridge Rider"],
+			passivesLeft: ["Pace Control"],			
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Charge Dash", cd: 8 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Extreme Speed", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -494,11 +535,12 @@ window.equipmentDB = {
             id: "ar_15", // Generalized ID
             name: "Cross Fox", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Cross", "Fox", "Spike Attack"], 
+            tags: ["Cross", "Fox", "Spike Attack", "Smash Attack", "Impact Point"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossFox.png",  
-            stats: { attack: 27, defense: 6, recoil: 20, balance: 2, weight: 12, stamina: 4, mobility: 1, speed: 2, recoilReduction: 1 },
-			passives: [], 
-			attacks: [{ name: "Spike Attack", cd: 4 }],
+            stats: { attack: 23, hp: 30, defense: 8, recoil: 19, balance: 3, weight: 12, endurance: 4, stamina: 3, speed: 3, mobility: 4, recoilReduction: 2 },
+			radius: 14,
+			passives: ["Impact Point"], 
+			attacks: [{ name: "Smash Attack", cd: 5 }, { name: "Spike Attack", cd: 4 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -518,9 +560,13 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["As", "Survivor", "Heavy Ram"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
-            stats: { attack: 19, hp: 30, defense: 10, recoil: 10, balance: 6, weight: 15, mobility: 2, recoilReduction: 3 },
-			passives: [], 
-			attacks: [{ name: "Heavy Ram", cd: 5 }],
+            statsRight: { attack: 22, hp: 25, defense: 10, recoil: 12, balance: 4, weight: 15, endurance: 6, stamina: 4, speed: 3, mobility: 3, recoilReduction: 4 },
+			statsLeft: { attack: 18, hp: 30, defense: 14, recoil: 8, balance: 4, weight: 15, endurance: 7, stamina: 5, speed: 3, mobility: 4, recoilReduction: 7 },
+			radius: 16,
+			passivesRight: ["Peak Performance"],
+			passivesLeft: ["Evasive Contact"],
+			attacksRight: [{ name: "Hammer Impact", cd: 8 }, { name: "Heavy Ram", cd: 5 }],
+			attacksLeft: [{ name: "Hammer Impact", cd: 8 }, { name: "Lateral Bound", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [

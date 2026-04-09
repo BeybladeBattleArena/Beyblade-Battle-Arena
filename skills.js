@@ -356,6 +356,11 @@ window.SkillsDB = {
             desc: "Induces an intentional Wobble to hook the opponent into a damaging grapple.",
             execute: function() {}
         },
+		"Hammer Impact": {
+            name: "Hammer Impact", cd: 8,
+            desc: "The beyblade digs in, slowing down briefly before unleashing a massive, sweeping attack along its spin vector. Hammers the opponent in the direction of this beyblade's spin.",
+            execute: function() {}
+        },
 
         // --- NEW EQUIPMENT ATTACKS ---
         "Aerial Lance": {
@@ -802,6 +807,41 @@ window.SkillEngine = {
                     bey.vy += (Math.random() - 0.5) * 1.5;
                 }
             }
+			
+			// --- HAMMER IMPACT STATE MACHINE ---
+            if (state.actionState === "HAMMER_WINDUP") {
+                state.hammerTimer -= dt;
+                
+                // 1. Temporarily increase friction! Bleed 5% of velocity every frame
+                bey.vx *= 0.93;
+                bey.vy *= 0.93;
+
+                // 2. Windup is over! Unleash the Hammer!
+                if (state.hammerTimer <= 0) {
+                    state.actionState = "HAMMER_SWING";
+                    state.hammerTimer = 250; // The sweep lasts 350ms (adjust this for visual pacing!)
+                    
+                    // Safely store our original radius, then extend it by 1!
+                    bey.baseRadius = bey.baseRadius || bey.radius;
+                    bey.radius = bey.baseRadius + 1;
+                    
+                    // Visual cue: The bright sweeping energy!
+                    bey.activeAura = "rgba(255, 69, 0, 1.0)"; // Red-Orange
+                    bey.activeAuraDuration = 350;
+                }
+            }
+            else if (state.actionState === "HAMMER_SWING") {
+                state.hammerTimer -= dt;
+                
+                // 3. The sweep is over! Clean up the hitbox and return to normal
+                if (state.hammerTimer <= 0) {
+                    // Restore original radius
+                    if (bey.baseRadius) {
+                        bey.radius = bey.baseRadius;
+                    }
+                    state.actionState = "NORMAL";
+                }
+            }
 
 			// --- CYCLONE LOOP PHYSICS ---
             if (state.actionState === "CYCLONE_LOOP") {
@@ -925,6 +965,51 @@ window.SkillEngine = {
                     
                     // Always reset the state on impact so we don't accidentally proc this twice in one hit!
                     bey.skillState.actionState = "NORMAL";
+                }
+				
+				// --- ACTIVE SKILL HIT: Hammer Impact ---
+                if (bey.skillState.actionState === "HAMMER_SWING") {
+                    
+                    // Ensure the massive knockback only applies ONCE per swing
+                    if (!bey.skillState.hammerHitApplied) {
+                        bey.skillState.hammerHitApplied = true;
+
+                        // 1. Calculate standard impact angle to the opponent
+                        let dx = opponent.x - bey.x;
+                        let dy = opponent.y - bey.y;
+                        let dist = Math.max(1, Math.sqrt(dx*dx + dy*dy));
+                        let nx = dx / dist; // Normal X
+                        let ny = dy / dist; // Normal Y
+                        
+                        let tangentX, tangentY;
+                        
+                        // 2. Rotate the vector 90 degrees based on Spin Direction!
+                        // (Assuming your engine uses 'right' for Clockwise and 'left' for Counter-Clockwise)
+                        let spin = bey.spinDirection || "right"; 
+                        
+                        if (spin === "right" || spin === "cw") {
+                            tangentX = -ny; // Clockwise Tangent
+                            tangentY = nx;
+                        } else {
+                            tangentX = ny;  // Counter-Clockwise Tangent
+                            tangentY = -nx;
+                        }
+
+                        // 3. Apply the +8% Knockback Power
+                        let bonusPower = 1.08; 
+                        
+                        // Grab the current impact speed from your existing collision math
+                        let totalImpactForce = Math.max(8, impactSpeed * bonusPower);
+                        
+                        // 4. OVERWRITE the opponent's bounce trajectory!
+                        // Instead of flying backward, they are batted sideways like a baseball!
+                        opponent.vx = tangentX * totalImpactForce;
+                        opponent.vy = tangentY * totalImpactForce;
+                        
+                        // Visual cue on the opponent: A massive sideways spark
+                        opponent.activeAura = "rgba(255, 255, 0, 0.9)"; // Yellow
+                        opponent.activeAuraDuration = 300;
+                    }
                 }
 				
 				// PASSIVE: Redirection
@@ -3235,6 +3320,16 @@ window.SkillEngine = {
                 timer: 0,
                 opacity: 0.65 // <--- WE WILL USE THIS IN PART 2!
             };
+        }
+		else if (attackName === "Hammer Impact") {
+            
+            attacker.skillState.actionState = "HAMMER_WINDUP";
+            attacker.skillState.hammerTimer = 200; // 200ms of friction/windup
+            attacker.skillState.hammerHitApplied = false; // Prevents hitting multiple times in one swing
+            
+            // Visual cue: A dark, heavy gathering of energy
+            attacker.activeAura = "rgba(105, 105, 105, 0.8)"; // DimGray
+            attacker.activeAuraDuration = 200;
         }
 		else if (attackName === "Side Swipe") {
             // First Leap: Use the initial cast direction

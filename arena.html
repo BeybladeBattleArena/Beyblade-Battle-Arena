@@ -3102,6 +3102,41 @@
                 ctx.filter = `brightness(0) opacity(${1 - progress})`;
             }
 			
+			
+			// --- HAMMER IMPACT SWEEP VISUAL ---
+            if (bey.skillState && bey.skillState.actionState === "HAMMER_SWING") {
+                ctx.save();
+                
+                // 1. Calculate how far along the 350ms swing we are (0.0 to 1.0)
+                let sweepProgress = 1 - (bey.skillState.hammerTimer / 350);
+                sweepProgress = Math.max(0, Math.min(1, sweepProgress)); // Keep it safely bound
+                
+                // 2. Calculate the exact angle (Full circle = Math.PI * 2)
+                let currentAngle = sweepProgress * (Math.PI * 2);
+                
+                // 3. Determine direction based on your engine's spin property
+                let spin = bey.spinDirection || "right"; 
+                let isCW = (spin === "right" || spin === "cw" || bey.spinDir === 1);
+                
+                // Start the sweep at the "top" (12 o'clock)
+                let startAngle = -Math.PI / 2; 
+                let endAngle = startAngle + (isCW ? currentAngle : -currentAngle);
+
+                ctx.beginPath();
+                // arc(x, y, radius, startAngle, endAngle, counterclockwise boolean)
+                // The radius is pushed slightly past the standard edge (0.6) to represent the +1 extended reach!
+                ctx.arc(0, 0, renderSize * 0.7, startAngle, endAngle, !isCW);
+                
+                ctx.lineWidth = 14 * scale; // Thick, heavy energy ring
+                ctx.lineCap = "butt"; // This forces the flat, blunt "loading bar" edge!
+                ctx.strokeStyle = "rgba(255, 69, 0, 0.9)"; // Searing Red-Orange
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = "rgba(255, 69, 0, 1)";
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+			
 
             ctx.rotate(bey.rotation);
 
