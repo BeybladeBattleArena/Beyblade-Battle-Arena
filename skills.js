@@ -2968,19 +2968,22 @@ window.SkillEngine = {
             return false; 
         }
 
-        return true; 
-    },
-	
-	
-	// 1. --- THE UPPERCUT LAUNCH CHECK MUST BE FIRST ---
         if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
-            this.applyUppercutLaunch(p1, cpu);
-            return false; // Skip standard bounce physics, we are popping them up!
-        } 
-        else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
-            this.applyUppercutLaunch(cpu, p1);
-            return false; 
-        }
+        this.applyUppercutLaunch(p1, cpu);
+        return false; // skip normal collision bounce/damage handling
+    }
+    else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
+        this.applyUppercutLaunch(cpu, p1);
+        return false;
+    }
+
+    // Optional: if either bey is airborne, skip normal collision response
+    if ((p1.z || 0) > 5 || (cpu.z || 0) > 5) {
+        return false;
+    }
+
+    return true;
+},
 	
 	applyUppercutLaunch: function(attacker, defender) {
         let defState = defender.skillState;
