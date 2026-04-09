@@ -3198,7 +3198,7 @@
                 ctx.beginPath();
                 // arc(x, y, radius, startAngle, endAngle, counterclockwise boolean)
                 // The radius is pushed slightly past the standard edge (0.6) to represent the +1 extended reach!
-                ctx.arc(0, 0, renderSize * 0.7, startAngle, endAngle, !isCW);
+                ctx.arc(0, 0, renderSize * 0.575, startAngle, endAngle, !isCW);
                 
                 ctx.lineWidth = 14 * scale; // Thick, heavy energy ring
                 ctx.lineCap = "butt"; // This forces the flat, blunt "loading bar" edge!

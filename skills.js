@@ -995,6 +995,10 @@ window.SkillEngine = {
                             tangentY = -nx;
                         }
 
+						let relVx = bey.vx - opponent.vx;
+                        let relVy = bey.vy - opponent.vy;
+                        let impactSpeed = Math.sqrt(relVx*relVx + relVy*relVy);
+
                         // 3. Apply the +8% Knockback Power
                         let bonusPower = 1.08; 
                         
@@ -2952,15 +2956,7 @@ window.SkillEngine = {
         p1.skillState.timeSinceCollision = 0;
         cpu.skillState.timeSinceCollision = 0;
 
-        // 1. --- THE UPPERCUT LAUNCH CHECK MUST BE FIRST ---
-        if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
-            this.applyUppercutLaunch(p1, cpu);
-            return false; // Skip standard bounce physics, we are popping them up!
-        } 
-        else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
-            this.applyUppercutLaunch(cpu, p1);
-            return false; 
-        }
+        
 
         // 2. --- THEN THE Z-HEIGHT / GRAPPLE CHECK ---
         if (p1.skillState.z > 5 || cpu.skillState.z > 5) {
@@ -2975,6 +2971,17 @@ window.SkillEngine = {
         return true; 
     },
 	
+	
+	// 1. --- THE UPPERCUT LAUNCH CHECK MUST BE FIRST ---
+        if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
+            this.applyUppercutLaunch(p1, cpu);
+            return false; // Skip standard bounce physics, we are popping them up!
+        } 
+        else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
+            this.applyUppercutLaunch(cpu, p1);
+            return false; 
+        }
+	
 	applyUppercutLaunch: function(attacker, defender) {
         let defState = defender.skillState;
         let atkState = attacker.skillState;
@@ -2985,7 +2992,7 @@ window.SkillEngine = {
         defState.isAirborneStunned = true;
         
         // 2. THE FIX: Use the native Z variable your game already understands!
-        defender.z = 25; 
+        defState.z = 25; 
         
         // 3. Shove them backwards in the direction of the uppercut
         defender.vx = attacker.vx * 1.5;
