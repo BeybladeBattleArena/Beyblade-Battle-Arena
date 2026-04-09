@@ -1571,12 +1571,24 @@
                 }
             });
         }
+		console.log("stat totals =", totals);
         return totals;
+		
     }
 
     function extractBuildData() {
     activeSkills = [];
     playerUltimate = null;
+	console.log("playerBuild.attacks =", playerBuild?.attacks);
+	console.log("playerBuild.attacksLeft =", playerBuild?.attacks);
+	console.log("playerBuild.attacksRight =", playerBuild?.attacks);
+
+    const playerSpinDir =
+        (playerBuild.parts &&
+         playerBuild.parts.spinGear &&
+         playerBuild.parts.spinGear.spinDirection === 'Left')
+            ? 'Left'
+            : 'Right';
 
     // 1. Prefer saved flattened attacks on the build itself
     if (Array.isArray(playerBuild.attacks) && playerBuild.attacks.length > 0) {
@@ -1589,7 +1601,6 @@
             });
         });
 
-        // Optional: still allow ultimate from saved build if you ever store it there
         if (playerBuild.ultimate) {
             playerUltimate = playerBuild.ultimate;
         }
@@ -1597,7 +1608,7 @@
         return;
     }
 
-    // 2. Fallback to old part-based behavior if no saved flattened attacks exist
+    // 2. Fallback to part-based behavior, but now supports attacksRight / attacksLeft
     if (playerBuild.parts) {
         const categories = {
             bladeBase: 'bladeBases',
@@ -1620,18 +1631,25 @@
                 if (found) partObj = found;
             }
 
-            if (partObj) {
-                if (partObj.attacks) {
-                    partObj.attacks.forEach(atk => {
-                        activeSkills.push({
-                            name: atk.name,
-                            baseCd: atk.cd * 1000,
-                            currentCd: 0
-                        });
+            if (!partObj) return;
+
+            const sidedAttacks =
+                playerSpinDir === 'Left'
+                    ? (partObj.attacksLeft ?? partObj.attacks)
+                    : (partObj.attacksRight ?? partObj.attacks);
+
+            if (Array.isArray(sidedAttacks)) {
+                sidedAttacks.forEach(atk => {
+                    if (!atk) return;
+                    activeSkills.push({
+                        name: atk.name,
+                        baseCd: (atk.cd || 0) * 1000,
+                        currentCd: 0
                     });
-                }
-                if (partObj.ultimate) playerUltimate = partObj.ultimate;
+                });
             }
+
+            if (partObj.ultimate) playerUltimate = partObj.ultimate;
         });
     }
 }
