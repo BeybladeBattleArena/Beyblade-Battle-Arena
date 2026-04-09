@@ -439,7 +439,7 @@ window.SkillsDB = {
             execute: function() {}
         },
 		"Lateral Bound": {
-            name: "Lateral Bound", cd: 5
+            name: "Lateral Bound", cd: 5,
             desc: "Perform a lightning-fast hop in the held direction, immediately braking afterward. Excellent for dodging attacks or delivering a surprise hip-bump near the arena edges.",
 			execute: function() {}
         },
