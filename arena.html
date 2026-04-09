@@ -3187,7 +3187,7 @@ if (
                 ctx.save();
                 
                 // 1. Calculate how far along the 350ms swing we are (0.0 to 1.0)
-                let sweepProgress = 1 - (bey.skillState.hammerTimer / 350);
+                let sweepProgress = 1 - (bey.skillState.hammerTimer / 200);
                 sweepProgress = Math.max(0, Math.min(1, sweepProgress)); // Keep it safely bound
                 
                 // 2. Calculate the exact angle (Full circle = Math.PI * 2)

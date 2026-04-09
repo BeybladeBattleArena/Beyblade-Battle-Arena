@@ -813,13 +813,13 @@ window.SkillEngine = {
                 state.hammerTimer -= dt;
                 
                 // 1. Temporarily increase friction! Bleed 5% of velocity every frame
-                bey.vx *= 0.93;
-                bey.vy *= 0.93;
+                bey.vx *= 0.88;
+                bey.vy *= 0.88;
 
                 // 2. Windup is over! Unleash the Hammer!
                 if (state.hammerTimer <= 0) {
                     state.actionState = "HAMMER_SWING";
-                    state.hammerTimer = 250; // The sweep lasts 350ms (adjust this for visual pacing!)
+                    state.hammerTimer = 200; // The sweep lasts 200ms (adjust this for visual pacing!)
                     
                     // Safely store our original radius, then extend it by 1!
                     bey.baseRadius = bey.baseRadius || bey.radius;
@@ -2951,39 +2951,41 @@ window.SkillEngine = {
     },
 
     onCollision: function(p1, cpu, impactSpeed) {
-        if (p1.skillState.peakActive) this.removePeak(p1);
-        if (cpu.skillState.peakActive) this.removePeak(cpu);
-        p1.skillState.timeSinceCollision = 0;
-        cpu.skillState.timeSinceCollision = 0;
+    if (p1.skillState.peakActive) this.removePeak(p1);
+    if (cpu.skillState.peakActive) this.removePeak(cpu);
 
-        
+    p1.skillState.timeSinceCollision = 0;
+    cpu.skillState.timeSinceCollision = 0;
 
-        // 2. --- THEN THE Z-HEIGHT / GRAPPLE CHECK ---
-        if (p1.skillState.z > 5 || cpu.skillState.z > 5) {
-            if (p1.skillState.actionState === "LUNGE_HOP" && p1.skillState.z > 0 && !cpu.skillState.isGrappled) {
-                this.engageGrapple(p1, cpu);
-            } else if (cpu.skillState.actionState === "LUNGE_HOP" && cpu.skillState.z > 0 && !p1.skillState.isGrappled) {
-                this.engageGrapple(cpu, p1);
-            }
-            return false; 
-        }
+    // Always normalize missing values
+    p1.skillState.z = p1.skillState.z || 0;
+    cpu.skillState.z = cpu.skillState.z || 0;
 
-        if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
+    // --- RIDGE UPPERCUT GETS FIRST PRIORITY ---
+    if (p1.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !cpu.skillState.isAirborneStunned) {
         this.applyUppercutLaunch(p1, cpu);
-        return false; // skip normal collision bounce/damage handling
+        return false;
     }
-    else if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
+
+    if (cpu.skillState.actionState === "RIDGE_UPPERCUT_DASH" && !p1.skillState.isAirborneStunned) {
         this.applyUppercutLaunch(cpu, p1);
         return false;
     }
 
-    // Optional: if either bey is airborne, skip normal collision response
-    if ((p1.z || 0) > 5 || (cpu.z || 0) > 5) {
+    // --- THEN HANDLE OTHER AIRBORNE COLLISION LOGIC ---
+    if (p1.skillState.z > 5 || cpu.skillState.z > 5) {
+        if (p1.skillState.actionState === "LUNGE_HOP" && p1.skillState.z > 0 && !cpu.skillState.isGrappled) {
+            this.engageGrapple(p1, cpu);
+        } 
+        else if (cpu.skillState.actionState === "LUNGE_HOP" && cpu.skillState.z > 0 && !p1.skillState.isGrappled) {
+            this.engageGrapple(cpu, p1);
+        }
+
         return false;
     }
 
     return true;
-},
+	},
 	
 	applyUppercutLaunch: function(attacker, defender) {
         let defState = defender.skillState;
@@ -3334,12 +3336,12 @@ window.SkillEngine = {
 		else if (attackName === "Hammer Impact") {
             
             attacker.skillState.actionState = "HAMMER_WINDUP";
-            attacker.skillState.hammerTimer = 200; // 200ms of friction/windup
+            attacker.skillState.hammerTimer = 400; // 200ms of friction/windup
             attacker.skillState.hammerHitApplied = false; // Prevents hitting multiple times in one swing
             
             // Visual cue: A dark, heavy gathering of energy
             attacker.activeAura = "rgba(105, 105, 105, 0.8)"; // DimGray
-            attacker.activeAuraDuration = 200;
+            attacker.activeAuraDuration = 400;
         }
 		else if (attackName === "Side Swipe") {
             // First Leap: Use the initial cast direction
