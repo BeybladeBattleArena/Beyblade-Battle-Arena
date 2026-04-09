@@ -1554,11 +1554,17 @@
                 if (!partData) return;
                 
                 let partObj = partData;
-                let partId = typeof partData === 'string' ? partData : partData.id;
-                if (partId && window.equipmentDB && categories[key]) {
-                    let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
-                    if (found) partObj = found;
-                }
+let partId = typeof partData === 'string' ? partData : partData.id;
+
+if (
+    (!partObj || !partObj.stats) &&
+    partId &&
+    window.equipmentDB &&
+    categories[key]
+) {
+    let found = window.equipmentDB[categories[key]].find(p => p.id === partId);
+    if (found) partObj = found;
+}
                 
                 if (partObj && partObj.stats) {
                     for (let stat in partObj.stats) {
