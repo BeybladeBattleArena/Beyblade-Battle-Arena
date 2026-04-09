@@ -3300,26 +3300,26 @@ window.SkillEngine = {
         }
 		else if (attackName === "Lateral Bound") {
             
-            // 1. Determine the bound direction based on player input
-            let boundX = dirX;
-            let boundY = dirY;
+            // 1. Grab the LIVE joystick input (just like Side Swipe!)
+            let boundX = inputX;
+            let boundY = inputY;
             
-            // If they aren't holding a direction, force a perpendicular side-step based on current momentum!
+            // 2. If they aren't holding a direction (Neutral Stick or CPU)
             if (boundX === 0 && boundY === 0) {
-                let currentSpeed = Math.max(0.1, Math.sqrt(attacker.vx**2 + attacker.vy**2));
-                // Swap X and Y, and invert one to get a 90-degree angle
-                boundX = -attacker.vy / currentSpeed; 
-                boundY = attacker.vx / currentSpeed;
+                // Take the vector pointing AT the opponent (dirX/dirY), and rotate it 90 degrees 
+                // to force a true "Lateral" side-step dodge!
+                boundX = -dirY; 
+                boundY = dirX;
             } else {
-                // Normalize the joystick input just in case
+                // If they ARE holding the joystick, normalize it so diagonal dodges aren't faster
                 let mag = Math.max(0.1, Math.sqrt(boundX*boundX + boundY*boundY));
                 boundX /= mag;
                 boundY /= mag;
             }
 
-            // 2. The Hop! (A massive, instant burst of speed)
-            attacker.vx = boundX * 12; 
-            attacker.vy = boundY * 12;
+            // 3. The Hop! (A massive, instant burst of speed in the chosen direction)
+            attacker.vx = boundX * 8; 
+            attacker.vy = boundY * 8;
             
             attacker.skillState.actionState = "LATERAL_BOUNDING";
             
@@ -3327,7 +3327,7 @@ window.SkillEngine = {
             attacker.activeAura = "rgba(240, 248, 255, 0.9)"; // AliceBlue
             attacker.activeAuraDuration = 150;
 
-            // 3. The Break! (Triggers 150 milliseconds later)
+            // 4. The Brake! (Triggers 150 milliseconds later)
             setTimeout(() => {
                 
                 // Only apply the brakes if we didn't get knocked out of the state by a collision!
