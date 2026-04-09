@@ -206,6 +206,26 @@ window.SkillsDB = {
             desc: "The blade features a smooth, curving face. Gain an additional 5% Recoil Reduction and 3% Knockback Resistance during glancing collisions.",
             apply: function(bey) {}
         },
+		"Hook Cross": {
+            name: "Hook Cross",
+            desc: "When this beyblade is moving swiftly and collides with an opponent, the rebound from the collision curves this beyblade slightly toward the opponent's forward direction.",
+            apply: function(bey) {}
+        },
+		"Twin Contact Rhythm": {
+            name: "Twin Contact Rhythm",
+            desc: "After an initial collision, a second collision within 2 seconds gains an additional 6% Knockback Power.",
+            apply: function(bey) {}
+        },
+		"Chase Wing": {
+            name: "Chase Wing",
+            desc: "When the distance to the opponent becomes too great, gain an additional +8% Attack, +8% Mobility, and +5% Speed.",
+            apply: function(bey) {}
+        },
+		"Undercut Line": {
+            name: "Undercut Line",
+            desc: "The blade's lower edge is designed to strike beneath unstable opponents. Deal an additional 8% HP damage to opponents that are wobbling.",
+            apply: function(bey) {}
+        },
 		
 		// -- Weight Disk Passives --
 		"Outer Flywheel": {
@@ -417,7 +437,12 @@ window.SkillsDB = {
             name: "Phantom Warp", cd: 8,
             desc: "Utilize a mysterious, dark power to teleport across the arena.",
             execute: function() {}
-        }
+        },
+		"Lateral Bound": {
+            name: "Lateral Bound", cd: 5
+            desc: "Perform a lightning-fast hop in the held direction, immediately braking afterward. Excellent for dodging attacks or delivering a surprise hip-bump near the arena edges.",
+			execute: function() {}
+        },
     },
 
     ultimates: {
@@ -553,6 +578,18 @@ window.SkillEngine = {
                 rampingEdgeActive: false,
 				sfeTimer: 0,
                 sfeActive: false,
+				hookCrossTimer: 0,
+				hookCrossTargetOpp: null,
+				tcrWindowTimer: 0, // The 2-second window for the follow-up on Twin Contact Rhythm
+                tcrImpactTimer: 0, // The micro-timer to hold the buff during the 2nd hit of TCR
+                tcrBuffActive: false,
+				tcrCooldownTimer: 0,
+				chasewingActive: false,
+                chasewingAtkBonus: 0,
+                chasewingMobBonus: 0,
+                chasewingSpdBonus: 0,
+				undercutLineTimer: 0,
+				undercutLineActive: false,
                 
                 sourSaucerCd: 0,
                 sourDebuffTimer: 0,
@@ -924,6 +961,82 @@ window.SkillEngine = {
                         // Optional: A quick white flash to visually emphasize the parry/deflection
                         bey.activeAura = "rgba(255, 255, 255, 0.7)";
                         bey.activeAuraDuration = 200;
+                    }
+                }
+				
+				// PASSIVE: Twin Contact Rhythm
+                if (bey.passives && bey.passives.includes("Twin Contact Rhythm")) {
+                    
+                    // ONLY allow the rhythm to start or continue if we are NOT on cooldown!
+                    if (state.tcrCooldownTimer <= 0) {
+                        
+                        // IF THE WINDOW IS OPEN (And it's been at least 200ms since the first hit)
+                        if (state.tcrWindowTimer > 0 && state.tcrWindowTimer < 1800) {
+                            
+                            // THIS IS THE SECOND HIT!
+                            state.tcrImpactTimer = 200; 
+                            
+                            if (!state.tcrBuffActive) {
+                                bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.06;
+                                state.tcrBuffActive = true;
+                                
+                                bey.activeAura = "rgba(255, 215, 0, 0.9)";
+                                bey.activeAuraDuration = 350;
+                            }
+                            
+                            // Consume the window, and START THE 18-SECOND COOLDOWN!
+                            state.tcrWindowTimer = 0; 
+                            state.tcrCooldownTimer = 18000; 
+                        }
+                        // IF THE WINDOW IS CLOSED (And we aren't currently resolving a 2nd hit)
+                        else if (state.tcrWindowTimer === 0 && !state.tcrBuffActive) {
+                            
+                            // THIS IS THE FIRST HIT!
+                            state.tcrWindowTimer = 2000; 
+                            
+                            bey.activeAura = "rgba(255, 215, 0, 0.4)";
+                            bey.activeAuraDuration = 200;
+                        }
+                    }
+                }
+				
+				// PASSIVE: Hook Cross
+                if (bey.passives && bey.passives.includes("Hook Cross")) {
+                    
+                    // Measure how energetic the bounce is to check if we were moving swiftly
+                    let knockbackSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+                    
+                    if (knockbackSpeed > 4.5) {
+                        
+                        state.hookCrossTimer = 250; // Curve the trajectory for exactly 250ms
+                        state.hookCrossTargetOpp = opponent; // Lock onto the opponent to read their heading
+                        
+                        // Visual cue: A sharp, amber-orange flash to represent the hook catching
+                        bey.activeAura = "rgba(255, 140, 0, 0.7)"; // DarkOrange
+                        bey.activeAuraDuration = 250;
+                    }
+                }
+				
+				// PASSIVE: Undercut Line
+                if (bey.passives && bey.passives.includes("Undercut Line")) {
+                    
+                    // Check if the opponent is actively struggling to stay upright
+                    if (opponent.wobbleFactor > 0) {
+                        
+                        // Keep the damage multiplier active for the exact frame of the collision
+                        state.undercutLineTimer = 200; 
+                        
+                        if (!state.undercutLineActive) {
+                            // Shred 0.08 from the opponent's resistance. 
+                            // This guarantees they take an exact +8% HP Damage!
+                            opponent.stats.hpDamageResist = (opponent.stats.hpDamageResist || 0) - 0.08;
+                            
+                            state.undercutLineActive = true;
+                            
+                            // Visual cue: A sharp, low-to-the-ground pink/magenta spark
+                            bey.activeAura = "rgba(255, 20, 147, 0.8)"; // DeepPink
+                            bey.activeAuraDuration = 250;
+                        }
                     }
                 }
 				
@@ -1451,6 +1564,21 @@ window.SkillEngine = {
                 }
             }
 			
+			// --- UNDERCUT LINE CLEANUP ---
+            if (state.ulTimer > 0) {
+                state.ulTimer -= dt;
+                
+                // When they bounce off and the micro-timer ends, remove the damage multiplier
+                if (state.ulTimer <= 0 && state.ulActive) {
+                    
+                    // Safely find the opponent and restore their armor
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.hpDamageResist += 0.08;
+                    
+                    state.ulActive = false;
+                }
+            }
+			
 			// --- RECOIL REBOUNDER CLEANUP ---
             if (state.recoilRebounderCd > 0) state.recoilRebounderCd -= dt;
             
@@ -1462,6 +1590,38 @@ window.SkillEngine = {
                     bey.stats.attack -= state.rrAtkBonus;
                     bey.stats.knockbackResist -= 0.10;
                     bey.stats.rpmDamageResist -= 0.02;
+                }
+            }
+			
+			// --- TWIN CONTACT RHYTHM CLEANUP ---
+            
+            // 1. Tick down the master 18-second cooldown
+            if (state.tcrCooldownTimer > 0) {
+                state.tcrCooldownTimer -= dt;
+            }
+            
+            // 2. Tick down the combo window
+            if (state.tcrWindowTimer > 0) {
+                state.tcrWindowTimer -= dt;
+            }
+            
+            // 3. Tick down the physical impact frame
+            if (state.tcrImpactTimer > 0) {
+                state.tcrImpactTimer -= dt;
+                
+                if (state.tcrImpactTimer <= 0 && state.tcrBuffActive) {
+                    bey.stats.knockbackPower -= 0.06;
+                    state.tcrBuffActive = false;
+                }
+            }
+            
+            if (state.tcrImpactTimer > 0) {
+                state.tcrImpactTimer -= dt;
+                
+                // When the heavy 2nd hit finishes bouncing, remove the stat buff
+                if (state.tcrImpactTimer <= 0 && state.tcrBuffActive) {
+                    bey.stats.knockbackPower -= 0.06;
+                    state.tcrBuffActive = false;
                 }
             }
 			
@@ -1696,6 +1856,31 @@ window.SkillEngine = {
 			// --- REDIRECTION COOLDOWN ---
             if (state.redirectCd > 0) {
                 state.redirectCd -= dt;
+            }
+			
+			// --- HOOK CROSS STEERING PHYSICS ---
+            if (state.hookCrossTimer > 0) {
+                state.hookCrossTimer -= dt;
+                
+                if (state.hookCrossTargetOpp) {
+                    // 1. Find the opponent's current moving trajectory (their "forward direction")
+                    let oppVx = state.hookCrossTargetOpp.vx;
+                    let oppVy = state.hookCrossTargetOpp.vy;
+                    let oppSpeed = Math.max(0.1, Math.sqrt(oppVx*oppVx + oppVy*oppVy));
+                    
+                    let oppDirX = oppVx / oppSpeed;
+                    let oppDirY = oppVy / oppSpeed;
+                    
+                    // 2. Apply a gentle pulling force to our own velocity!
+                    // (Rollback Drift used 1.2 for a strong steer, we use 0.6 for a "slight" curve)
+                    bey.vx += oppDirX * 0.6; 
+                    bey.vy += oppDirY * 0.6;
+                }
+                
+                // Safety cleanup: release the opponent when the drift ends
+                if (state.hookCrossTimer <= 0) {
+                    state.hookCrossTargetOpp = null;
+                }
             }
 			
 			// --- PASSIVE: ROLLBACK DRIFT STEERING & CLEANUP ---
@@ -2071,6 +2256,58 @@ window.SkillEngine = {
                     let pulse = 0.48 + (Math.sin(Date.now() * 0.015) * 0.04); 
                     bey.passiveAura = "rgba(255, 69, 0, 0.5)"; // OrangeRed
                     bey.passiveAuraSize = pulse; 
+                }
+            }
+			
+			// --- PASSIVE: Chase Wing ---
+            if (bey.passives && bey.passives.includes("Chase Wing")) {
+                
+                // Safely grab the opponent just in case it isn't defined globally in this scope
+                let opp = (bey === p1) ? cpu : p1; 
+                
+                // 1. Calculate the physical distance between the two Beyblades
+                let dx = opp.x - bey.x;
+                let dy = opp.y - bey.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                // 2. Define "too great" (180 pixels is a solid baseline for a standard arena!)
+                let isFarAway = distance > 180;
+                
+                if (isFarAway && !state.chasewingActive) {
+                    
+                    // A. Calculate the percentage-based bonuses from their current base stats
+                    let baseAtk = bey.stats.attack || 0;
+                    let baseMob = bey.stats.mobility || 0;
+                    let baseSpd = bey.stats.speed || 0;
+                    
+                    state.chasewingAtkBonus = baseAtk * 0.08; // 8% Attack
+                    state.chasewingMobBonus = baseMob * 0.08; // 8% Mobility
+                    state.chasewingSpdBonus = baseSpd * 0.05; // 5% Speed
+                    
+                    // B. Apply the buffs!
+                    bey.stats.attack += state.chasewingAtkBonus;
+                    bey.stats.mobility += state.chasewingMobBonus;
+                    bey.stats.speed += state.chasewingSpdBonus;
+                    
+                    state.chasewingActive = true;
+                } 
+                else if (!isFarAway && state.chasewingActive) {
+                    
+                    // Turn it OFF: They closed the gap! Strip the exact bonuses away
+                    bey.stats.attack -= state.chasewingAtkBonus;
+                    bey.stats.mobility -= state.chasewingMobBonus;
+                    bey.stats.speed -= state.chasewingSpdBonus;
+                    
+                    state.chasewingActive = false;
+                }
+
+                // 3. Visual Indicator: A sleek, swept-back teal/wind aura
+                if (state.chasewingActive) {
+                    bey.passiveAura = "rgba(0, 128, 128, 0.4)"; // Teal
+                    
+                    // Make the aura rapidly fluctuate in size to simulate wind resistance!
+                    let windFlutter = 0.45 + (Math.sin(Date.now() * 0.04) * 0.06);
+                    bey.passiveAuraSize = windFlutter; 
                 }
             }
 			
@@ -3060,6 +3297,53 @@ window.SkillEngine = {
             
             attacker.activeAura = "rgba(200, 200, 200, 0.6)"; // Pale grey gathering wind
             attacker.activeAuraDuration = 200;
+        }
+		else if (attackName === "Lateral Bound") {
+            
+            // 1. Determine the bound direction based on player input
+            let boundX = dirX;
+            let boundY = dirY;
+            
+            // If they aren't holding a direction, force a perpendicular side-step based on current momentum!
+            if (boundX === 0 && boundY === 0) {
+                let currentSpeed = Math.max(0.1, Math.sqrt(attacker.vx**2 + attacker.vy**2));
+                // Swap X and Y, and invert one to get a 90-degree angle
+                boundX = -attacker.vy / currentSpeed; 
+                boundY = attacker.vx / currentSpeed;
+            } else {
+                // Normalize the joystick input just in case
+                let mag = Math.max(0.1, Math.sqrt(boundX*boundX + boundY*boundY));
+                boundX /= mag;
+                boundY /= mag;
+            }
+
+            // 2. The Hop! (A massive, instant burst of speed)
+            attacker.vx = boundX * 12; 
+            attacker.vy = boundY * 12;
+            
+            attacker.skillState.actionState = "LATERAL_BOUNDING";
+            
+            // Visual cue: A sharp, airy white/silver flash to simulate a gust of wind
+            attacker.activeAura = "rgba(240, 248, 255, 0.9)"; // AliceBlue
+            attacker.activeAuraDuration = 150;
+
+            // 3. The Break! (Triggers 150 milliseconds later)
+            setTimeout(() => {
+                
+                // Only apply the brakes if we didn't get knocked out of the state by a collision!
+                if (attacker.skillState.actionState === "LATERAL_BOUNDING") {
+                    
+                    // Slam the brakes by shedding 80% of current momentum instantly
+                    attacker.vx *= 0.2;
+                    attacker.vy *= 0.2;
+                    
+                    attacker.skillState.actionState = "NORMAL";
+                    
+                    // Visual cue: A tiny, dusty gray pop to show the Beyblade "landing" and gripping the stadium
+                    attacker.activeAura = "rgba(169, 169, 169, 0.7)"; 
+                    attacker.activeAuraDuration = 100;
+                }
+            }, 150);
         }
         else if (attackName === "Cross Smash") {
             let dashX = 0; 
