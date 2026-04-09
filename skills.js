@@ -824,7 +824,7 @@ window.SkillEngine = {
                     
                     // Safely store our original radius, then extend it by 1!
                     bey.baseRadius = bey.baseRadius || bey.radius;
-                    bey.radius = bey.baseRadius + 1;
+                    bey.radius = bey.baseRadius + 4;
                     
                     // Visual cue: The bright sweeping energy!
                     bey.activeAura = "rgba(255, 69, 0, 1.0)"; // Red-Orange
