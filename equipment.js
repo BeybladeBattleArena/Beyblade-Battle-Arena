@@ -129,7 +129,7 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Dragoon", "Cross", "Spike", "Dragon", "Spike Attack", "Bite Point", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/CrossDragon.png", 
-            stats: { attack: 28, hp: 20, defense: 5, recoil: 22, balance: 4, weight: 10, endurance: 3, stamina: 1, mobility: 4, speed: 4 }
+            stats: { attack: 28, hp: 20, defense: 5, recoil: 22, balance: 4, weight: 10, endurance: 3, stamina: 1, mobility: 4, speed: 4 },
 			radius: 14,
 			passives: ["Bite Point"], 
 			attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Smash Attack", cd: 5 }],
