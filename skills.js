@@ -961,7 +961,7 @@ window.SkillEngine = {
                     opponent.stats.knockbackResist -= 0.45;
                 }
             }
-		}
+		
 
 			// --- CYCLONE LOOP PHYSICS ---
             if (state.actionState === "CYCLONE_LOOP") {
