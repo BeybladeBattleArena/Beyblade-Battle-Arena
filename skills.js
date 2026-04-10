@@ -981,8 +981,8 @@ window.SkillEngine = {
             
             // PHASE 1: WINDUP
             if (state.actionState === "CIRCLE_SLASH_WINDUP") {
-                bey.vx *= 0.85; // Slam the brakes
-                bey.vy *= 0.85;
+                bey.vx = state.csDirX * 2.5; 
+                bey.vy = state.csDirY * 2.5;
                 state.csTimer -= dt;
 
                 if (state.csTimer <= 0) {
