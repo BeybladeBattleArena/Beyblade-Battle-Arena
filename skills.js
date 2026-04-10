@@ -995,7 +995,7 @@ window.SkillEngine = {
                     
                     // The circle is 3.5x the beyblade's radius
                     state.circleRadius = (bey.baseRadius || bey.radius) * 3.5;
-					let forwardPush = state.circleRadius + 40;
+					let forwardPush = state.circleRadius + 15;
                     
                     // Place the center of the circle OUT IN FRONT of the beyblade
                     state.csCenterX = bey.x + (state.csDirX * forwardPush);
@@ -1047,7 +1047,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 400, // Projects slightly outward
+                        radius: state.circleRadius + 800, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
