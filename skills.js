@@ -987,7 +987,7 @@ window.SkillEngine = {
 
                 if (state.csTimer <= 0) {
                     state.actionState = "CIRCLE_SLASH_DASH";
-                    state.csDashTimer = 400; // Takes 400ms to complete the circle
+                    state.csDashTimer = 350; // Takes 400ms to complete the circle
                     state.csSlashCreated = false;
 					
 					bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.50;
@@ -995,10 +995,11 @@ window.SkillEngine = {
                     
                     // The circle is 3.5x the beyblade's radius
                     state.circleRadius = (bey.baseRadius || bey.radius) * 3.5;
+					let forwardPush = = state.circleRadius + 40;
                     
                     // Place the center of the circle OUT IN FRONT of the beyblade
-                    state.csCenterX = bey.x + (state.csDirX * state.circleRadius);
-                    state.csCenterY = bey.y + (state.csDirY * state.circleRadius);
+                    state.csCenterX = bey.x + (state.csDirX * forwardPush);
+                    state.csCenterY = bey.y + (state.csDirY * forwardPush);
                     
                     // Determine the starting angle (facing back toward the beyblade)
                     state.csStartAngle = Math.atan2(-state.csDirY, -state.csDirX);
