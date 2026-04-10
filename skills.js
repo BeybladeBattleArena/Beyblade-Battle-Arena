@@ -1036,6 +1036,7 @@ window.SkillEngine = {
                 // --- CREATE THE SLASH (At 50% Progress) ---
                 if (progress >= 0.5 && !state.csSlashCreated) {
                     state.csSlashCreated = true;
+					console.log("SLASH SPAWNED!");
                     
                     // Create an independent object to track the slash!
                     state.csSlash = {

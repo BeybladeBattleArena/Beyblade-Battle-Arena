@@ -3370,6 +3370,7 @@ if (
                 let img = window.circleSlashImages ? window.circleSlashImages[frameIndex] : null;
 
                 if (img && img.complete) {
+					console.log("DRAWING SLASH FRAME:", frameIndex);
                     ctx.save();
                     
                     // 2. Center the canvas on the Slash's Anchor Point (relative to the Beyblade!)
