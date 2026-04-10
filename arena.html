@@ -3283,25 +3283,6 @@ if (
                 }
             }
 			
-
-            ctx.rotate(bey.rotation);
-
-            if (bey.images) {
-                if (bey.images.bb) ctx.drawImage(bey.images.bb, -renderSize/2, -renderSize/2, renderSize, renderSize);
-                if (bey.images.sg) ctx.drawImage(bey.images.sg, -renderSize/2, -renderSize/2, renderSize, renderSize);
-                if (bey.images.wd) ctx.drawImage(bey.images.wd, -renderSize/2, -renderSize/2, renderSize, renderSize);
-                if (bey.images.sar) ctx.drawImage(bey.images.sar, -renderSize/2, -renderSize/2, renderSize, renderSize);                 
-                if (bey.images.ar) ctx.drawImage(bey.images.ar, -renderSize/2, -renderSize/2, renderSize, renderSize);
-                if (bey.images.bc) ctx.drawImage(bey.images.bc, -renderSize/2, -renderSize/2, renderSize, renderSize);
-            }
-            
-			
-			// REMOVE THE FILTER so it doesn't affect other elements on the canvas!
-            ctx.filter = 'none'; 
-
-            ctx.restore(); // <--- Ends the rendering block for the physical Beyblade
-
-
 			// ==========================================
             // --- CIRCLE SLASH IMAGE SEQUENCE ---
             // ==========================================
@@ -3320,7 +3301,7 @@ if (
                     ctx.save();
                     
                     // 2. Center the canvas on the Slash's Anchor Point (relative to the Beyblade!)
-                    ctx.translate(slash.cx, slash.cy);
+                    ctx.translate(slash.cx - bey.x, slash.cy - bey.y);
                     
                     // 3. Calculate Rotation
                     // farAngle is the true direction the slash was thrown
@@ -3344,6 +3325,27 @@ if (
                     ctx.restore();
                 }
             }
+			
+
+            ctx.rotate(bey.rotation);
+
+            if (bey.images) {
+                if (bey.images.bb) ctx.drawImage(bey.images.bb, -renderSize/2, -renderSize/2, renderSize, renderSize);
+                if (bey.images.sg) ctx.drawImage(bey.images.sg, -renderSize/2, -renderSize/2, renderSize, renderSize);
+                if (bey.images.wd) ctx.drawImage(bey.images.wd, -renderSize/2, -renderSize/2, renderSize, renderSize);
+                if (bey.images.sar) ctx.drawImage(bey.images.sar, -renderSize/2, -renderSize/2, renderSize, renderSize);                 
+                if (bey.images.ar) ctx.drawImage(bey.images.ar, -renderSize/2, -renderSize/2, renderSize, renderSize);
+                if (bey.images.bc) ctx.drawImage(bey.images.bc, -renderSize/2, -renderSize/2, renderSize, renderSize);
+            }
+            
+			
+			// REMOVE THE FILTER so it doesn't affect other elements on the canvas!
+            ctx.filter = 'none'; 
+
+            ctx.restore(); // <--- Ends the rendering block for the physical Beyblade
+
+
+			
 
 
             // =======================================================
