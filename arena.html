@@ -3283,60 +3283,6 @@ if (
                 }
             }
 			
-			// ==========================================
-            // --- CIRCLE SLASH MULTI-LAYER CRESCENT ---
-            // ==========================================
-            if (bey.skillState && bey.skillState.csSlash && bey.skillState.csSlash.timer > 0) {
-                let slash = bey.skillState.csSlash;
-                
-                ctx.save();
-                
-                // 1. Move canvas to the center of the SLASH (not the beyblade!)
-                ctx.translate(slash.cx - bey.x, slash.cy - bey.y); 
-                
-                // 2. Fade out smoothly as the timer dies
-                ctx.globalAlpha = Math.min(1.0, slash.timer / 200);
-
-                let farAngle = slash.startAngle + Math.PI; 
-                let baseRadius = slash.radius * scale;
-
-                // 3. Define the Energy Layers! 
-                // We use an array so we can draw multiple streaks with different properties.
-                // rMod shifts the line slightly inward/outward. angleJitter makes the tips jagged.
-                const layers = [
-                    // Layer 1: Thick, faint outer gray glow
-                    { rMod: 4, width: 16, color: "rgba(105, 105, 105, 0.4)", blur: 20, angleJitter: 0.12 },
-                    // Layer 2: Core dark gray structure
-                    { rMod: 1, width: 10, color: "rgba(169, 169, 169, 0.8)", blur: 10, angleJitter: 0.05 },
-                    // Layer 3: Vibrant red inner streak
-                    { rMod: -2, width: 8, color: "rgba(255, 20, 60, 0.9)", blur: 15, angleJitter: 0.18 },
-                    // Layer 4: Bright, hot center core (pure red/white) to give it intense energy
-                    { rMod: -4, width: 4, color: "rgba(255, 100, 100, 1.0)", blur: 5, angleJitter: 0.0 }
-                ];
-
-                // 4. Loop through and draw every layer on top of each other
-                layers.forEach((layer) => {
-                    ctx.beginPath();
-                    
-                    // We apply the 'angleJitter' so the layers don't start/end at the exact same pixel.
-                    // This creates the brushed, streaky look at the tips of the crescent!
-                    let start = (farAngle - (Math.PI / 2)) + layer.angleJitter;
-                    let end = (farAngle + (Math.PI / 2)) - layer.angleJitter;
-
-                    // arc(x, y, radius, startAngle, endAngle, counterclockwise boolean)
-                    ctx.arc(0, 0, baseRadius + (layer.rMod * scale), start, end, false);
-
-                    ctx.lineWidth = layer.width * scale;
-                    ctx.lineCap = "round"; // This tapers the ends of the streaks nicely
-                    ctx.strokeStyle = layer.color;
-                    ctx.shadowBlur = layer.blur;
-                    ctx.shadowColor = layer.color;
-                    ctx.stroke();
-                });
-
-                ctx.restore();
-            }
-			
 
             ctx.rotate(bey.rotation);
 
