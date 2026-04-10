@@ -994,7 +994,7 @@ window.SkillEngine = {
                     state.hasCsArmor = true; // Safety flag
                     
                     // The circle is 3.5x the beyblade's radius
-                    state.circleRadius = (bey.baseRadius || bey.radius) * 3.5;
+                    state.circleRadius = (bey.baseRadius || bey.radius) * 3.2;
                     
                     // Place the center of the circle OUT IN FRONT of the beyblade
                     state.csCenterX = bey.x + (state.csDirX * state.circleRadius);
@@ -1037,7 +1037,7 @@ window.SkillEngine = {
                 }
 
                 // --- CREATE THE SLASH (At 50% Progress) ---
-                if (progress >= 0.35 && !state.csSlashCreated) {
+                if (progress >= 0.25 && !state.csSlashCreated) {
                     state.csSlashCreated = true;
 					console.log("SLASH SPAWNED!");
                     
