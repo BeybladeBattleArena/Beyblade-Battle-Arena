@@ -370,7 +370,7 @@ window.SkillsDB = {
         },
 		"Circle Slash": {
             name: "Circle Slash", cd: 7,
-            desc: "Pause briefly, then dash forward in a rapid circle, creating a red crescent slash in the beyblade's wake.", 
+            desc: "Dash forward in a rapid circular path, creating a red crescent slash in the beyblade's wake.", 
         },
         "Smash Attack": {
             name: "Smash Attack", cd: 5,
@@ -495,6 +495,16 @@ window.SkillsDB = {
 };
 
 // --- 2. THE ACTIVE ENGINE ---
+// Preload any sprites / images --
+// Put this near the top of your file, before your game loop or UI builders!
+window.spinSlashImages = [];
+for (let i = 1; i <= 6; i++) {
+    let img = new Image();
+    img.src = `./images/beyblade_parts/arena_props/effects/circleslash${i}.png`;
+    window.circleSlashImages.push(img);
+}
+				
+// Engine Init ----
 window.SkillEngine = {
     init: function(p1, cpu) {
         [p1, cpu].forEach(bey => {
@@ -1258,7 +1268,7 @@ window.SkillEngine = {
                     // 3. Set the cleanup timer so they get their resistance back after the bounce
                     bey.skillState.csBodyHitTimer = 200; 
                     
-                    bey.activeAura = "rgba(255, 255, 255, 0.9)"; // Bright white clash
+                    bey.activeAura = "rgba(255, 255, 255, 0.6)"; // Bright white clash
                     bey.activeAuraDuration = 200;
                 }
 				
