@@ -558,7 +558,7 @@ window.equipmentDB = {
             id: "ar_16", // Generalized ID
             name: "As Survivor", // Generalized Name
             type: "Attack Ring", 
-            tags: ["As", "Survivor", "Heavy Ram"], 
+            tags: ["As", "Survivor", "Heavy Ram", "Peak Performance", "Evasive Contact", "Hammer Impact", "Lateral Bound"], 
 			fallbackImage: "./images/beyblade_parts/AR/AsSurvivor.png",  
             statsRight: { attack: 22, hp: 25, defense: 10, recoil: 12, balance: 4, weight: 15, endurance: 6, stamina: 4, speed: 3, mobility: 3, recoilReduction: 4 },
 			statsLeft: { attack: 18, hp: 30, defense: 14, recoil: 8, balance: 4, weight: 15, endurance: 7, stamina: 5, speed: 3, mobility: 4, recoilReduction: 7 },
@@ -584,11 +584,15 @@ window.equipmentDB = {
             id: "ar_17", // Generalized ID
             name: "Quad Horn", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Quad", "Horn", "Smash Attack"], 
+            tags: ["Quad", "Horn", "Smash Attack", "Concentrate", "Defense", "Impact", "Hammer", "Point", "Rolling Collision"], 
 			fallbackImage: "./images/beyblade_parts/AR/QuadHorn.png",  
-            stats: { attack: 21, hp: 20, defense: 6, recoil: 18, endurance: 5, balance: 1, weight: 13, mobility: 1, recoilReduction: 2 },
-			passives: [], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+            statsRight: { attack: 21, hp: 25, defense: 12, recoil: 12, balance: 5, weight: 13, endurance: 6, stamina: 5, speed: 3, mobility: 2, recoilReduction: 4 },
+			statsLeft: { attack: 16, hp: 25, defense: 14, recoil: 7, balance: 5, weight: 13, endurance: 8, stamina: 5, speed: 3, mobility: 3, recoilReduction: 8 },
+			radius: 14,
+			passivesRight: ["Impact Point"],
+			passivesLeft: ["Rolling Collision"],			
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Concentrate Impact", cd: 8 }],
+			attacksLeft: [{ name: "Concentrate Defense", cd: 7 }, { name: "Hammer Impact", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -606,11 +610,15 @@ window.equipmentDB = {
             id: "ar_18", // Generalized ID
             name: "Burst Ox", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Burst", "Ox", "Heavy Ram"], 
+            tags: ["Burst", "Ox", "Heavy Ram", "Smash Attack", "Barrage Attack", "Concentrate Defense", "Undercut Line", "Twin Contact Rhythm"], 
 			fallbackImage: "./images/beyblade_parts/AR/BurstOx.png",  
-            stats: { attack: 23, hp: 20, defense: 11, stamina: 6, recoil: 17, endurance: 4, balance: 4, weight: 17, speed: -2, mobility: -1, recoilReduction: 4 },
-			passives: [], 
-			attacks: [{ name: "Heavy Ram", cd: 5 }],
+            statsLeft: { attack: 25, hp: 40, defense: 9, recoil: 15, balance: 3, weight: 16, endurance: 5, stamina: 2, speed: 3, mobility: 4, recoilReduction: 3 },
+			statsRight: { attack: 20, hp: 30, defense: 10, recoil: 11, balance: 4, weight: 16, endurance: 6, stamina: 4, speed: 3, mobility: 3, recoilReduction: 3 },
+			radius: 15,
+			passivesRight: ["Undercut Line"],
+			passivesLeft: ["Twin Contact Rhythm"],
+			attacksLeft: [{ name: "Heavy Ram", cd: 5 }, { name: "Smash Attack", cd: 5 }],
+			attacksRight: [{ name: "Barrage Attack", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -628,11 +636,12 @@ window.equipmentDB = {
             id: "ar_19", // Generalized ID
             name: "Chainblade Wyvern", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Chainblade", "Wyvern", "Spike Attack"], 
+            tags: ["Chainblade", "Wyvern", "Spike Attack", "Grindblade Lunge", "Hook Cross"], 
 			fallbackImage: "./images/beyblade_parts/AR/ChainbladeWyvern.png",  
-            stats: { attack: 27, hp: 20, endurance: 3, stamina: 4, balance: 2, weight: 14, mobility: 5, speed: 2, recoil: 19, recoilReduction: 1 },
-			passives: [], 
-			attacks: [{ name: "Spike Attack", cd: 4 }],
+            stats: { attack: 25, hp: 30, defense: 6, recoil: 19, balance: 5, weight: 15, endurance: 3, stamina: 6, speed: 5, mobility: 4, recoilReduction: 2 },
+			radius: 16,
+			passives: ["Hook Cross"], 
+			attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Grindblade Lunge", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -651,10 +660,13 @@ window.equipmentDB = {
             name: "Basilisk Eye", // Generalized Name
             type: "Attack Ring", 
             tags: ["Basilisk", "Eye", "Barrage Attack"], 
-			fallbackImage: "./images/beyblade_parts/AR/BasiliskEye.png",  
-            stats: { attack: 19, stamina: 10, recoil: 15, balance: 4, weight: 15, mobility: 2, endurance: 5, defense: 4 },
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+			fallbackImage: "./images/beyblade_parts/AR/BasiliskEye.png",
+			statsRight: { attack: 12, hp: 20, defense: 12, recoil: 6, balance: 6, weight: 11, endurance: 8, stamina: 6, speed: 4, mobility: 4, recoilReduction: 5 },
+            statsLeft: { attack: 10, hp: 25, defense: 16, recoil: 4, balance: 6, weight: 11, endurance: 10, stamina: 8, speed: 3, mobility: 4, recoilReduction: 8 },
+			radius: 13,
+			passivesRight: ["Critical Counter"],
+			passivesLeft: ["Slip Face Edge"],
+			attacks: [{ name: "Barrage Attack", cd: 6 }, { name: "Stonetip Ripple", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [

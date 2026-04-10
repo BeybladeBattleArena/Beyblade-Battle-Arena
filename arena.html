@@ -3216,6 +3216,69 @@ if (
                 ctx.restore();
             }
 			
+			
+			// ==========================================
+            // --- STONETIP RIPPLE VISUALS ---
+            // ==========================================
+            if (bey.skillState) {
+                
+                // 1. DRAWING THE CHARGE PHASE
+                if (bey.skillState.actionState === "STONETIP_CHARGING") {
+                    ctx.save();
+                    
+                    // A. The Pulsing Indicator Circle
+                    // Pulses between opacity 0.2 and 0.6
+                    let pulseAlpha = 0.4 + Math.sin(Date.now() * 0.005) * 0.2; 
+                    
+                    ctx.beginPath();
+                    ctx.arc(0, 0, bey.skillState.expectedAoeSize * scale, 0, Math.PI * 2);
+                    ctx.lineWidth = 4 * scale;
+                    // Fades between gray and white based on the pulse
+                    ctx.strokeStyle = `rgba(200, 200, 200, ${pulseAlpha})`; 
+                    ctx.setLineDash([10, 10]); // Dashed indicator line
+                    ctx.stroke();
+
+                    // B. The Orbiting Amber Particles
+                    if (bey.skillState.orbitParticles) {
+                        for (let p of bey.skillState.orbitParticles) {
+                            // Calculate their exact X/Y based on their current angle
+                            let px = Math.cos(p.angle) * p.distance * scale;
+                            let py = Math.sin(p.angle) * p.distance * scale;
+                            
+                            ctx.beginPath();
+                            ctx.arc(px, py, p.size * scale, 0, Math.PI * 2);
+                            ctx.fillStyle = "rgba(255, 191, 0, 0.9)"; // Amber
+                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = "rgba(255, 140, 0, 1)"; // Dark Orange Glow
+                            ctx.fill();
+                        }
+                    }
+                    ctx.restore();
+                }
+
+                // 2. DRAWING THE EXPANDING WAVE
+                else if (bey.skillState.actionState === "STONETIP_WAVE") {
+                    ctx.save();
+                    
+                    // Fade out as it reaches its apex
+                    let waveAlpha = Math.max(0, bey.skillState.waveTimer / 400); 
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, bey.skillState.waveRadius * scale, 0, Math.PI * 2);
+                    ctx.lineWidth = 15 * waveAlpha * scale; // Line gets thinner as it fades
+                    ctx.strokeStyle = `rgba(218, 165, 32, ${waveAlpha})`; // Goldenrod
+                    ctx.shadowBlur = 20;
+                    ctx.shadowColor = "rgba(184, 134, 11, 1)"; // Dark Goldenrod
+                    ctx.stroke();
+                    
+                    // Add a faint fill to the AoE
+                    ctx.fillStyle = `rgba(218, 165, 32, ${waveAlpha * 0.2})`;
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            }
+			
 
             ctx.rotate(bey.rotation);
 
