@@ -1118,6 +1118,41 @@ window.SkillEngine = {
                             
                             opponent.activeAura = "rgba(255, 0, 0, 0.9)";
                             opponent.activeAuraDuration = 250;
+							
+							// Sparks on hit
+							if (window.particles) {
+                                // 1. Our specific color palette for the sparks
+                                const sparkColors = ['#ff0000', '#ffaa00', '#ffffff']; // Pure Red, Amber, Pure White
+                                
+                                // 2. Generate 25 individual sparks!
+                                for (let i = 0; i < 25; i++) {
+                                    
+                                    // 3. Give them a random 360-degree trajectory to "flare" outwards
+                                    let sparkAngle = Math.random() * Math.PI * 2;
+                                    
+                                    // 4. Mix fast and slow sparks for a dynamic explosion
+                                    let sparkSpeed = Math.random() * 8 + 3; 
+
+                                    window.particles.push({
+                                        // Spawn roughly around the opponent's center
+                                        x: opponent.x + (Math.random() - 0.5) * 15, 
+                                        y: opponent.y + (Math.random() - 0.5) * 15,
+                                        
+                                        // Explode outward!
+                                        vx: Math.cos(sparkAngle) * sparkSpeed, 
+                                        vy: Math.sin(sparkAngle) * sparkSpeed,
+                                        
+                                        // Life starts at ~1.0, decays quickly so they vanish in a few frames
+                                        life: 1.0 + Math.random() * 0.5, 
+                                        decay: 0.04 + Math.random() * 0.05, 
+                                        
+                                        // Pick a random color from our array, and a random size
+                                        color: sparkColors[Math.floor(Math.random() * sparkColors.length)],
+                                        size: Math.random() * 3 + 1.5 
+                                    });
+                                }
+                            }			
+							
                         }
                     }
                 }
