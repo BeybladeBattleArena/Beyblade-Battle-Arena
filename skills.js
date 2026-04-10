@@ -1037,7 +1037,7 @@ window.SkillEngine = {
                 }
 
                 // --- CREATE THE SLASH (At 50% Progress) ---
-                if (progress >= 0.45 && !state.csSlashCreated) {
+                if (progress >= 0.35 && !state.csSlashCreated) {
                     state.csSlashCreated = true;
 					console.log("SLASH SPAWNED!");
                     
@@ -1046,7 +1046,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 200, // Projects slightly outward
+                        radius: state.circleRadius + 400, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
