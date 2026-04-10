@@ -836,6 +836,7 @@ window.SkillEngine = {
                     bey.activeAuraDuration = 350;
                 }
             }
+			
             else if (state.actionState === "HAMMER_SWING") {
                 state.hammerTimer -= dt;
                 
@@ -848,6 +849,119 @@ window.SkillEngine = {
                     state.actionState = "NORMAL";
                 }
             }
+			
+			// ==========================================
+            // --- STONETIP RIPPLE STATE MACHINE ---
+            // ==========================================
+
+            // 1. THE CHARGE PHASE
+            else if (state.actionState === "STONETIP_CHARGING") {
+                // Apply constant friction so the Beyblade stays anchored
+                bey.vx *= 0.85;
+                bey.vy *= 0.85;
+
+                state.chargeTimer += dt;
+
+                // --- ADJUSTABLE SIZES ---
+                let baseRad = bey.baseRadius || bey.radius;
+                let sizeLevel1 = baseRad * 2;
+                let sizeLevel2 = baseRad * 4;
+                let sizeLevel3 = baseRad * 6;
+
+                // --- DETERMINE CHARGE LEVEL ---
+                let orbitSpeedBase = 0.005;
+                let spawnChance = 0.05;
+
+                if (state.chargeTimer >= 2000) { // HEAVY
+                    state.chargeLevel = 3;
+                    state.expectedAoeSize = sizeLevel3;
+                    orbitSpeedBase = 0.015;
+                    spawnChance = 0.30;
+                } else if (state.chargeTimer >= 1000) { // MEDIUM
+                    state.chargeLevel = 2;
+                    state.expectedAoeSize = sizeLevel2;
+                    orbitSpeedBase = 0.010;
+                    spawnChance = 0.15;
+                } else { // LIGHT
+                    state.chargeLevel = 1;
+                    state.expectedAoeSize = sizeLevel1;
+                }
+
+                // --- VISUAL TINT ---
+                bey.activeAura = "rgba(189, 183, 107, 0.6)"; // Dark Khaki / Marbled Yellow-Gray
+                bey.activeAuraDuration = 100;
+
+                // --- ORBITING PARTICLES LOGIC ---
+                if (Math.random() < spawnChance) {
+                    state.orbitParticles.push({
+                        angle: Math.random() * Math.PI * 2,
+                        distance: baseRad + (Math.random() * 15), 
+                        size: Math.random() * (state.chargeLevel) + 1.5, 
+                        speed: orbitSpeedBase + (Math.random() * 0.005)
+                    });
+                }
+
+                let spinMultiplier = (bey.spinDirection === "left" || bey.spinDir === -1) ? -1 : 1;
+                for (let p of state.orbitParticles) {
+                    p.angle += (p.speed * dt) * spinMultiplier;
+                }
+
+                // --- CPU AUTO-RELEASE ---
+                // The UI handles the player's release, so we only need to manually release for the CPU!
+                let isPlayer = (bey === p1); // Assuming p1 is your player variable
+                if (!isPlayer && state.chargeTimer >= (1000 + Math.random() * 1500)) {
+                    if (window.SkillEngine && window.SkillEngine.releaseStonetip) {
+                        window.SkillEngine.releaseStonetip(bey, opponent);
+                    }
+                }
+            }
+            
+            // 2. THE WAVE EXPANSION PHASE
+            else if (state.actionState === "STONETIP_WAVE") {
+                state.waveTimer -= dt;
+
+                let progress = 1 - (state.waveTimer / 400); 
+                state.waveRadius = (bey.baseRadius || bey.radius) + (state.expectedAoeSize * progress);
+
+                if (!state.hasHitOpponent) {
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist - opponent.radius <= state.waveRadius) {
+                        state.hasHitOpponent = true;
+                        
+                        opponent.skillState.stonetipLockTimer = 2500; 
+                        opponent.stats.knockbackResist = (opponent.stats.knockbackResist || 0) + 0.45;
+                    }
+                }
+
+                if (state.waveTimer <= 0) {
+                    state.actionState = "NORMAL";
+                }
+            }
+
+            // ==========================================
+            // --- OPPONENT DEBUFF: STONETIP LOCK ---
+            // ==========================================
+            let oppState = opponent.skillState;
+            if (oppState && oppState.stonetipLockTimer > 0) {
+                oppState.stonetipLockTimer -= dt;
+
+                // 1. Massive friction to keep them glued in place (Movement Lock)
+                opponent.vx *= 0.6;
+                opponent.vy *= 0.6;
+
+                // 2. Visual Gray Tint applied via aura
+                opponent.activeAura = "rgba(128, 128, 128, 0.8)"; 
+                opponent.activeAuraDuration = 100;
+
+                // 3. Cleanup when the 2.5s lock ends
+                if (oppState.stonetipLockTimer <= 0) {
+                    opponent.stats.knockbackResist -= 0.45;
+                }
+            }
+		}
 
 			// --- CYCLONE LOOP PHYSICS ---
             if (state.actionState === "CYCLONE_LOOP") {
@@ -3171,119 +3285,7 @@ window.SkillEngine = {
                 tpOutSfx.play().catch(e => console.log("Audio blocked:", e));
             }
 			
-			// ==========================================
-            // --- STONETIP RIPPLE STATE MACHINE ---
-            // ==========================================
-
-            // 1. THE CHARGE PHASE
-            else if (state.actionState === "STONETIP_CHARGING") {
-                // Apply constant friction so the Beyblade stays anchored
-                bey.vx *= 0.85;
-                bey.vy *= 0.85;
-
-                state.chargeTimer += dt;
-
-                // --- ADJUSTABLE SIZES ---
-                let baseRad = bey.baseRadius || bey.radius;
-                let sizeLevel1 = baseRad * 2;
-                let sizeLevel2 = baseRad * 4;
-                let sizeLevel3 = baseRad * 6;
-
-                // --- DETERMINE CHARGE LEVEL ---
-                let orbitSpeedBase = 0.005;
-                let spawnChance = 0.05;
-
-                if (state.chargeTimer >= 2000) { // HEAVY
-                    state.chargeLevel = 3;
-                    state.expectedAoeSize = sizeLevel3;
-                    orbitSpeedBase = 0.015;
-                    spawnChance = 0.30;
-                } else if (state.chargeTimer >= 1000) { // MEDIUM
-                    state.chargeLevel = 2;
-                    state.expectedAoeSize = sizeLevel2;
-                    orbitSpeedBase = 0.010;
-                    spawnChance = 0.15;
-                } else { // LIGHT
-                    state.chargeLevel = 1;
-                    state.expectedAoeSize = sizeLevel1;
-                }
-
-                // --- VISUAL TINT ---
-                bey.activeAura = "rgba(189, 183, 107, 0.6)"; // Dark Khaki / Marbled Yellow-Gray
-                bey.activeAuraDuration = 100;
-
-                // --- ORBITING PARTICLES LOGIC ---
-                if (Math.random() < spawnChance) {
-                    state.orbitParticles.push({
-                        angle: Math.random() * Math.PI * 2,
-                        distance: baseRad + (Math.random() * 15), 
-                        size: Math.random() * (state.chargeLevel) + 1.5, 
-                        speed: orbitSpeedBase + (Math.random() * 0.005)
-                    });
-                }
-
-                let spinMultiplier = (bey.spinDirection === "left" || bey.spinDir === -1) ? -1 : 1;
-                for (let p of state.orbitParticles) {
-                    p.angle += (p.speed * dt) * spinMultiplier;
-                }
-
-                // --- CPU AUTO-RELEASE ---
-                // The UI handles the player's release, so we only need to manually release for the CPU!
-                let isPlayer = (bey === p1); // Assuming p1 is your player variable
-                if (!isPlayer && state.chargeTimer >= (1000 + Math.random() * 1500)) {
-                    if (window.SkillEngine && window.SkillEngine.releaseStonetip) {
-                        window.SkillEngine.releaseStonetip(bey, opponent);
-                    }
-                }
-            }
-            
-            // 2. THE WAVE EXPANSION PHASE
-            else if (state.actionState === "STONETIP_WAVE") {
-                state.waveTimer -= dt;
-
-                let progress = 1 - (state.waveTimer / 400); 
-                state.waveRadius = (bey.baseRadius || bey.radius) + (state.expectedAoeSize * progress);
-
-                if (!state.hasHitOpponent) {
-                    let dx = opponent.x - bey.x;
-                    let dy = opponent.y - bey.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-
-                    if (dist - opponent.radius <= state.waveRadius) {
-                        state.hasHitOpponent = true;
-                        
-                        opponent.skillState.stonetipLockTimer = 2500; 
-                        opponent.stats.knockbackResist = (opponent.stats.knockbackResist || 0) + 0.45;
-                    }
-                }
-
-                if (state.waveTimer <= 0) {
-                    state.actionState = "NORMAL";
-                }
-            }
-
-            // ==========================================
-            // --- OPPONENT DEBUFF: STONETIP LOCK ---
-            // ==========================================
-            let oppState = opponent.skillState;
-            if (oppState && oppState.stonetipLockTimer > 0) {
-                oppState.stonetipLockTimer -= dt;
-
-                // 1. Massive friction to keep them glued in place (Movement Lock)
-                opponent.vx *= 0.6;
-                opponent.vy *= 0.6;
-
-                // 2. Visual Gray Tint applied via aura
-                opponent.activeAura = "rgba(128, 128, 128, 0.8)"; 
-                opponent.activeAuraDuration = 100;
-
-                // 3. Cleanup when the 2.5s lock ends
-                if (oppState.stonetipLockTimer <= 0) {
-                    opponent.stats.knockbackResist -= 0.45;
-                }
-            }
-		
-		
+			
 		
         else if (attackName === "Smash Attack") {
             let dashX = 0; 
@@ -3805,7 +3807,7 @@ else if (attackName === "Sharp Shooter") {
 		
 		// Start the cooldown now that the dash has been unleashed!
         if (window.startSkillCooldown) window.startSkillCooldown(attacker, "Charge Dash");
-    }
+    },
 	
 	releaseStonetip: function(attacker, defender) {
         let state = attacker.skillState;
