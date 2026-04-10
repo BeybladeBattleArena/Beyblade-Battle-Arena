@@ -3743,7 +3743,7 @@ else if (attackName === "Sharp Shooter") {
                 attacker.skillState.actionState = "LUNGE_HOP";
             }, 500);
         }
-    }
+    },
 	
 	releaseCharge: function(attacker, defender, joyX = 0, joyY = 0) {
         let state = attacker.skillState;
