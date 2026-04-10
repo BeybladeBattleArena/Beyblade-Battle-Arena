@@ -1090,7 +1090,7 @@ window.SkillEngine = {
                     
                     // The inner bound now covers the outer 60% of the entire circle! 
                     // (Instead of just a paper-thin 15 pixel rim)
-                    let innerBound = state.csSlash.radius * 1.5; 
+                    let innerBound = state.csSlash.radius * 3.125; 
                     
                     if (oppDist <= outerBound && oppDist >= innerBound) {
                         
