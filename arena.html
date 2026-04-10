@@ -3327,6 +3327,30 @@ if (
                             // Draw using the new hugeSize instead of renderSize
                             ctx.drawImage(img, -hugeSize/2, -hugeSize/2, hugeSize, hugeSize);
                             
+                            // ==========================================
+                            // --- HITBOX DEBUGGER (TURN TO FALSE WHEN DONE) ---
+                            // ==========================================
+                            const SHOW_DEBUG_HITBOX = true; 
+                            if (SHOW_DEBUG_HITBOX) {
+                                ctx.beginPath();
+                                
+                                // Draw the exact math your skills.js is using
+                                let debugOuter = slash.radius * scale;
+                                let debugInner = (slash.radius * 0.4) * scale; // The 0.4 multiplier we used
+                                
+                                // 1. Draw Outer Boundary (Lime Green)
+                                ctx.arc(0, 0, debugOuter, 0, Math.PI * 2, false);
+                                ctx.lineWidth = 2;
+                                ctx.strokeStyle = "lime";
+                                ctx.stroke();
+                                
+                                ctx.beginPath();
+                                // 2. Draw Inner Boundary (Cyan)
+                                ctx.arc(0, 0, debugInner, 0, Math.PI * 2, false);
+                                ctx.strokeStyle = "cyan";
+                                ctx.stroke();
+                            }
+                            
                             ctx.restore();
                 }
             }

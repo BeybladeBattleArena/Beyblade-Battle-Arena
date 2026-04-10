@@ -3154,8 +3154,8 @@ window.SkillEngine = {
                     state.actionState = "RIDGE_UPPERCUT_DASH";
                     state.ruTimer = 400; // The dash lasts 400ms max (unless it hits something early)
                     
-                    bey.vx = state.ruTargetX * 5;
-                    bey.vy = state.ruTargetY * 5;
+                    bey.vx = state.ruTargetX * 7;
+                    bey.vy = state.ruTargetY * 7;
                     
                     bey.activeAura = "rgba(255, 100, 0, 0.9)"; // Fierce orange impact glow
                     bey.activeAuraDuration = 400;
@@ -3537,7 +3537,7 @@ window.SkillEngine = {
                 dashY = dirY;
             }
 
-            let dashPower = 6; 
+            let dashPower = 7; 
             attacker.vx += dashX * dashPower;
             attacker.vy += dashY * dashPower;
 			
@@ -3746,13 +3746,13 @@ window.SkillEngine = {
                 dashY = dirY;
             }
 			
-			let dashPower = 6; 
+			let dashPower = 7; 
             attacker.vx += dashX * dashPower;
             attacker.vy += dashY * dashPower;
             attacker.currentHp -= 2; 
             attacker.activeAura = "rgba(255, 0, 0, 0.8)";
             attacker.activeAuraDuration = 600;
-			attacker.tempAttack = 2;
+			attacker.tempAttack = 4;
             attacker.tempRecoilReduction = 1.5; 
             attacker.tempDefense = 20; 
         }
@@ -4027,16 +4027,16 @@ else if (attackName === "Sharp Shooter") {
         }
 
         // 2. Assign Stats based on Charge Level
-        let dashPower = 5;
+        let dashPower = 6;
         let atkBuffPct = 0;
         let kbBuffPct = 0.06;
 
         if (state.chargeLevel === 2) {
-            dashPower = 6.5;
+            dashPower = 8;
             atkBuffPct = 0.08;
             kbBuffPct = 0.12;
         } else if (state.chargeLevel === 3) {
-            dashPower = 7.5;
+            dashPower = 10;
             atkBuffPct = 0.15;
             kbBuffPct = 0.18;
         }
