@@ -748,7 +748,7 @@ window.equipmentDB = {
 			radius: 14,
 			passivesRight: ["Twin Contact Rhythm"],
 			passivesLeft: ["Relentless"],
-			attacksRight: [{ name: "Spike Attack", cd: 4 }, { name: "Concentrate Impact", cd: 8 }],\
+			attacksRight: [{ name: "Spike Attack", cd: 4 }, { name: "Concentrate Impact", cd: 8 }],
 			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Side Swipe", cd: 6 }],
 			
 			//The Array of Unlockable Designs
