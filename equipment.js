@@ -592,7 +592,7 @@ window.equipmentDB = {
 			passivesRight: ["Impact Point"],
 			passivesLeft: ["Rolling Collision"],			
 			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Concentrate Impact", cd: 8 }],
-			attacksLeft: [{ name: "Concentrate Defense", cd: 7 }, { name: "Hammer Impact", cd: 5 }],
+			attacksLeft: [{ name: "Concentrate Defense", cd: 7 }, { name: "Hammer Impact", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -834,7 +834,7 @@ window.equipmentDB = {
 			radius: 15,
 			passivesRight: ["Redirection"], 
 			passivesLeft: ["Recoil Rebounder"],
-			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Hammer Impact", cd: 5 }],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Hammer Impact", cd: 8 }],
 			attacksLeft: [{ name: "Heavy Ram", cd: 5 }, { name: "Lateral Bound", cd: 5 }],
 			
 			//The Array of Unlockable Designs
@@ -855,11 +855,15 @@ window.equipmentDB = {
             type: "Attack Ring", 
 			subRing: true,
 			subRingType: "Free",
-            tags: ["Roaring", "Venom", "Sub-Attack Ring", "SAR", "Sub"], 
+            tags: ["Roaring", "Venom", "Sub-Attack Ring", "SAR", "Sub", "Feral Friction", "Twin Contact Rhyhtm", "Barrage Attack", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/RoaringVenom.png",  
-            stats: { attack: 21, weight: 13, speed: 4, balance: 1, mobility: 2, defense: 3, endurance: 4, recoil: 10, recoilReduction: 1 },
-			passives: [], 
-			attacks: [],
+            statsRight: { attack: 20, hp: 15, defense: 6, recoil: 14, balance: 3, weight: 11, endurance: 4, stamina: 4, speed: 5, mobility: 4, recoilReduction: 2 },
+			statsLeft: { attack: 18, hp: 15, defense: 7, recoil: 11, balance: 4, weight: 11, endurance: 5, stamina: 5, speed: 4, mobility: 4, recoilReduction: 4 },
+			radius: 15,
+			passivesRight: ["Feral Friction"],
+			passivesLeft: ["Twin Contact Rhythm"],			
+			attacksRight: [{ name: "Barrage Attack", cd: 6 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -879,9 +883,10 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Rolling", "Hammer", "Concentrate Defense"], 
 			fallbackImage: "./images/beyblade_parts/AR/RollingHammer_Violet.png",  
-            stats: { attack: 22, weight: 14, speed: 1, balance: 4, mobility: 2, defense: 7, endurance: 5, recoil: 14, recoilReduction: 2 },
-			passives: [], 
-			attacks: [{ name: "Concentrate Defense", cd: 7 }],
+            stats: { attack: 22, hp: 30, defense: 10, recoil: 14, balance: 7, weight: 14, endurance: 5, stamina: 6, speed: 4, mobility: 2, recoilReduction: 2 },
+			radius: 15,
+			passives: ["Static Survival"], 
+			attacks: [{ name: "Hammer Impact", cd: 8 }, { name: "Charge Dash", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [
