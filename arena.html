@@ -2203,7 +2203,7 @@ if (
         if (skill.currentCd <= 0 && window.SkillEngine) {
             window.SkillEngine.executeAttack(skill.name, playerBey, cpuBey, joyX, joyY);
 
-				if (skill.name !== "Phantom Warp" && skill.name !== "Charge Dash") {
+				if (skill.name !== "Phantom Warp" && skill.name !== "Charge Dash" && skill.name !== "Stonetip Ripple") {
                 let cdrMod = 1.0 - ((playerBey.stats.cdr || 0) / 100);
                 skill.currentCd = skill.baseCd * cdrMod;
 				}
@@ -2235,6 +2235,10 @@ if (
         // Fire the dash!
         window.SkillEngine.releaseCharge(playerBey, cpuBey, joyX, joyY); 
     }
+	
+	if (playerBey.skillState.actionState === "STONETIP_CHARGING" && skill.name === "Stonetip Ripple") {
+            window.SkillEngine.releaseStonetip(playerBey, cpuBey); 
+        }
 	}
 
     function useUltimate() {

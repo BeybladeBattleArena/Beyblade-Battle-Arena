@@ -3213,37 +3213,26 @@ window.SkillEngine = {
                 bey.activeAuraDuration = 100;
 
                 // --- ORBITING PARTICLES LOGIC ---
-                // Randomly spawn new amber particles based on the charge level
                 if (Math.random() < spawnChance) {
                     state.orbitParticles.push({
                         angle: Math.random() * Math.PI * 2,
-                        distance: baseRad + (Math.random() * 15), // Hover just outside the beyblade
-                        size: Math.random() * (state.chargeLevel) + 1.5, // Bigger particles at higher levels
+                        distance: baseRad + (Math.random() * 15), 
+                        size: Math.random() * (state.chargeLevel) + 1.5, 
                         speed: orbitSpeedBase + (Math.random() * 0.005)
                     });
                 }
 
-                // Update particle positions (Spin Direction affects orbit!)
                 let spinMultiplier = (bey.spinDirection === "left" || bey.spinDir === -1) ? -1 : 1;
                 for (let p of state.orbitParticles) {
                     p.angle += (p.speed * dt) * spinMultiplier;
                 }
 
-                // --- RELEASE CHECK ---
-                // !!! IMPORTANT: Replace 'isPlayerAttackHeld' with your engine's actual input variable !!!
-                let isPlayerAttackHeld = window.keys && window.keys['Space']; // Example
-                let shouldRelease = isPlayer ? !isPlayerAttackHeld : (state.chargeTimer > 2500); // CPU auto-releases at 2.5s
-
-                if (shouldRelease) {
-                    state.actionState = "STONETIP_WAVE";
-                    state.waveRadius = baseRad; // Starts at the beyblade's edge
-                    state.waveTimer = 400; // The wave takes 400ms to fully expand
-                    state.hasHitOpponent = false;
-                    state.orbitParticles = []; // Clear particles
-                    
-                    // START THE 8-SECOND COOLDOWN NOW!
-                    if (bey.cooldowns) {
-                        bey.cooldowns["Stonetip Ripple"] = 8000;
+                // --- CPU AUTO-RELEASE ---
+                // The UI handles the player's release, so we only need to manually release for the CPU!
+                let isPlayer = (bey === p1); // Assuming p1 is your player variable
+                if (!isPlayer && state.chargeTimer >= (1000 + Math.random() * 1500)) {
+                    if (window.SkillEngine && window.SkillEngine.releaseStonetip) {
+                        window.SkillEngine.releaseStonetip(bey, opponent);
                     }
                 }
             }
@@ -3252,29 +3241,22 @@ window.SkillEngine = {
             else if (state.actionState === "STONETIP_WAVE") {
                 state.waveTimer -= dt;
 
-                // Expand the wave toward the expected size
-                let progress = 1 - (state.waveTimer / 400); // 0.0 to 1.0
+                let progress = 1 - (state.waveTimer / 400); 
                 state.waveRadius = (bey.baseRadius || bey.radius) + (state.expectedAoeSize * progress);
 
-                // Check for Hit on the Opponent!
                 if (!state.hasHitOpponent) {
                     let dx = opponent.x - bey.x;
                     let dy = opponent.y - bey.y;
                     let dist = Math.sqrt(dx*dx + dy*dy);
 
-                    // If the expanding ring touches them...
                     if (dist - opponent.radius <= state.waveRadius) {
                         state.hasHitOpponent = true;
                         
-                        // Apply the Movement Lock Debuff!
-                        opponent.skillState.stonetipLockTimer = 2500; // 2.5 seconds
-                        
-                        // Apply knockback resistance modifier! (+0.45 resistance leaves them taking exactly 55% knockback!)
+                        opponent.skillState.stonetipLockTimer = 2500; 
                         opponent.stats.knockbackResist = (opponent.stats.knockbackResist || 0) + 0.45;
                     }
                 }
 
-                // Wave finishes dissipating
                 if (state.waveTimer <= 0) {
                     state.actionState = "NORMAL";
                 }
@@ -3288,22 +3270,18 @@ window.SkillEngine = {
                 oppState.stonetipLockTimer -= dt;
 
                 // 1. Massive friction to keep them glued in place (Movement Lock)
-                // They can still be bumped, but they won't slide around on their own
                 opponent.vx *= 0.6;
                 opponent.vy *= 0.6;
 
                 // 2. Visual Gray Tint applied via aura
-                opponent.activeAura = "rgba(128, 128, 128, 0.8)"; // Solid Gray
+                opponent.activeAura = "rgba(128, 128, 128, 0.8)"; 
                 opponent.activeAuraDuration = 100;
 
                 // 3. Cleanup when the 2.5s lock ends
                 if (oppState.stonetipLockTimer <= 0) {
-                    // Remove the 45% knockback resistance buff
                     opponent.stats.knockbackResist -= 0.45;
                 }
             }
-			
-        }
 		
 		
 		
@@ -3416,9 +3394,7 @@ window.SkillEngine = {
             attacker.skillState.actionState = "STONETIP_CHARGING";
             attacker.skillState.chargeTimer = 0;
             attacker.skillState.chargeLevel = 1;
-            attacker.skillState.orbitParticles = []; // To hold our amber rocks!
-            
-            // Default expected AoE size (2x Beyblade Radius)
+            attacker.skillState.orbitParticles = []; 
             attacker.skillState.expectedAoeSize = (attacker.baseRadius || attacker.radius) * 2;
         }
 		
@@ -3830,5 +3806,24 @@ else if (attackName === "Sharp Shooter") {
 		// Start the cooldown now that the dash has been unleashed!
         if (window.startSkillCooldown) window.startSkillCooldown(attacker, "Charge Dash");
     }
+	
+	releaseStonetip: function(attacker, defender) {
+        let state = attacker.skillState;
+        
+        // Safety check
+        if (state.actionState !== "STONETIP_CHARGING") return; 
+
+        // Transition to the wave phase!
+        state.actionState = "STONETIP_WAVE";
+        state.waveRadius = attacker.baseRadius || attacker.radius;
+        state.waveTimer = 400;
+        state.hasHitOpponent = false;
+        state.orbitParticles = []; // Clear the floating rocks
+        
+        // Start the cooldown now that the wave has been unleashed!
+        if (window.startSkillCooldown) {
+            window.startSkillCooldown(attacker, "Stonetip Ripple");
+        }
+    },
 	
 };
