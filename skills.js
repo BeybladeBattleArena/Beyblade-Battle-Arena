@@ -833,7 +833,7 @@ window.SkillEngine = {
                     
                     // Safely store our original radius, then extend it by 1!
                     bey.baseRadius = bey.baseRadius || bey.radius;
-                    bey.radius = bey.baseRadius + 4;
+                    bey.radius = bey.baseRadius + 6;
                     
                     // Visual cue: The bright sweeping energy!
                     bey.activeAura = "rgba(255, 69, 0, 1.0)"; // Red-Orange
@@ -1040,7 +1040,17 @@ window.SkillEngine = {
 
                 // Finish the circle!
                 if (state.csDashTimer <= 0) {
+                    
+                    // SLAM THE BRAKES! 
+                    // Shed 85% of that massive tangent momentum so it stops where it started
+                    bey.vx *= 0.15;
+                    bey.vy *= 0.15;
+                    
                     state.actionState = "NORMAL";
+                    
+                    // Optional visual cue: A tiny puff of dust/smoke as it grips the floor
+                    bey.activeAura = "rgba(169, 169, 169, 0.7)"; 
+                    bey.activeAuraDuration = 150;
                 }
             }
 
