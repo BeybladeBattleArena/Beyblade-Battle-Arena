@@ -497,7 +497,7 @@ window.SkillsDB = {
 // --- 2. THE ACTIVE ENGINE ---
 // Preload any sprites / images --
 // Put this near the top of your file, before your game loop or UI builders!
-window.spinSlashImages = [];
+window.circleSlashImages = [];
 for (let i = 1; i <= 6; i++) {
     let img = new Image();
     img.src = `./images/beyblade_parts/arena_props/effects/circleslash${i}.png`;
