@@ -1046,7 +1046,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 800, // Projects slightly outward
+                        radius: state.circleRadius + 200, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
@@ -1084,8 +1084,15 @@ window.SkillEngine = {
                     // Check distance from the center of the circle to the opponent
                     let oppDist = Math.sqrt((opponent.x - state.csSlash.cx)**2 + (opponent.y - state.csSlash.cy)**2);
                     
-                    // Is the opponent touching the radius rim?
-                    if (oppDist < opponent.radius + state.csSlash.radius && oppDist > state.csSlash.radius - 15) {
+                    // --- NEW: FATTER, MORE FORGIVING HITBOX ---
+                    // The outer bound is the edge of the slash + the opponent's own size
+                    let outerBound = state.csSlash.radius + opponent.radius;
+                    
+                    // The inner bound now covers the outer 60% of the entire circle! 
+                    // (Instead of just a paper-thin 15 pixel rim)
+                    let innerBound = state.csSlash.radius * 0.4; 
+                    
+                    if (oppDist <= outerBound && oppDist >= innerBound) {
                         
                         // Check if they are on the FAR half of the circle (The Semicircle check)
                         let angleToOpp = Math.atan2(opponent.y - state.csSlash.cy, opponent.x - state.csSlash.cx);
@@ -1098,21 +1105,17 @@ window.SkillEngine = {
                             state.csSlash.hasHit = true;
                             
                             // --- SLASH CONNECTS! APPLY DAMAGE & DEBUFFS ---
-                            // 1. Manually apply the +4% HP and +3% RPM damage
                             opponent.currentHp -= (opponent.maxHp || 100) * 0.04;
                             opponent.currentRpm -= (opponent.maxRpm || 100) * 0.03;
                             
-                            // 2. Temporarily lower their KB resistance (creating a -5% Knockback Power effect)
                             opponent.stats.knockbackResist = (opponent.stats.knockbackResist || 0) + 0.05;
-                            state.csSlashRestoreTimer = 200; // Restore it shortly after
+                            state.csSlashRestoreTimer = 200; 
                             
-                            // 3. Physically shove the opponent away from the center
                             let pushX = Math.cos(angleToOpp);
                             let pushY = Math.sin(angleToOpp);
-                            opponent.vx += pushX * 12; // Standard solid knockback
-                            opponent.vy += pushY * 12;
+                            opponent.vx += pushX * 8; 
+                            opponent.vy += pushY * 8;
                             
-                            // Visual cue on opponent
                             opponent.activeAura = "rgba(255, 0, 0, 0.9)";
                             opponent.activeAuraDuration = 250;
                         }
