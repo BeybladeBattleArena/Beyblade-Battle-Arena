@@ -1046,7 +1046,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 50, // Projects slightly outward
+                        radius: state.circleRadius + 20, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
