@@ -1046,7 +1046,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 20, // Projects slightly outward
+                        radius: state.circleRadius + 60, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
@@ -1090,7 +1090,7 @@ window.SkillEngine = {
                     
                     // The inner bound now covers the outer 60% of the entire circle! 
                     // (Instead of just a paper-thin 15 pixel rim)
-                    let innerBound = state.csSlash.radius * 0.4; 
+                    let innerBound = state.csSlash.radius * 1; 
                     
                     if (oppDist <= outerBound && oppDist >= innerBound) {
                         
