@@ -989,9 +989,12 @@ window.SkillEngine = {
                     state.actionState = "CIRCLE_SLASH_DASH";
                     state.csDashTimer = 400; // Takes 400ms to complete the circle
                     state.csSlashCreated = false;
+					
+					bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.50;
+                    state.hasCsArmor = true; // Safety flag
                     
-                    // The circle is 3x the beyblade's radius
-                    state.circleRadius = (bey.baseRadius || bey.radius) * 3;
+                    // The circle is 3.5x the beyblade's radius
+                    state.circleRadius = (bey.baseRadius || bey.radius) * 3.5;
                     
                     // Place the center of the circle OUT IN FRONT of the beyblade
                     state.csCenterX = bey.x + (state.csDirX * state.circleRadius);
@@ -1043,7 +1046,7 @@ window.SkillEngine = {
                         cx: state.csCenterX,
                         cy: state.csCenterY,
                         startAngle: state.csStartAngle,
-                        radius: state.circleRadius + 50, // Projects slightly outward
+                        radius: state.circleRadius + 200, // Projects slightly outward
                         timer: 350, // Dissipates quickly
                         hasHit: false
                     };
@@ -1058,6 +1061,11 @@ window.SkillEngine = {
                     bey.vy *= 0.15;
                     
                     state.actionState = "NORMAL";
+					
+					if (state.hasCsArmor) {
+                        bey.stats.knockbackResist -= 0.50;
+                        state.hasCsArmor = false;
+					}
                     
                     // Optional visual cue: A tiny puff of dust/smoke as it grips the floor
                     bey.activeAura = "rgba(169, 169, 169, 0.7)"; 
@@ -1261,6 +1269,11 @@ window.SkillEngine = {
                     
                     // 1. Instantly break the circle override!
                     bey.skillState.actionState = "NORMAL";
+					
+					if (state.hasCsArmor) {
+                        bey.stats.knockbackResist -= 0.50;
+                        state.hasCsArmor = false;
+					}
                     
                     // 2. Apply the +2% HP and RPM bonus for colliding during the dash!
                     opponent.stats.hpDamageResist = (opponent.stats.hpDamageResist || 0) - 0.02;
