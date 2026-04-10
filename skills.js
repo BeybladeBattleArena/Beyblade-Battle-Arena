@@ -3284,7 +3284,7 @@ window.SkillEngine = {
                 tpOutSfx.volume = 0.5;
                 tpOutSfx.play().catch(e => console.log("Audio blocked:", e));
             }
-			
+		}
 			
 		
         else if (attackName === "Smash Attack") {
