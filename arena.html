@@ -3283,6 +3283,43 @@ if (
                 }
             }
 			
+			// ==========================================
+            // --- CIRCLE SLASH CRESCENT VISUAL ---
+            // ==========================================
+            if (bey.skillState && bey.skillState.csSlash && bey.skillState.csSlash.timer > 0) {
+                let slash = bey.skillState.csSlash;
+                
+                ctx.save();
+                // Move canvas to the center of the SLASH (not the beyblade!)
+                ctx.translate(slash.cx - bey.x, slash.cy - bey.y); 
+                
+                // Fade out smoothly as the timer dies
+                ctx.globalAlpha = Math.min(1.0, slash.timer / 150);
+
+                ctx.beginPath();
+                
+                // The angle pointing to the FAR side of the circle
+                let farAngle = slash.startAngle + Math.PI; 
+                
+                // Draw a perfect 180-degree semicircle facing outward
+                ctx.arc(0, 0, slash.radius * scale, farAngle - (Math.PI / 2), farAngle + (Math.PI / 2), false);
+
+                // 1. The Gray Outline
+                ctx.lineWidth = 14 * scale;
+                ctx.lineCap = "round";
+                ctx.strokeStyle = "rgba(169, 169, 169, 0.9)"; // Dark Gray
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = "rgba(105, 105, 105, 1)";
+                ctx.stroke();
+
+                // 2. The Red Inner Fill
+                ctx.lineWidth = 6 * scale;
+                ctx.strokeStyle = "rgba(255, 0, 0, 1.0)"; // Pure Red
+                ctx.stroke();
+
+                ctx.restore();
+            }
+			
 
             ctx.rotate(bey.rotation);
 

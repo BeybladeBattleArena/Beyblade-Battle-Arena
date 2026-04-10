@@ -368,6 +368,10 @@ window.SkillsDB = {
             desc: "The beyblade leaps into the air. Colliding during a plunge deals heavy HP damage.",
             execute: function() {} 
         },
+		"Circle Slash": {
+            name: "Circle Slash", cd: 7,
+            desc: "Pause briefly, then dash forward in a rapid circle, creating a red crescent slash in the beyblade's wake.", 
+        },
         "Smash Attack": {
             name: "Smash Attack", cd: 5,
             desc: "A heavy, straightforward burst of speed designed to slam the opponent. Great for knockouts.",
@@ -961,6 +965,150 @@ window.SkillEngine = {
                     opponent.stats.knockbackResist -= 0.45;
                 }
             }
+			// ==========================================
+            // --- CIRCLE SLASH STATE MACHINE ---
+            // ==========================================
+            
+            // PHASE 1: WINDUP
+            if (state.actionState === "CIRCLE_SLASH_WINDUP") {
+                bey.vx *= 0.85; // Slam the brakes
+                bey.vy *= 0.85;
+                state.csTimer -= dt;
+
+                if (state.csTimer <= 0) {
+                    state.actionState = "CIRCLE_SLASH_DASH";
+                    state.csDashTimer = 400; // Takes 400ms to complete the circle
+                    state.csSlashCreated = false;
+                    
+                    // The circle is 3x the beyblade's radius
+                    state.circleRadius = (bey.baseRadius || bey.radius) * 3;
+                    
+                    // Place the center of the circle OUT IN FRONT of the beyblade
+                    state.csCenterX = bey.x + (state.csDirX * state.circleRadius);
+                    state.csCenterY = bey.y + (state.csDirY * state.circleRadius);
+                    
+                    // Determine the starting angle (facing back toward the beyblade)
+                    state.csStartAngle = Math.atan2(-state.csDirY, -state.csDirX);
+                }
+            }
+            
+            // PHASE 2: CIRCULAR DASH
+            else if (state.actionState === "CIRCLE_SLASH_DASH") {
+                state.csDashTimer -= dt;
+                let progress = 1 - Math.max(0, state.csDashTimer / 400); // 0.0 to 1.0
+                
+                // Spin direction dictates clockwise or counter-clockwise orbit
+                let spinMultiplier = (bey.spinDirection === "left" || bey.spinDir === -1) ? -1 : 1;
+                let currentAngle = state.csStartAngle + (progress * Math.PI * 2 * spinMultiplier);
+
+                // --- THE PHYSICS OVERRIDE ---
+                let radX = Math.cos(currentAngle);
+                let radY = Math.sin(currentAngle);
+                
+                // Hard-set position to perfectly trace the circle
+                bey.x = state.csCenterX + (radX * state.circleRadius);
+                bey.y = state.csCenterY + (radY * state.circleRadius);
+                
+                // Give it massive tangent velocity so IF it hits something, the bounce is physically accurate!
+                bey.vx = -radY * spinMultiplier * 16;
+                bey.vy = radX * spinMultiplier * 16;
+
+                // --- WHITE SPARKS ---
+                if (Math.random() < 0.4 && window.particles) {
+                    window.particles.push({
+                        x: bey.x + (Math.random() - 0.5) * 10, 
+                        y: bey.y + (Math.random() - 0.5) * 10,
+                        vx: -bey.vx * 0.15, vy: -bey.vy * 0.15, // Trail slightly behind
+                        life: 0.6, decay: 0.05, color: '#ffffff', size: Math.random() * 2.5 + 1
+                    });
+                }
+
+                // --- CREATE THE SLASH (At 50% Progress) ---
+                if (progress >= 0.5 && !state.csSlashCreated) {
+                    state.csSlashCreated = true;
+                    
+                    // Create an independent object to track the slash!
+                    state.csSlash = {
+                        cx: state.csCenterX,
+                        cy: state.csCenterY,
+                        startAngle: state.csStartAngle,
+                        radius: state.circleRadius + 6, // Projects slightly outward
+                        timer: 350, // Dissipates quickly
+                        hasHit: false
+                    };
+                }
+
+                // Finish the circle!
+                if (state.csDashTimer <= 0) {
+                    state.actionState = "NORMAL";
+                }
+            }
+
+            // ==========================================
+            // --- THE STANDALONE SLASH HITBOX ---
+            // ==========================================
+            // This runs independently of actionState, so it stays active even if the Beyblade is knocked away!
+            if (state.csSlash && state.csSlash.timer > 0) {
+                state.csSlash.timer -= dt;
+
+                if (!state.csSlash.hasHit) {
+                    // Check distance from the center of the circle to the opponent
+                    let oppDist = Math.sqrt((opponent.x - state.csSlash.cx)**2 + (opponent.y - state.csSlash.cy)**2);
+                    
+                    // Is the opponent touching the radius rim?
+                    if (oppDist < opponent.radius + state.csSlash.radius && oppDist > state.csSlash.radius - 15) {
+                        
+                        // Check if they are on the FAR half of the circle (The Semicircle check)
+                        let angleToOpp = Math.atan2(opponent.y - state.csSlash.cy, opponent.x - state.csSlash.cx);
+                        let farFacingAngle = state.csSlash.startAngle + Math.PI; 
+                        
+                        // Normalize angle difference to see if they are within 90 degrees of the far point
+                        let angleDiff = Math.atan2(Math.sin(angleToOpp - farFacingAngle), Math.cos(angleToOpp - farFacingAngle));
+                        
+                        if (Math.abs(angleDiff) <= Math.PI / 2) {
+                            state.csSlash.hasHit = true;
+                            
+                            // --- SLASH CONNECTS! APPLY DAMAGE & DEBUFFS ---
+                            // 1. Manually apply the +4% HP and +3% RPM damage
+                            opponent.currentHp -= (opponent.maxHp || 100) * 0.04;
+                            opponent.currentRpm -= (opponent.maxRpm || 100) * 0.03;
+                            
+                            // 2. Temporarily lower their KB resistance (creating a -5% Knockback Power effect)
+                            opponent.stats.knockbackResist = (opponent.stats.knockbackResist || 0) + 0.05;
+                            state.csSlashRestoreTimer = 200; // Restore it shortly after
+                            
+                            // 3. Physically shove the opponent away from the center
+                            let pushX = Math.cos(angleToOpp);
+                            let pushY = Math.sin(angleToOpp);
+                            opponent.vx += pushX * 12; // Standard solid knockback
+                            opponent.vy += pushY * 12;
+                            
+                            // Visual cue on opponent
+                            opponent.activeAura = "rgba(255, 0, 0, 0.9)";
+                            opponent.activeAuraDuration = 250;
+                        }
+                    }
+                }
+            }
+            
+            // Slash cleanup timer (Restores the -5% KB modifier)
+            if (state.csSlashRestoreTimer > 0) {
+                state.csSlashRestoreTimer -= dt;
+                if (state.csSlashRestoreTimer <= 0) {
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.knockbackResist -= 0.05;
+                }
+            }
+            
+            // Body-Hit cleanup timer (From the collision hook below)
+            if (state.csBodyHitTimer > 0) {
+                state.csBodyHitTimer -= dt;
+                if (state.csBodyHitTimer <= 0) {
+                    let enemy = (bey === p1) ? cpu : p1;
+                    enemy.stats.hpDamageResist += 0.02;
+                    enemy.stats.rpmDamageResist += 0.02;
+                }
+            }
 		
 
 			// --- CYCLONE LOOP PHYSICS ---
@@ -1085,6 +1233,23 @@ window.SkillEngine = {
                     
                     // Always reset the state on impact so we don't accidentally proc this twice in one hit!
                     bey.skillState.actionState = "NORMAL";
+                }
+				
+				// --- ACTIVE SKILL HIT: Circle Slash (Body Intercept) ---
+                if (bey.skillState.actionState === "CIRCLE_SLASH_DASH") {
+                    
+                    // 1. Instantly break the circle override!
+                    bey.skillState.actionState = "NORMAL";
+                    
+                    // 2. Apply the +2% HP and RPM bonus for colliding during the dash!
+                    opponent.stats.hpDamageResist = (opponent.stats.hpDamageResist || 0) - 0.02;
+                    opponent.stats.rpmDamageResist = (opponent.stats.rpmDamageResist || 0) - 0.02;
+                    
+                    // 3. Set the cleanup timer so they get their resistance back after the bounce
+                    bey.skillState.csBodyHitTimer = 200; 
+                    
+                    bey.activeAura = "rgba(255, 255, 255, 0.9)"; // Bright white clash
+                    bey.activeAuraDuration = 200;
                 }
 				
 				// --- ACTIVE SKILL HIT: Hammer Impact ---
@@ -3702,6 +3867,28 @@ else if (attackName === "Sharp Shooter") {
             // 5. Visuals
             attacker.activeAura = "rgba(128, 0, 128, 0.8)";
             attacker.activeAuraDuration = 600;
+        }
+		else if (attackName === "Circle Slash") {
+            
+            // 1. Figure out current movement direction
+            let speed = Math.max(0.1, Math.sqrt(attacker.vx**2 + attacker.vy**2));
+            let mX = attacker.vx / speed;
+            let mY = attacker.vy / speed;
+            
+            // Fallback: If they were standing completely still, use their facing/spin direction
+            if (speed < 0.5) {
+                mX = dirX || 1; 
+                mY = dirY || 0;
+            }
+
+            attacker.skillState.actionState = "CIRCLE_SLASH_WINDUP";
+            attacker.skillState.csTimer = 300; // 300ms pause
+            attacker.skillState.csDirX = mX;
+            attacker.skillState.csDirY = mY;
+            
+            // Visual cue: A tight red flash as it digs into the floor
+            attacker.activeAura = "rgba(220, 20, 60, 0.8)"; // Crimson
+            attacker.activeAuraDuration = 300;
         }
         else if (attackName === "Upper Attack") {
             attacker.vx = -dirX * 5;
