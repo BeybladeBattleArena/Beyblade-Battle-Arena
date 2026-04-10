@@ -184,6 +184,11 @@ window.SkillsDB = {
             desc: "Taking damage triggers a brief, high-speed dash toward the opponent.",
             apply: function(bey) {} 
         },
+		"Thrashing Current": {
+            name: "Thrashing Current",
+            desc: "Catches off-center impacts. Glancing blows inflict -2 Mobility, -1 Endurance, -8% Balance, and -6% Speed for 2.5s. The next clean, direct hit within that time gains +8% Knockback Power and +6% RPM damage. Cooldown: 18s.",
+            apply: function(bey) {} 
+        },
 		"Boss Hostility": {
             name: "Boss Hostility",
             desc: "For Boss Beys, they are hostile.",
@@ -1090,7 +1095,7 @@ window.SkillEngine = {
                     
                     // The inner bound now covers the outer 60% of the entire circle! 
                     // (Instead of just a paper-thin 15 pixel rim)
-                    let innerBound = state.csSlash.radius * 6.5; 
+                    let innerBound = state.csSlash.radius * 10; 
                     
                     if (oppDist <= outerBound && oppDist >= innerBound) {
                         
@@ -1407,6 +1412,85 @@ window.SkillEngine = {
                         // Optional: A quick white flash to visually emphasize the parry/deflection
                         bey.activeAura = "rgba(255, 255, 255, 0.7)";
                         bey.activeAuraDuration = 200;
+                    }
+                }
+				
+				// ==========================================
+                // --- PASSIVE: THRASHING CURRENT ---
+                // ==========================================
+                if (bey.passives && bey.passives.includes("Thrashing Current")) {
+                    
+                    // 1. Calculate the Angle of Impact
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    
+                    // The angle pointing directly from attacker to defender
+                    let hitAngle = Math.atan2(dy, dx);
+                    // The angle the attacker is currently moving in
+                    let moveAngle = Math.atan2(bey.vy, bey.vx);
+                    
+                    // Find the absolute difference between the two angles
+                    let angleDiff = Math.abs(Math.atan2(Math.sin(hitAngle - moveAngle), Math.cos(hitAngle - moveAngle)));
+                    let currentSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+
+                    // If difference is > 0.4 radians (~23 degrees), it's a glancing scrape!
+                    // If it's <= 0.4 radians, it's a dead-on direct hit!
+                    let isGlancing = (angleDiff > 0.4 && currentSpeed > 1.5);
+                    let isDirect = (angleDiff <= 0.4 && currentSpeed > 1.5);
+
+                    // --- TRIGGER THE DEBUFF (On Glancing Blow) ---
+                    if (isGlancing && (!bey.cooldowns || (bey.cooldowns["Thrashing Current"] || 0) <= 0)) {
+                        
+                        // Put passive on 18s Cooldown
+                        if (!bey.cooldowns) bey.cooldowns = {};
+                        bey.cooldowns["Thrashing Current"] = 18000; 
+
+                        // Setup timers
+                        bey.skillState.tcBuffTimer = 2500; // 2.5s to get a direct hit
+                        
+                        let oppState = opponent.skillState;
+                        oppState.tcDebuffTimer = 2500; 
+
+                        // Apply Debuffs (Only if they aren't already debuffed to prevent infinite stacking)
+                        if (!oppState.tcIsDebuffed) {
+                            oppState.tcIsDebuffed = true;
+                            
+                            // Store exactly what we are taking so we can give it back later
+                            oppState.tcStoredMobility = 2;
+                            oppState.tcStoredEndurance = 1;
+                            oppState.tcStoredBalance = (opponent.maxBalance || 100) * 0.08;
+                            oppState.tcStoredSpeed = (opponent.maxSpeed || 100) * 0.06;
+                            
+                            // Subtract the stats! (NOTE: Ensure these variable names match your stat engine!)
+                            opponent.stats.mobility = (opponent.stats.mobility || 0) - oppState.tcStoredMobility;
+                            opponent.stats.endurance = (opponent.stats.endurance || 0) - oppState.tcStoredEndurance;
+                            opponent.stats.balance = (opponent.stats.balance || 0) - oppState.tcStoredBalance;
+                            opponent.stats.speed = (opponent.stats.speed || 0) - oppState.tcStoredSpeed;
+                            
+                            // Visual cue: Dark blue water aura on the victim
+                            opponent.activeAura = "rgba(0, 0, 139, 0.7)"; 
+                            opponent.activeAuraDuration = 2500;
+                        }
+                    }
+
+                    // --- CONSUME THE BUFF (On Direct Hit) ---
+                    if (isDirect && bey.skillState.tcBuffTimer > 0) {
+                        
+                        // Consume the buff so it doesn't trigger on consecutive hits
+                        bey.skillState.tcBuffTimer = 0; 
+                        
+                        // Apply +6% RPM Damage
+                        opponent.currentRpm -= (opponent.maxRpm || 100) * 0.06;
+                        
+                        // Apply +8% Knockback Power (Represented by physically shoving them harder!)
+                        let shoveX = Math.cos(hitAngle);
+                        let shoveY = Math.sin(hitAngle);
+                        opponent.vx += shoveX * 3.5; 
+                        opponent.vy += shoveY * 3.5;
+
+                        // Visual cue: Cyan splash for the critical hit!
+                        bey.activeAura = "rgba(0, 255, 255, 0.9)"; 
+                        bey.activeAuraDuration = 250;
                     }
                 }
 				
@@ -2431,6 +2515,29 @@ window.SkillEngine = {
                     state.relStacks = 0;
                     state.relAtkTotal = 0;
                     state.relRecTotal = 0;
+                }
+            }
+			
+            // --- CLEANUP: THRASHING CURRENT PASSIVE ---    
+            // 1. Tick down the Attacker's window to land a direct hit
+            if (bey.skillState.tcBuffTimer > 0) {
+                bey.skillState.tcBuffTimer -= dt;
+            }
+
+            // 2. Tick down the Opponent's debuff timer and restore stats when it ends
+            let oppState = opponent.skillState;
+            if (oppState && oppState.tcDebuffTimer > 0) {
+                oppState.tcDebuffTimer -= dt;
+                
+                // If the timer hits 0 and they are currently debuffed, restore them!
+                if (oppState.tcDebuffTimer <= 0 && oppState.tcIsDebuffed) {
+                    
+                    opponent.stats.mobility += oppState.tcStoredMobility;
+                    opponent.stats.endurance += oppState.tcStoredEndurance;
+                    opponent.stats.balance += oppState.tcStoredBalance;
+                    opponent.stats.speed += oppState.tcStoredSpeed;
+                    
+                    oppState.tcIsDebuffed = false; // Mark as clean
                 }
             }
 			
