@@ -606,19 +606,31 @@ window.SkillEngine = {
                 isAirborneStunned: false,
                 visualTiltX: 0, // Your renderer can read these to tilt the sprite!
                 visualTiltY: 0,
-				delugeTimer: 0,
-				delugeTotalTime: 0,
-				delugeWindowTimer: 0,
-				delugeImpactTimer: 0,
-				delugeSelfGuardTimer: 0,
-				delugeHasFirstHit: false,
-				delugeWindupActive: false,
-				delugeMobPenalty: 0,
-				delugeBalPenalty: 0,
-				delugeCurveDir: 1,
-				delugeCastX: 0,
-				delugeCastY: 0,
-				delugeCurveDir: 1,
+delugeTimer: 0,
+delugeTotalTime: 0,
+delugeWindowTimer: 0,
+delugeImpactTimer: 0,
+delugeSelfGuardTimer: 0,
+delugeHasFirstHit: false,
+delugeWindupActive: false,
+delugeMobPenalty: 0,
+delugeBalPenalty: 0,
+
+delugeCastX: 0,
+delugeCastY: 0,
+delugeCurveDir: 1,
+
+delugeStartX: 0,
+delugeStartY: 0,
+delugeForwardX: 0,
+delugeForwardY: 0,
+delugePerpX: 0,
+delugePerpY: 0,
+delugeProgress: 0,
+delugeHitCooldown: 0,
+
+delugeKbBonus: 0,
+delugeSelfGuardBonus: 0,
 				
 				bpTimer: 0,
                 bpActive: false,
@@ -665,7 +677,7 @@ window.SkillEngine = {
                 mgActive: false,
 				cwActive: false,
 				catchdeflectTimer: 0,
-                catchdeflectdActive: false,
+                catchdeflectActive: false,
 				dsbActive: false,
 				wrActive: false,
                 
@@ -719,6 +731,58 @@ window.SkillEngine = {
 
         });
     },
+	
+	clearDelugeState: function(bey, opponent, opts = {}) {
+    const state = bey.skillState;
+    const keepVelocity = !!opts.keepVelocity;
+
+    // Restore opponent debuffs
+    if (opponent) {
+        if (state.delugeMobPenalty !== 0) {
+            opponent.stats.mobility = (opponent.stats.mobility || 0) + state.delugeMobPenalty;
+            state.delugeMobPenalty = 0;
+        }
+
+        if (state.delugeBalPenalty !== 0) {
+            opponent.stats.balance = (opponent.stats.balance || 0) + state.delugeBalPenalty;
+            state.delugeBalPenalty = 0;
+        }
+    }
+
+    // Remove attacker temporary buffs
+    if (state.delugeKbBonus !== 0) {
+        bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) - state.delugeKbBonus;
+        state.delugeKbBonus = 0;
+    }
+
+    if (state.delugeSelfGuardBonus !== 0) {
+        bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) - state.delugeSelfGuardBonus;
+        state.delugeSelfGuardBonus = 0;
+    }
+
+    // Failsafe: if windup armor somehow survived, strip it
+    if (state.delugeWindupActive) {
+        bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) - 8;
+        bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) - 0.06;
+        state.delugeWindupActive = false;
+    }
+
+    // Reset timers / flags
+    state.delugeTimer = 0;
+    state.delugeWindowTimer = 0;
+    state.delugeImpactTimer = 0;
+    state.delugeSelfGuardTimer = 0;
+    state.delugeHitCooldown = 0;
+
+    state.delugeHasFirstHit = false;
+    state.delugeProgress = 0;
+    state.actionState = "NORMAL";
+
+    if (!keepVelocity) {
+        bey.vx *= 0.55;
+        bey.vy *= 0.55;
+    }
+},
 
     update: function(dt, p1, cpu, joyX, joyY) {
         
@@ -887,6 +951,155 @@ window.SkillEngine = {
                 }
             }
 			
+			// --- DELUGE MAW CLEANUP TIMERS ---
+if (state.delugeWindowTimer > 0) {
+    state.delugeWindowTimer -= dt;
+
+    if (state.delugeWindowTimer <= 0) {
+        state.delugeWindowTimer = 0;
+
+        if (state.delugeMobPenalty !== 0) {
+            opponent.stats.mobility = (opponent.stats.mobility || 0) + state.delugeMobPenalty;
+            state.delugeMobPenalty = 0;
+        }
+
+        if (state.delugeBalPenalty !== 0) {
+            opponent.stats.balance = (opponent.stats.balance || 0) + state.delugeBalPenalty;
+            state.delugeBalPenalty = 0;
+        }
+
+        state.delugeHasFirstHit = false;
+    }
+}
+
+if (state.delugeImpactTimer > 0) {
+    state.delugeImpactTimer -= dt;
+
+    if (state.delugeImpactTimer <= 0) {
+        state.delugeImpactTimer = 0;
+
+        if (state.delugeKbBonus !== 0) {
+            bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) - state.delugeKbBonus;
+            state.delugeKbBonus = 0;
+        }
+    }
+}
+
+if (state.delugeSelfGuardTimer > 0) {
+    state.delugeSelfGuardTimer -= dt;
+
+    if (state.delugeSelfGuardTimer <= 0) {
+        state.delugeSelfGuardTimer = 0;
+
+        if (state.delugeSelfGuardBonus !== 0) {
+            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) - state.delugeSelfGuardBonus;
+            state.delugeSelfGuardBonus = 0;
+        }
+    }
+}
+
+if (state.delugeHitCooldown > 0) {
+    state.delugeHitCooldown -= dt;
+}
+
+// --- DELUGE MAW STATE MACHINE (UNIFIED) ---
+if (state.actionState === "DELUGE_WINDUP") {
+    state.delugeTimer -= dt;
+
+    // Stay planted
+    bey.vx *= 0.86;
+    bey.vy *= 0.86;
+
+    bey.activeAura = "rgba(0, 180, 255, 0.65)";
+    bey.activeAuraDuration = 100;
+
+    if (state.delugeTimer <= 0) {
+        if (state.delugeWindupActive) {
+            bey.stats.recoilReduction = (bey.stats.recoilReduction || 0) - 8;
+            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) - 0.06;
+            state.delugeWindupActive = false;
+        }
+
+        state.actionState = "DELUGE_SURGE";
+        state.delugeTimer = state.delugeTotalTime;
+
+        // Small initial burst
+        bey.vx = state.delugeForwardX * 5.5;
+        bey.vy = state.delugeForwardY * 5.5;
+    }
+}
+
+else if (state.actionState === "DELUGE_SURGE") {
+    state.delugeTimer -= dt;
+
+    let progress = 1 - (state.delugeTimer / Math.max(1, state.delugeTotalTime));
+    progress = Math.max(0, Math.min(1, progress));
+    state.delugeProgress = progress;
+
+    // Gentle live steering for the player only
+    let liveJoyX = isPlayer ? joyX : 0;
+    let liveJoyY = isPlayer ? joyY : 0;
+
+    if (liveJoyX !== 0 || liveJoyY !== 0) {
+        let liveMag = Math.max(0.1, Math.sqrt(liveJoyX * liveJoyX + liveJoyY * liveJoyY));
+        liveJoyX /= liveMag;
+        liveJoyY /= liveMag;
+
+        let steerBlend = 0.18;
+        let fX = (state.delugeForwardX * (1 - steerBlend)) + (liveJoyX * steerBlend);
+        let fY = (state.delugeForwardY * (1 - steerBlend)) + (liveJoyY * steerBlend);
+
+        let fMag = Math.max(0.1, Math.sqrt(fX * fX + fY * fY));
+        state.delugeForwardX = fX / fMag;
+        state.delugeForwardY = fY / fMag;
+
+        state.delugePerpX = -state.delugeForwardY * state.delugeCurveDir;
+        state.delugePerpY =  state.delugeForwardX * state.delugeCurveDir;
+    }
+
+    // True S-curve:
+    // 0 at start -> outward in first half -> cross center -> opposite outward in second half -> 0 at end
+    let lateral = Math.sin(progress * Math.PI * 2) * 0.58;
+
+    let desiredX = state.delugeForwardX + (state.delugePerpX * lateral);
+    let desiredY = state.delugeForwardY + (state.delugePerpY * lateral);
+
+    let desiredMag = Math.max(0.1, Math.sqrt(desiredX * desiredX + desiredY * desiredY));
+    desiredX /= desiredMag;
+    desiredY /= desiredMag;
+
+    let surgeSpeed = state.delugeHasFirstHit ? 9.25 : 8.65;
+
+    // Steer instead of hard-snapping
+    bey.vx = (bey.vx * 0.45) + (desiredX * surgeSpeed * 0.55);
+    bey.vy = (bey.vy * 0.45) + (desiredY * surgeSpeed * 0.55);
+
+    // Light drag so misses end like a stylish dash, not a self-destruct
+    bey.vx *= 0.992;
+    bey.vy *= 0.992;
+
+    bey.activeAura = "rgba(0, 210, 255, 0.7)";
+    bey.activeAuraDuration = 100;
+
+    if (window.particles && Math.random() < 0.35) {
+        window.particles.push({
+            x: bey.x + (Math.random() - 0.5) * 8,
+            y: bey.y + (Math.random() - 0.5) * 8,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: (Math.random() - 0.5) * 1.2,
+            life: 1.0,
+            decay: 0.04 + Math.random() * 0.03,
+            color: Math.random() > 0.5 ? "#00cfff" : "#0088ff",
+            size: Math.random() * 3 + 2
+        });
+    }
+
+    if (state.delugeTimer <= 0) {
+        this.clearDelugeState(bey, opponent);
+    }
+}
+}
+			
 			// ==========================================
             // --- STONETIP RIPPLE STATE MACHINE ---
             // ==========================================
@@ -998,88 +1211,6 @@ window.SkillEngine = {
                     opponent.stats.knockbackResist -= 0.45;
                 }
             }
-			
-			
-			// --- DELUGE MAW STATE MACHINE ---
-if (state.actionState === "DELUGE_WINDUP") {
-    state.delugeTimer -= dt;
-
-    // Stay planted briefly during the windup
-    bey.vx *= 0.87;
-    bey.vy *= 0.87;
-
-    bey.activeAura = "rgba(0, 180, 255, 0.65)";
-    bey.activeAuraDuration = 100;
-
-    if (state.delugeTimer <= 0) {
-        // Remove temporary windup defenses
-        if (state.delugeWindupActive) {
-            bey.stats.recoilReduction -= 8;
-            bey.stats.knockbackResist -= 0.06;
-            state.delugeWindupActive = false;
-        }
-
-        state.actionState = "DELUGE_SURGE";
-        state.delugeTimer = state.delugeTotalTime;
-
-        bey.vx = state.delugeCastX * 12;
-		bey.vy = state.delugeCastY * 12;
-    }
-}
-
-else if (state.actionState === "DELUGE_SURGE") {
-    state.delugeTimer -= dt;
-
-    // Use the CAST direction as the base path
-    let baseX = state.delugeCastX;
-    let baseY = state.delugeCastY;
-
-    // Curve based on spin direction
-    let tangentX = -baseY * (state.delugeCurveDir || 1);
-    let tangentY = baseX * (state.delugeCurveDir || 1);
-
-    let progress = 1 - (state.delugeTimer / Math.max(1, state.delugeTotalTime));
-    let curveStrength = 1.05 - (progress * 0.55);
-
-    let moveX = (baseX * 1.25) + (tangentX * curveStrength);
-    let moveY = (baseY * 1.25) + (tangentY * curveStrength);
-
-    let moveLen = Math.max(0.1, Math.sqrt(moveX * moveX + moveY * moveY));
-    let surgeSpeed = 9;
-
-    bey.vx = (moveX / moveLen) * surgeSpeed;
-    bey.vy = (moveY / moveLen) * surgeSpeed;
-
-    bey.activeAura = "rgba(0, 210, 255, 0.7)";
-    bey.activeAuraDuration = 100;
-
-    if (window.particles && Math.random() < 0.35) {
-        window.particles.push({
-            x: bey.x + (Math.random() - 0.5) * 8,
-            y: bey.y + (Math.random() - 0.5) * 8,
-            vx: (Math.random() - 0.5) * 1.2,
-            vy: (Math.random() - 0.5) * 1.2,
-            life: 1.0,
-            decay: 0.04 + Math.random() * 0.03,
-            color: Math.random() > 0.5 ? "#00cfff" : "#0088ff",
-            size: Math.random() * 3 + 2
-        });
-    }
-
-    if (state.delugeTimer <= 0) {
-    if (state.delugeWindupActive) {
-        bey.stats.recoilReduction -= 8;
-        bey.stats.knockbackResist -= 0.06;
-        state.delugeWindupActive = false;
-    }
-
-    state.actionState = "DELUGE_SURGE";
-    state.delugeTimer = state.delugeTotalTime;
-
-    bey.vx = state.delugeCastX * 6.5;
-    bey.vy = state.delugeCastY * 6.5;
-}
-}
 			
 			
 			// ==========================================
@@ -1431,77 +1562,97 @@ else if (state.actionState === "DELUGE_SURGE") {
                     bey.activeAuraDuration = 200;
                 }
 				
-	if (state.actionState === "DELUGE_SURGE") {
-    state.delugeTimer -= dt;
+	// --- ACTIVE SKILL HIT: Deluge Maw ---
+if (state.actionState === "DELUGE_SURGE" && state.delugeHitCooldown <= 0) {
+    let dx = opponent.x - bey.x;
+    let dy = opponent.y - bey.y;
+    let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
 
-    // Read LIVE stick input during the surge, just like your other steerable logic
-    let liveJoyX = isPlayer ? joyX : 0;
-    let liveJoyY = isPlayer ? joyY : 0;
+    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx**2 + bey.vy**2));
+    let myHeading = ((bey.vx / mySpeed) * (dx / dist)) + ((bey.vy / mySpeed) * (dy / dist));
 
-    let baseX, baseY;
+    // Require a reasonably clean forward-driving hit
+    if (myHeading > 0.55) {
+        state.delugeHitCooldown = 120;
 
-    // If the player is actively holding a direction, use it live
-    if (liveJoyX !== 0 || liveJoyY !== 0) {
-        let mag = Math.max(0.1, Math.sqrt(liveJoyX * liveJoyX + liveJoyY * liveJoyY));
-        baseX = liveJoyX / mag;
-        baseY = liveJoyY / mag;
+        // -------------------------
+        // FIRST HIT = funnel setup
+        // -------------------------
+        if (!state.delugeHasFirstHit) {
+            state.delugeHasFirstHit = true;
 
-        // Refresh stored fallback too, so the move remembers the latest steering
-        state.delugeCastX = baseX;
-        state.delugeCastY = baseY;
-    } else {
-        // Otherwise continue in the last remembered direction
-        baseX = state.delugeCastX;
-        baseY = state.delugeCastY;
-    }
+            // Short victim-control window
+            state.delugeWindowTimer = 420;
 
-    // Add Perfect-Chaos-style sideways flow based on spin direction
-    let tangentX = -baseY * (state.delugeCurveDir || 1);
-    let tangentY = baseX * (state.delugeCurveDir || 1);
+            // Temporary control debuff to make the funnel reliable
+            state.delugeMobPenalty = Math.max(2, (opponent.stats.mobility || 0) * 0.22);
+            state.delugeBalPenalty = Math.max(2, (opponent.stats.balance || 0) * 0.16);
 
-    let progress = 1 - (state.delugeTimer / Math.max(1, state.delugeTotalTime));
+            opponent.stats.mobility = (opponent.stats.mobility || 0) - state.delugeMobPenalty;
+            opponent.stats.balance = (opponent.stats.balance || 0) - state.delugeBalPenalty;
 
-    // Stronger curve early, gentler later
-    let curveStrength = 0.55 - (progress * 0.20);
+            // Direction of the second-half apex of the S curve
+            let secondHalfApexLateral = -0.58;
+            let funnelX = state.delugeForwardX + (state.delugePerpX * secondHalfApexLateral);
+            let funnelY = state.delugeForwardY + (state.delugePerpY * secondHalfApexLateral);
 
-    // Blend held direction + watery side-flow
-    let desiredX = baseX + (tangentX * curveStrength);
-    let desiredY = baseY + (tangentY * curveStrength);
+            let funnelMag = Math.max(0.1, Math.sqrt(funnelX * funnelX + funnelY * funnelY));
+            funnelX /= funnelMag;
+            funnelY /= funnelMag;
 
-    let desiredLen = Math.max(0.1, Math.sqrt(desiredX * desiredX + desiredY * desiredY));
-    desiredX /= desiredLen;
-    desiredY /= desiredLen;
+            // Force the opponent into the second hit lane
+            opponent.vx = funnelX * 8.6;
+            opponent.vy = funnelY * 8.6;
 
-    let surgeSpeed = 8.75;
+            // Small first-hit RPM chip
+            opponent.currentRpm -= (opponent.maxRpm || 100) * 0.025;
 
-    // STEER toward the target vector instead of hard-snapping into a missile
-    bey.vx = (bey.vx * 0.72) + (desiredX * surgeSpeed * 0.28);
-    bey.vy = (bey.vy * 0.72) + (desiredY * surgeSpeed * 0.28);
+            // Jump the attacker into the second half if they connected early
+            let forcedProgress = Math.max(state.delugeProgress, 0.56);
+            state.delugeProgress = forcedProgress;
+            state.delugeTimer = state.delugeTotalTime * (1 - forcedProgress);
 
-    // Mild drag so a miss does not send the beyblade into orbit
-    bey.vx *= 0.985;
-    bey.vy *= 0.985;
+            // Slight self-stickiness so the combo stays glued
+            if (state.delugeSelfGuardBonus === 0) {
+                state.delugeSelfGuardBonus = 0.12;
+                bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + state.delugeSelfGuardBonus;
+            }
+            state.delugeSelfGuardTimer = 250;
 
-    bey.activeAura = "rgba(0, 210, 255, 0.7)";
-    bey.activeAuraDuration = 100;
+            bey.activeAura = "rgba(0, 255, 255, 0.9)";
+            bey.activeAuraDuration = 220;
+            opponent.activeAura = "rgba(0, 120, 255, 0.85)";
+            opponent.activeAuraDuration = 220;
+        }
 
-    if (window.particles && Math.random() < 0.35) {
-        window.particles.push({
-            x: bey.x + (Math.random() - 0.5) * 8,
-            y: bey.y + (Math.random() - 0.5) * 8,
-            vx: (Math.random() - 0.5) * 1.2,
-            vy: (Math.random() - 0.5) * 1.2,
-            life: 1.0,
-            decay: 0.04 + Math.random() * 0.03,
-            color: Math.random() > 0.5 ? "#00cfff" : "#0088ff",
-            size: Math.random() * 3 + 2
-        });
-    }
+        // -------------------------
+        // SECOND HIT = real finisher
+        // -------------------------
+        else {
+            let hitDirX = (mySpeed > 0.1) ? (bey.vx / mySpeed) : state.delugeForwardX;
+            let hitDirY = (mySpeed > 0.1) ? (bey.vy / mySpeed) : state.delugeForwardY;
 
-    if (state.delugeTimer <= 0) {
-        state.actionState = "NORMAL";
-        bey.vx *= 0.55;
-        bey.vy *= 0.55;
+            if (state.delugeKbBonus === 0) {
+                state.delugeKbBonus = 0.12;
+                bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + state.delugeKbBonus;
+            }
+            state.delugeImpactTimer = 180;
+
+            // Extra RPM shred
+            opponent.currentRpm -= (opponent.maxRpm || 100) * 0.08;
+
+            // Strong ejection
+            opponent.vx += hitDirX * 8.5;
+            opponent.vy += hitDirY * 8.5;
+
+            bey.activeAura = "rgba(0, 255, 255, 1.0)";
+            bey.activeAuraDuration = 260;
+            opponent.activeAura = "rgba(255, 255, 255, 0.9)";
+            opponent.activeAuraDuration = 180;
+
+            // End cleanly after the finisher hit
+            this.clearDelugeState(bey, opponent, { keepVelocity: true });
+        }
     }
 }
 				
@@ -4333,39 +4484,58 @@ else if (attackName === "Sharp Shooter") {
     let aimX = inputX;
     let aimY = inputY;
 
-    // If no held direction at cast time, fall back to opponent vector
+    // Fallback to opponent direction if no held input exists
     if (aimX === 0 && aimY === 0) {
         aimX = dirX;
         aimY = dirY;
-    } else {
-        let mag = Math.max(0.1, Math.sqrt(aimX * aimX + aimY * aimY));
-        aimX /= mag;
-        aimY /= mag;
     }
+
+    let mag = Math.max(0.1, Math.sqrt(aimX * aimX + aimY * aimY));
+    aimX /= mag;
+    aimY /= mag;
+
+    state.delugeStartX = attacker.x;
+    state.delugeStartY = attacker.y;
 
     state.delugeCastX = aimX;
     state.delugeCastY = aimY;
+
+    state.delugeForwardX = aimX;
+    state.delugeForwardY = aimY;
+
     state.delugeCurveDir = attacker.spinDir || 1;
+    state.delugePerpX = -aimY * state.delugeCurveDir;
+    state.delugePerpY =  aimX * state.delugeCurveDir;
+
+    state.delugeProgress = 0;
+    state.delugeHitCooldown = 0;
 
     state.actionState = "DELUGE_WINDUP";
-    state.delugeTimer = 250;
-    state.delugeTotalTime = 700;
+    state.delugeTimer = 220;      // windup
+    state.delugeTotalTime = 560;  // full S-curve duration after release
+
     state.delugeWindowTimer = 0;
     state.delugeImpactTimer = 0;
     state.delugeSelfGuardTimer = 0;
     state.delugeHasFirstHit = false;
     state.delugeWindupActive = true;
 
+    state.delugeMobPenalty = 0;
+    state.delugeBalPenalty = 0;
+    state.delugeKbBonus = 0;
+    state.delugeSelfGuardBonus = 0;
+
     attacker.stats.recoilReduction = (attacker.stats.recoilReduction || 0) + 8;
     attacker.stats.knockbackResist = (attacker.stats.knockbackResist || 0) + 0.06;
 
-    attacker.vx *= 0.55;
-    attacker.vy *= 0.55;
+    // Hard brake before the path begins
+    attacker.vx *= 0.40;
+    attacker.vy *= 0.40;
 
     attacker.activeAura = "rgba(0, 180, 255, 0.85)";
     attacker.activeAuraDuration = 300;
 	}
-},
+},	
 	
 	releaseCharge: function(attacker, defender, joyX = 0, joyY = 0) {
         let state = attacker.skillState;

@@ -920,12 +920,12 @@ window.equipmentDB = {
             id: "ar_29", // Generalized ID
             name: "Tidal Chaos", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Sonic", "Adventure", "Chaos", "Perfect", "Tidal"], 
+            tags: ["Sonic", "Adventure", "Chaos", "Perfect", "Tidal", "Thrashing Current", "Deluge Maw", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/TidalChaos.png",  
             stats: { attack: 24, hp: 35, defense: 10, recoil: 15, balance: 5, weight: 15, endurance: 5, stamina: 8, speed: 4, mobility: 3, recoilReduction: 3 },
 			radius: 15,
 			passives: ["Thrashing Current"], 
-			attacks: [{ name: "Smash Attack", cd: 5 }],
+			attacks: [{ name: "Deluge Maw", cd: 8 }, { name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -943,13 +943,13 @@ window.equipmentDB = {
             id: "ar_30", // Generalized ID
             name: "Tiger Claw", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Tiger", "Claw", "Barrage Attack"], 
+            tags: ["Tiger", "Claw", "Barrage Attack", "Relentless", "Circle Slash"], 
 			fallbackImage: "./images/beyblade_parts/AR/TigerClaw.png",  
             statsRight: { attack: 21, hp: 25, defense: 10, recoil: 14, balance: 5, weight: 13, endurance: 6, stamina: 9, speed: 4, mobility: 4, recoilReduction: 3 },
 			statsLeft: { attack: 19, hp: 25, defense: 8, recoil: 15, balance: 5, weight: 13, endurance: 5, stamina: 7, speed: 5, mobility: 4, recoilReduction: 2 },
 			radius: 14,
-			passives: [], 
-			attacks: [{ name: "Barrage Attack", cd: 6 }],
+			passives: ["Relentless"], 
+			attacks: [{ name: "Barrage Attack", cd: 6 }, { name: "Circle Slash", cd: 7 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -967,15 +967,15 @@ window.equipmentDB = {
             id: "ar_31", // Generalized ID
             name: "Upper Dragoon", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack"], 
+            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Upper Attack", "Lateral Bound", "Side Swipe", "Recoil Rebounder", "Ramping Edge"], 
 			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon.png",  
-            statsRight: { attack: 23, hp: 20, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 4, endurance: 2, stamina: 3, recoil: 16 },
-			statsLeft: { attack: 25, hp: 10, weight: 15, balance: 5, speed: 2, mobility: 4, defense: 5, endurance: 1, stamina: 3, recoil: 17 },
+            statsRight: { attack: 16, hp: 25, defense: 13, recoil: 7, balance: 4, weight: 13, endurance: 8, stamina: 7, speed: 3, mobility: 3, recoilReduction: 6 },
+			statsLeft: { attack: 22, hp: 20, defense: 8, recoil: 14, balance: 4, weight: 13, endurance: 6, stamina: 4, speed: 4, mobility: 4, recoilReduction: 3 },
 			radius: 16,
-			passivesRight: [],
-			passivesLeft: [], 
-			attacksRight: [{ name: "Upper Attack", cd: 5 }],
-			attacksLeft: [{ name: "Smash Attack", cd: 5 }],
+			passivesRight: ["Recoil Rebounder"],
+			passivesLeft: ["Ramping Edge"], 
+			attacksRight: [{ name: "Upper Attack", cd: 5 }, { name: "Lateral Bound", cd: 5 }],
+			attacksLeft: [{ name: "Upper Attack", cd: 5 }, { name: "Side Swipe", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1011,9 +1011,9 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Upper", "Dragoon", "Dragon", "Kid", "Carlos", "Illegal", "Modification", "Mod", "Spin Cutter"], 
 			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon_SpinCutterMod.png",  
-            stats: { attack: 18, hp: 10, weight: 10, speed: 3, mobility: 3, defense: -1, endurance: 4, stamina: 4, recoil: 18, recoilReduction: 1 },
-			passives: [], 
-			attacks: [],
+            stats: { attack: 8, hp: 15, defense: 2, recoil: 5, balance: 5, weight: 10, endurance: 3, stamina: 4, speed: 4, mobility: 1 }, 
+			passives: ["Impact Point"], 
+			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
