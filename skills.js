@@ -1049,7 +1049,7 @@ else if (state.actionState === "DELUGE_SURGE") {
     let moveY = (dirY * 1.25) + (tangentY * curveStrength);
     let moveLen = Math.max(1, Math.sqrt(moveX * moveX + moveY * moveY));
 
-    let surgeSpeed = 13.25;
+    let surgeSpeed = 10.5;
     bey.vx = (moveX / moveLen) * surgeSpeed;
     bey.vy = (moveY / moveLen) * surgeSpeed;
 
@@ -1452,7 +1452,7 @@ if (bey.skillState.actionState === "DELUGE_SURGE") {
             opponent.stats.mobility = (opponent.stats.mobility || 0) - state.delugeMobPenalty;
             opponent.stats.balance = (opponent.stats.balance || 0) - state.delugeBalPenalty;
 
-            opponent.currentRpm -= 35;
+            opponent.currentRpm -= 12;
             opponent.vx += tangentX * 2.5;
             opponent.vy += tangentY * 2.5;
 
@@ -1483,7 +1483,7 @@ if (bey.skillState.actionState === "DELUGE_SURGE") {
             let impactSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
             let ejectForce = Math.max(9, impactSpeed * 1.25);
 
-            opponent.currentRpm -= 55;
+            opponent.currentRpm -= 12;
             opponent.vx = tangentX * ejectForce;
             opponent.vy = tangentY * ejectForce;
 
