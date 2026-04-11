@@ -2525,19 +2525,19 @@ window.SkillEngine = {
             }
 
             // 2. Tick down the Opponent's debuff timer and restore stats when it ends
-            let oppState = opponent.skillState;
-            if (oppState && oppState.tcDebuffTimer > 0) {
-                oppState.tcDebuffTimer -= dt;
+            let tcOppState = opponent.skillState; // <--- Changed this name!
+            if (tcOppState && tcOppState.tcDebuffTimer > 0) {
+                tcOppState.tcDebuffTimer -= dt;
                 
                 // If the timer hits 0 and they are currently debuffed, restore them!
-                if (oppState.tcDebuffTimer <= 0 && oppState.tcIsDebuffed) {
+                if (tcOppState.tcDebuffTimer <= 0 && tcOppState.tcIsDebuffed) {
                     
-                    opponent.stats.mobility += oppState.tcStoredMobility;
-                    opponent.stats.endurance += oppState.tcStoredEndurance;
-                    opponent.stats.balance += oppState.tcStoredBalance;
-                    opponent.stats.speed += oppState.tcStoredSpeed;
+                    opponent.stats.mobility += tcOppState.tcStoredMobility;
+                    opponent.stats.endurance += tcOppState.tcStoredEndurance;
+                    opponent.stats.balance += tcOppState.tcStoredBalance;
+                    opponent.stats.speed += tcOppState.tcStoredSpeed;
                     
-                    oppState.tcIsDebuffed = false; // Mark as clean
+                    tcOppState.tcIsDebuffed = false; // Mark as clean
                 }
             }
 			

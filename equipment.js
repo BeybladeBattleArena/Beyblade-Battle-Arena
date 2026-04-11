@@ -881,7 +881,7 @@ window.equipmentDB = {
             id: "ar_28", // Generalized ID
             name: "Rolling Hammer", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Rolling", "Hammer", "Concentrate Defense"], 
+            tags: ["Rolling", "Hammer", "Hammer Impact", "Charge Dash", "Static Survival"], 
 			fallbackImage: "./images/beyblade_parts/AR/RollingHammer_Violet.png",  
             stats: { attack: 22, hp: 30, defense: 10, recoil: 14, balance: 7, weight: 14, endurance: 5, stamina: 6, speed: 4, mobility: 2, recoilReduction: 2 },
 			radius: 15,
@@ -922,8 +922,9 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Sonic", "Adventure", "Chaos", "Perfect", "Tidal"], 
 			fallbackImage: "./images/beyblade_parts/AR/TidalChaos.png",  
-            stats: { attack: 24, hp: 30, weight: 16, speed: -1, mobility: -1, defense: 3, endurance: 10, stamina: 9, recoil: 17, recoilReduction: 1 },
-			passives: [], 
+            stats: { attack: 24, hp: 35, defense: 10, recoil: 15, balance: 5, weight: 15, endurance: 5, stamina: 8, speed: 4, mobility: 3, recoilReduction: 3 },
+			radius: 15,
+			passives: ["Thrashing Current"], 
 			attacks: [{ name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
@@ -944,7 +945,9 @@ window.equipmentDB = {
             type: "Attack Ring", 
             tags: ["Tiger", "Claw", "Barrage Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/TigerClaw.png",  
-            stats: { attack: 22, hp: 15, weight: 13, speed: 2, mobility: 4, defense: 4, endurance: 5, stamina: 3, recoil: 15, recoilReduction: 2 },
+            statsRight: { attack: 21, hp: 25, defense: 10, recoil: 14, balance: 5, weight: 13, endurance: 6, stamina: 9, speed: 4, mobility: 4, recoilReduction: 3 },
+			statsLeft: { attack: 19, hp: 25, defense: 8, recoil: 15, balance: 5, weight: 13, endurance: 5, stamina: 7, speed: 5, mobility: 4, recoilReduction: 2 },
+			radius: 14,
 			passives: [], 
 			attacks: [{ name: "Barrage Attack", cd: 6 }],
 			
