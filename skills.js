@@ -1492,8 +1492,8 @@ if (bey.skillState.actionState === "DELUGE_SURGE") {
 
             bey.skillState.actionState = "NORMAL";
         }
-    
-
+    }
+}
 				
 				// --- ACTIVE SKILL HIT: Hammer Impact ---
                 if (bey.skillState.actionState === "HAMMER_SWING") {
@@ -3620,6 +3620,8 @@ if (state.delugeSelfGuardTimer > 0) {
                     this.disengageGrapple(attacker, bey);
                 }
             }
+        });
+    },
 
     onCollision: function(p1, cpu, impactSpeed) {
     if (p1.skillState.peakActive) this.removePeak(p1);
