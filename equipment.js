@@ -109,7 +109,7 @@ window.equipmentDB = {
 			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
             stats: { attack: 24, weight: 15, hp: 800, rpm: 3000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
 			passives: [], 
-			attacks: [{ name: "Circle Slash", cd: 7 }, { name: "Charge Dash", cd: 8 }, { name: "Ridge Uppercut", cd: 8 }, { name: "Extreme Speed", cd: 7 }, { name: "Lateral Bound", cd: 5 }, { name: "Spin Burst", cd: 8 }],
+			attacks: [{ name: "Circle Slash", cd: 7 }, { name: "Charge Dash", cd: 8 }, { name: "Ridge Uppercut", cd: 8 }, { name: "Deluge Maw", cd: 8 }, { name: "Lateral Bound", cd: 5 }, { name: "Spin Burst", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [

@@ -462,6 +462,11 @@ window.SkillsDB = {
             desc: "Perform a lightning-fast hop in the held direction, immediately braking afterward. Excellent for dodging attacks or delivering a surprise hip-bump near the arena edges.",
 			execute: function() {}
         },
+		"Deluge Maw": {
+			name: "Deluge Maw", cd: 8,
+			desc: "Brakes briefly, then surges in a serpentine flood-path. The first hit drenches and drags the opponent off-axis; a follow-up hit violently ejects them and shreds their RPM.",
+			execute: function() {}
+		},
     },
 
     ultimates: {
@@ -601,6 +606,16 @@ window.SkillEngine = {
                 isAirborneStunned: false,
                 visualTiltX: 0, // Your renderer can read these to tilt the sprite!
                 visualTiltY: 0,
+				delugeTimer: 0,
+				delugeTotalTime: 0,
+				delugeWindowTimer: 0,
+				delugeImpactTimer: 0,
+				delugeSelfGuardTimer: 0,
+				delugeHasFirstHit: false,
+				delugeWindupActive: false,
+				delugeMobPenalty: 0,
+				delugeBalPenalty: 0,
+				delugeCurveDir: 1,
 				
 				bpTimer: 0,
                 bpActive: false,
@@ -980,6 +995,89 @@ window.SkillEngine = {
                     opponent.stats.knockbackResist -= 0.45;
                 }
             }
+			
+			
+			// --- DELUGE MAW STATE MACHINE ---
+if (state.actionState === "DELUGE_WINDUP") {
+    state.delugeTimer -= dt;
+
+    // Stay planted briefly during the windup
+    bey.vx *= 0.87;
+    bey.vy *= 0.87;
+
+    bey.activeAura = "rgba(0, 180, 255, 0.65)";
+    bey.activeAuraDuration = 100;
+
+    if (state.delugeTimer <= 0) {
+        // Remove temporary windup defenses
+        if (state.delugeWindupActive) {
+            bey.stats.recoilReduction -= 8;
+            bey.stats.knockbackResist -= 0.06;
+            state.delugeWindupActive = false;
+        }
+
+        state.actionState = "DELUGE_SURGE";
+        state.delugeTimer = state.delugeTotalTime;
+
+        let dx = opponent.x - bey.x;
+        let dy = opponent.y - bey.y;
+        let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+
+        bey.vx = (dx / dist) * 12;
+        bey.vy = (dy / dist) * 12;
+    }
+}
+
+else if (state.actionState === "DELUGE_SURGE") {
+    state.delugeTimer -= dt;
+
+    let dx = opponent.x - bey.x;
+    let dy = opponent.y - bey.y;
+    let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+
+    let dirX = dx / dist;
+    let dirY = dy / dist;
+
+    // Curve based on spin direction
+    let tangentX = -dirY * (state.delugeCurveDir || 1);
+    let tangentY = dirX * (state.delugeCurveDir || 1);
+
+    let progress = 1 - (state.delugeTimer / Math.max(1, state.delugeTotalTime));
+    let curveStrength = 1.05 - (progress * 0.55);
+
+    let moveX = (dirX * 1.25) + (tangentX * curveStrength);
+    let moveY = (dirY * 1.25) + (tangentY * curveStrength);
+    let moveLen = Math.max(1, Math.sqrt(moveX * moveX + moveY * moveY));
+
+    let surgeSpeed = 13.25;
+    bey.vx = (moveX / moveLen) * surgeSpeed;
+    bey.vy = (moveY / moveLen) * surgeSpeed;
+
+    bey.activeAura = "rgba(0, 210, 255, 0.7)";
+    bey.activeAuraDuration = 100;
+
+    // Watery trail
+    if (window.particles && Math.random() < 0.35) {
+        window.particles.push({
+            x: bey.x + (Math.random() - 0.5) * 8,
+            y: bey.y + (Math.random() - 0.5) * 8,
+            vx: (Math.random() - 0.5) * 1.2,
+            vy: (Math.random() - 0.5) * 1.2,
+            life: 1.0,
+            decay: 0.04 + Math.random() * 0.03,
+            color: Math.random() > 0.5 ? "#00cfff" : "#0088ff",
+            size: Math.random() * 3 + 2
+        });
+    }
+
+    if (state.delugeTimer <= 0) {
+        state.actionState = "NORMAL";
+        bey.vx *= 0.65;
+        bey.vy *= 0.65;
+    }
+}
+			
+			
 			// ==========================================
             // --- CIRCLE SLASH STATE MACHINE ---
             // ==========================================
@@ -1328,6 +1426,74 @@ window.SkillEngine = {
                     bey.activeAura = "rgba(255, 255, 255, 0.6)"; // Bright white clash
                     bey.activeAuraDuration = 200;
                 }
+				
+				// --- ACTIVE SKILL HIT: Deluge Maw ---
+if (bey.skillState.actionState === "DELUGE_SURGE") {
+    let dx = opponent.x - bey.x;
+    let dy = opponent.y - bey.y;
+    let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+
+    let mySpeed = Math.max(0.1, Math.sqrt(bey.vx ** 2 + bey.vy ** 2));
+    let myHeading = ((bey.vx / mySpeed) * (dx / dist)) + ((bey.vy / mySpeed) * (dy / dist));
+
+    // Slightly forgiving threshold because this attack curves
+    if (myHeading > 0.45) {
+        let tangentX = -dy / dist * (bey.spinDir || 1);
+        let tangentY = dx / dist * (bey.spinDir || 1);
+
+        // FIRST HIT: soak + drag
+        if (!state.delugeHasFirstHit) {
+            state.delugeHasFirstHit = true;
+            state.delugeWindowTimer = 1200;
+
+            state.delugeMobPenalty = 2;
+            state.delugeBalPenalty = (opponent.stats.balance || 0) * 0.10;
+
+            opponent.stats.mobility = (opponent.stats.mobility || 0) - state.delugeMobPenalty;
+            opponent.stats.balance = (opponent.stats.balance || 0) - state.delugeBalPenalty;
+
+            opponent.currentRpm -= 35;
+            opponent.vx += tangentX * 2.5;
+            opponent.vy += tangentY * 2.5;
+
+            opponent.activeAura = "rgba(0, 170, 255, 0.8)";
+            opponent.activeAuraDuration = 350;
+        }
+
+        // SECOND HIT: eject + heavy RPM shred
+        else if (state.delugeWindowTimer > 0) {
+            // Restore first-hit debuffs immediately
+            opponent.stats.mobility += state.delugeMobPenalty;
+            opponent.stats.balance += state.delugeBalPenalty;
+            state.delugeMobPenalty = 0;
+            state.delugeBalPenalty = 0;
+            state.delugeWindowTimer = 0;
+            state.delugeHasFirstHit = false;
+
+            // Brief damage window for stronger launch
+            bey.stats.knockbackPower = (bey.stats.knockbackPower || 0) + 0.12;
+            state.delugeImpactTimer = 200;
+
+            // Brief self-guard to reduce self-bounce a little
+            bey.stats.knockbackResist = (bey.stats.knockbackResist || 0) + 0.12;
+            state.delugeSelfGuardTimer = 200;
+
+            let relVx = bey.vx - opponent.vx;
+            let relVy = bey.vy - opponent.vy;
+            let impactSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
+            let ejectForce = Math.max(9, impactSpeed * 1.25);
+
+            opponent.currentRpm -= 55;
+            opponent.vx = tangentX * ejectForce;
+            opponent.vy = tangentY * ejectForce;
+
+            opponent.activeAura = "rgba(0, 230, 255, 0.95)";
+            opponent.activeAuraDuration = 450;
+
+            bey.skillState.actionState = "NORMAL";
+        }
+    
+
 				
 				// --- ACTIVE SKILL HIT: Hammer Impact ---
                 if (bey.skillState.actionState === "HAMMER_SWING") {
@@ -3086,6 +3252,44 @@ window.SkillEngine = {
                     state.cdKbBuff = 0;
                 }
             }
+			
+			// --- DELUGE MAW WINDOW CLEANUP ---
+if (state.delugeWindowTimer > 0) {
+    state.delugeWindowTimer -= dt;
+
+    if (state.delugeWindowTimer <= 0) {
+        if (state.delugeMobPenalty !== 0) {
+            opponent.stats.mobility += state.delugeMobPenalty;
+            state.delugeMobPenalty = 0;
+        }
+
+        if (state.delugeBalPenalty !== 0) {
+            opponent.stats.balance += state.delugeBalPenalty;
+            state.delugeBalPenalty = 0;
+        }
+
+        state.delugeHasFirstHit = false;
+        state.delugeWindowTimer = 0;
+    }
+}
+
+// --- DELUGE MAW IMPACT BUFF CLEANUP ---
+if (state.delugeImpactTimer > 0) {
+    state.delugeImpactTimer -= dt;
+
+    if (state.delugeImpactTimer <= 0) {
+        bey.stats.knockbackPower -= 0.12;
+    }
+}
+
+// --- DELUGE MAW SELF-GUARD CLEANUP ---
+if (state.delugeSelfGuardTimer > 0) {
+    state.delugeSelfGuardTimer -= dt;
+
+    if (state.delugeSelfGuardTimer <= 0) {
+        bey.stats.knockbackResist -= 0.12;
+    }
+}
 
 // --- PHANTOM WARP PHYSICS & PARTICLES ---
             if (state.actionState === "TELEPORT_OUT") {
@@ -4111,7 +4315,32 @@ else if (attackName === "Sharp Shooter") {
                 attacker.skillState.actionState = "LUNGE_HOP";
             }, 500);
         }
-    },
+		else if (attackName === "Deluge Maw") {
+    let state = attacker.skillState;
+
+    if (state.actionState === "DELUGE_WINDUP" || state.actionState === "DELUGE_SURGE") return;
+
+    state.actionState = "DELUGE_WINDUP";
+    state.delugeTimer = 250;
+    state.delugeTotalTime = 700;
+    state.delugeWindowTimer = 0;
+    state.delugeImpactTimer = 0;
+    state.delugeSelfGuardTimer = 0;
+    state.delugeHasFirstHit = false;
+    state.delugeCurveDir = attacker.spinDir || 1;
+    state.delugeWindupActive = true;
+
+    // Brief pressure-gathering brace
+    attacker.stats.recoilReduction = (attacker.stats.recoilReduction || 0) + 8;
+    attacker.stats.knockbackResist = (attacker.stats.knockbackResist || 0) + 0.06;
+
+    attacker.vx *= 0.55;
+    attacker.vy *= 0.55;
+
+    attacker.activeAura = "rgba(0, 180, 255, 0.85)";
+    attacker.activeAuraDuration = 300;
+	}
+},
 	
 	releaseCharge: function(attacker, defender, joyX = 0, joyY = 0) {
         let state = attacker.skillState;
