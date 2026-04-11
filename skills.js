@@ -1452,7 +1452,7 @@ if (bey.skillState.actionState === "DELUGE_SURGE") {
             opponent.stats.mobility = (opponent.stats.mobility || 0) - state.delugeMobPenalty;
             opponent.stats.balance = (opponent.stats.balance || 0) - state.delugeBalPenalty;
 
-            opponent.currentRpm -= 5;
+            opponent.currentRpm -= 2;
             opponent.vx += tangentX * 2.5;
             opponent.vy += tangentY * 2.5;
 
@@ -1483,7 +1483,7 @@ if (bey.skillState.actionState === "DELUGE_SURGE") {
             let impactSpeed = Math.sqrt(relVx * relVx + relVy * relVy);
             let ejectForce = Math.max(9, impactSpeed * 1.25);
 
-            opponent.currentRpm -= 5;
+            opponent.currentRpm -= 2;
             opponent.vx = tangentX * ejectForce;
             opponent.vy = tangentY * ejectForce;
 
