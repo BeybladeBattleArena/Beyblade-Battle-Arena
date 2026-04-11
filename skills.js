@@ -3620,8 +3620,6 @@ if (state.delugeSelfGuardTimer > 0) {
                     this.disengageGrapple(attacker, bey);
                 }
             }
-        });
-    },
 
     onCollision: function(p1, cpu, impactSpeed) {
     if (p1.skillState.peakActive) this.removePeak(p1);
