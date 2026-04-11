@@ -616,6 +616,8 @@ window.SkillEngine = {
 				delugeMobPenalty: 0,
 				delugeBalPenalty: 0,
 				delugeCurveDir: 1,
+				delugeCastX: 0,
+				delugeCastY: 0,
 				
 				bpTimer: 0,
                 bpActive: false,
@@ -1019,44 +1021,37 @@ if (state.actionState === "DELUGE_WINDUP") {
         state.actionState = "DELUGE_SURGE";
         state.delugeTimer = state.delugeTotalTime;
 
-        let dx = opponent.x - bey.x;
-        let dy = opponent.y - bey.y;
-        let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-
-        bey.vx = (dx / dist) * 12;
-        bey.vy = (dy / dist) * 12;
+        bey.vx = state.delugeCastX * 12;
+		bey.vy = state.delugeCastY * 12;
     }
 }
 
 else if (state.actionState === "DELUGE_SURGE") {
     state.delugeTimer -= dt;
 
-    let dx = opponent.x - bey.x;
-    let dy = opponent.y - bey.y;
-    let dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
-
-    let dirX = dx / dist;
-    let dirY = dy / dist;
+    // Use the CAST direction as the base path
+    let baseX = state.delugeCastX;
+    let baseY = state.delugeCastY;
 
     // Curve based on spin direction
-    let tangentX = -dirY * (state.delugeCurveDir || 1);
-    let tangentY = dirX * (state.delugeCurveDir || 1);
+    let tangentX = -baseY * (state.delugeCurveDir || 1);
+    let tangentY = baseX * (state.delugeCurveDir || 1);
 
     let progress = 1 - (state.delugeTimer / Math.max(1, state.delugeTotalTime));
     let curveStrength = 1.05 - (progress * 0.55);
 
-    let moveX = (dirX * 1.25) + (tangentX * curveStrength);
-    let moveY = (dirY * 1.25) + (tangentY * curveStrength);
-    let moveLen = Math.max(1, Math.sqrt(moveX * moveX + moveY * moveY));
+    let moveX = (baseX * 1.25) + (tangentX * curveStrength);
+    let moveY = (baseY * 1.25) + (tangentY * curveStrength);
 
+    let moveLen = Math.max(0.1, Math.sqrt(moveX * moveX + moveY * moveY));
     let surgeSpeed = 9;
+
     bey.vx = (moveX / moveLen) * surgeSpeed;
     bey.vy = (moveY / moveLen) * surgeSpeed;
 
     bey.activeAura = "rgba(0, 210, 255, 0.7)";
     bey.activeAuraDuration = 100;
 
-    // Watery trail
     if (window.particles && Math.random() < 0.35) {
         window.particles.push({
             x: bey.x + (Math.random() - 0.5) * 8,
@@ -4319,6 +4314,16 @@ else if (attackName === "Sharp Shooter") {
     let state = attacker.skillState;
 
     if (state.actionState === "DELUGE_WINDUP" || state.actionState === "DELUGE_SURGE") return;
+	
+	let dashX = (inputX !== 0 || inputY !== 0) ? inputX : dirX;
+    let dashY = (inputX !== 0 || inputY !== 0) ? inputY : dirY;
+
+    let mag = Math.max(0.1, Math.sqrt(dashX * dashX + dashY * dashY));
+    dashX /= mag;
+    dashY /= mag;
+
+    state.delugeCastX = dashX;
+    state.delugeCastY = dashY;
 
     state.actionState = "DELUGE_WINDUP";
     state.delugeTimer = 250;
