@@ -1098,7 +1098,7 @@ else if (state.actionState === "DELUGE_SURGE") {
         this.clearDelugeState(bey, opponent);
     }
 }
-}
+
 			
 			// ==========================================
             // --- STONETIP RIPPLE STATE MACHINE ---

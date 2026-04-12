@@ -1009,7 +1009,7 @@ window.equipmentDB = {
             id: "ar_32", // Generalized ID
             name: "Upper Dragoon Spin Cutter Mod", // Generalized Name
             type: "Attack Ring", 
-            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Carlos", "Illegal", "Modification", "Mod", "Spin Cutter"], 
+            tags: ["Upper", "Dragoon", "Dragon", "Kid", "Carlos", "Illegal", "Modification", "Mod", "Spin Cutter", "Impast Point", "Smash Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/UpperDragoon_SpinCutterMod.png",  
             stats: { attack: 8, hp: 15, defense: 2, recoil: 5, balance: 5, weight: 10, endurance: 3, stamina: 4, speed: 4, mobility: 1 }, 
 			passives: ["Impact Point"], 
@@ -1033,11 +1033,15 @@ window.equipmentDB = {
             type: "Attack Ring",
 			subRing: true,
 			subRingType: "Free",			
-            tags: ["Shark", "Jaw", "Sub-Attack Ring", "SAR", "Sub"], 
+            tags: ["Shark", "Jaw", "Sub-Attack Ring", "SAR", "Sub", "Slip Face Edge", "Hook Cross", "Smash Attack", "Spike Attack"], 
 			fallbackImage: "./images/beyblade_parts/AR/SharkJaw.png",  
-            stats: { attack: 22, weight: 12, speed: 2, mobility: 3, defense: 3, endurance: -1, stamina: 2, recoil: 16, recoilReduction: 2 },
-			passives: [], 
-			attacks: [],
+            statsRight: { attack: 15, hp: 20, defense: 10, recoil: 8, balance: 3, weight: 10, endurance: 6, stamina: 4, speed: 5, mobility: 4, recoilReduction: 5 },
+			statsLeft: { attack: 23, hp: 15, defense: 5, recoil: 18, balance: 3, weight: 10, endurance: 3, stamina: 3, speed: 5, mobility: 4, recoilReduction: 1 },
+			radius: 15,
+			passivesRight: ["Slip Face Edge"],
+			passivesLeft: ["Hook Cross"],			
+			attacksRight: [{ name: "Smash Attack", cd: 5 }],
+			attacksLeft: [{ name: "Spike Attack", cd: 4 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1055,11 +1059,15 @@ window.equipmentDB = {
             id: "ar_34", // Generalized ID
             name: "Devil Crusher", // Generalized Name
             type: "Attack Ring",			
-            tags: ["Devil", "Crusher", "Upper Attack"], 
+            tags: ["Devil", "Crusher", "Upper Attack", "Smash Attack", "Concentrate Defense", "Ramping Edge", "Rollback Drift"], 
 			fallbackImage: "./images/beyblade_parts/AR/DevilCrusher.png",  
-            stats: { attack: 24, weight: 15, mobility: -1, balance: 3, speed: 2, defense: 2, endurance: 3, stamina: 1, recoil: 15, recoilReduction: 1 },
-			passives: [], 
-			attacks: [{ name: "Upper Attack", cd: 5 }],
+            statsRight: { attack: 22, hp: 25, defense: 10, recoil: 14, balance: 5, weight: 14, endurance: 5, stamina: 5, speed: 4, mobility: 3, recoilReduction: 3 },
+			statsLeft: { attack: 16, hp: 30, defense: 13, recoil: 6, balance: 5, weight: 14, endurance: 5, stamina: 6, speed: 3, mobility: 3, recoilReduction: 4 },
+			radius: 16,
+			passivesRight: ["Ramping Edge"],
+			passivesLeft: ["Rollback Drift"],
+			attacksRight: [{ name: "Upper Attack", cd: 6 }, { name: "Spike Attack", cd: 4 }],
+			attacksLeft: [{ name: "Concentrate Defense", cd: 7 }, { name: "Smash Attack", cd: 5 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1077,11 +1085,15 @@ window.equipmentDB = {
             id: "ar_35", // Generalized ID
             name: "Armored Sprinter", // Generalized Name
             type: "Attack Ring",			
-            tags: ["Armored", "Sprinter", "Concentrate Defense"], 
+            tags: ["Armored", "Sprinter", "Lateral Bound", "Sharp Shooter", "Spike Attack", "Barrage Attack", "Counterattack", "Bite Point"], 
 			fallbackImage: "./images/beyblade_parts/AR/ArmoredSprinter.png",  
-            stats: { attack: 22, weight: 15, mobility: 2, balance: 1, speed: 4, defense: 6, endurance: 3, stamina: 4, recoil: 17, },
-			passives: [], 
-			attacks: [{ name: "Concentrate Defense", cd: 7 }],
+            statsRight: { attack: 18, hp: 25, defense: 11, recoil: 10, balance: 6, weight: 14, endurance: 5, stamina: 6, speed: 5, mobility: 7, recoilReduction: 5 }, 
+			statsLeft: { attack: 24, hp: 20, defense: 7, recoil: 16, balance: 6, weight: 14, endurance: 4, stamina: 6, speed: 5, mobility: 5, recoilReduction: 2 },
+			radius: 14,
+			passivesRight: ["Counterattack"],
+			passivesLeft: ["Bite Point"],			
+			attacksRight: [{ name: "Lateral Bound", cd: 5 }, { name: "Sharp Shooter", cd: 6 }],
+			attacksLeft: [{ name: "Spike Attack", cd: 4 }, { name: "Barrage Attack", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1099,11 +1111,12 @@ window.equipmentDB = {
             id: "ar_36", // Generalized ID
             name: "Grim Scythe", // Generalized Name
             type: "Attack Ring",			
-            tags: ["Grim", "Scythe", "Offensive Guard"], 
+            tags: ["Grim", "Scythe", "Offensive Guard", "Circle Slash", "Side Swipe"], 
 			fallbackImage: "./images/beyblade_parts/AR/GrimScythe.png",  
-            stats: { attack: 22, weight: 15, mobility: 2, balance: 3, speed: 2, defense: 3, endurance: 6, stamina: 3, recoil: 15, },
+            stats: { attack: 22, hp: 25, defense: 10, recoil: 12, balance: 5, weight: 15, endurance: 6, stamina: 4, speed: 4, mobility: 4, recoilReduction: 3 },
+			radius: 15,
 			passives: ["Offensive Guard"], 
-			attacks: [],
+			attacks: [{ name: "Circle Slash", cd: 7 }, { name: "Side Swipe", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1121,11 +1134,15 @@ window.equipmentDB = {
             id: "ar_37", // Generalized ID
             name: "Thundering Shriek", // Generalized Name
             type: "Attack Ring",			
-            tags: ["Thundering", "Shriek", "Upper Attack"], 
+            tags: ["Thundering", "Shriek", "Smash Attack", "Extreme Speed", "Charge Dash", "Impact Point", "Wall Rebound Assist"], 
 			fallbackImage: "./images/beyblade_parts/AR/ThunderingShriek.png",  
-            stats: { attack: 25, weight: 14, mobility: 3, balance: -1, speed: 6, defense: 1, endurance: 1, stamina: 2, recoil: 18, },
-			passives: [], 
-			attacks: [{ name: "Upper Attack", cd: 6 }],
+            statsRight: { attack: 25, hp: 20, defense: 7, recoil: 15, balance: 3, weight: 13, endurance: 3, stamina: 4, speed: 6, mobility: 5, recoilReduction: 2 }, 
+			statsLeft: { attack: 15, hp: 25, defense: 9, recoil: 11, balance: 4, weight: 13, endurance: 4, stamina: 4, speed: 6, mobility: 4, recoilReduction: 4 }, 
+			radius: 15,
+			passivesRight: ["Impact Point"], 
+			passivesLeft: ["Wall Rebound Assist"],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Extreme Speed", cd: 7 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Charge Dash", cd: 8 }],
 			
 			//The Array of Unlockable Designs
             styles: [
