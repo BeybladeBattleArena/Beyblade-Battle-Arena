@@ -2305,8 +2305,12 @@ if (
             
             const currentHue = rpmRatio * 120;
             let currentColor = `hsl(${currentHue}, 100%, 50%)`;
-            // --- NEW: SPIN BURST BLUE FLASH ---
-            if (bey.isRpmFlashing) {
+            
+			
+			if (isSpinBleeding) {
+				let pulse = (Math.sin(performance.now() * 0.02) + 1) / 2;
+				currentColor = `rgba(170, 80, 255, ${0.65 + pulse * 0.35})`;
+			} else if (bey.isRpmFlashing) {
                 let pulse = (Math.sin(performance.now() * 0.015) + 1) / 2; // Pulses between 0 and 1
                 currentColor = `rgba(0, 200, 255, ${0.5 + pulse * 0.5})`; // High-tech Cyan/Blue
             }
@@ -2809,6 +2813,12 @@ if (
 			// 0.90 = 10% less passive drain
 			// 1.10 = 10% more passive drain
 			let passiveRpmDrainMod = safeNum(bey.stats.passiveRpmDrainMod, 1.0);
+			
+			// New Spin Bleed-specific drain modifier
+			let spinBleedRpmDrainMod = safeNum(bey.stats.spinBleedRpmDrainMod, 1.0);
+
+			// Combine them safely
+			let totalPassiveDrainMod = passiveRpmDrainMod * spinBleedRpmDrainMod;
 
 			// Split stable vs wobble drain
 			let stableDrain = baseDecay + (currentSpeed * 0.02);
@@ -2820,8 +2830,8 @@ if (
 			// Recombine
 			let passiveRpmDrain = Math.max(0.1, stableDrain + wobbleDrain);
 
-			// Skill modifier affects the full passive drain
-			passiveRpmDrain *= passiveRpmDrainMod;
+			// Apply all passive drain modifiers together
+			passiveRpmDrain *= totalPassiveDrainMod;
 
 			bey.currentRpm -= passiveRpmDrain * frameScale;
 			bey.currentRpm = Math.max(0, bey.currentRpm);

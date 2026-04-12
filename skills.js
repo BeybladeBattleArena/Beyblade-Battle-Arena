@@ -157,6 +157,10 @@ window.SkillsDB = {
                 bey.stats.defense = (bey.stats.defense || 0) + ((bey.stats.defense || 0) * 0.02);
             }
         },
+		"Venom Sting": {
+            name: "Venom Sting",
+            desc: "A direct hit imparts the 'Spin Bleed' debuff for 3s, increasing the opponent's RPM loss from stadium friction by 5%. Cooldown: 12s.",
+        },
 		"Alter Approach (Flat)": {
             name: "Alter Approach (Flat)",
             desc: "Depending on manually prepared settings before the match starts, gain an additional 4% Attack and 3% Speed when a round begins. (Flat mode active).",
@@ -1705,6 +1709,41 @@ if (state.actionState === "DELUGE_SURGE" && state.delugeHitCooldown <= 0) {
                     }
                 }
 				
+				// PASSIVE: Venom Sting
+				if (bey.passives && bey.passives.includes("Venom Sting")) {
+                    
+                    // 1. Calculate the Angle of Impact
+                    let dx = opponent.x - bey.x;
+                    let dy = opponent.y - bey.y;
+                    let hitAngle = Math.atan2(dy, dx);
+                    let moveAngle = Math.atan2(bey.vy, bey.vx);
+                    
+                    let angleDiff = Math.abs(Math.atan2(Math.sin(hitAngle - moveAngle), Math.cos(hitAngle - moveAngle)));
+                    let currentSpeed = Math.sqrt(bey.vx**2 + bey.vy**2);
+
+                    // Must be a clean, direct hit (<= 0.4 radians off-center)
+                    let isDirect = (angleDiff <= 0.4 && currentSpeed > 1.5);
+
+                    if (isDirect) {
+                        let vsOppState = opponent.skillState;
+                        
+                        // FUTURE PROOFING: We check if the attacker has a hypothetical 
+                        // "+ Debuff Duration" stat (like from a future part or buff). 
+                        // If not, it defaults to 0.
+                        let bonusDuration = bey.stats.bonusDebuffDuration || 0;
+                        let totalDuration = 3000 + bonusDuration;
+                        
+                        // Apply or Refresh the timer! 
+                        // We use Math.max so if they currently have 4 seconds left from a 
+                        // massive extension buff, hitting them again doesn't accidentally shorten it to 3!
+                        vsOppState.vsSpinBleedTimer = Math.max((vsOppState.vsSpinBleedTimer || 0), totalDuration);
+                        
+                        // Visual cue: A sickly purple/green venom pulse on the victim
+                        opponent.activeAura = "rgba(138, 43, 226, 0.8)"; 
+                        opponent.activeAuraDuration = vsOppState.vsSpinBleedTimer;
+                    }
+                }
+				
 				// PASSIVE: Redirection
                 if (bey.passives && bey.passives.includes("Redirection")) {
                     
@@ -2844,6 +2883,20 @@ if (state.actionState === "DELUGE_SURGE" && state.delugeHitCooldown <= 0) {
                     state.relRecTotal = 0;
                 }
             }
+
+            // --- DEBUFF UPDATE: VENOM STING ---
+            if (bey.skillState.vsSpinBleedTimer > 0) {
+                // Tick the timer down
+                bey.skillState.vsSpinBleedTimer -= dt;
+                
+                // Set the debuff multiplier (1.05 = +5% extra friction)
+                bey.stats.spinBleedRpmDrainMod = 1.05; 
+                
+            } else {
+                // If the timer is at 0, return friction to normal (1.0)
+                bey.stats.spinBleedRpmDrainMod = 1.0;
+            }
+			
 			
             // --- CLEANUP: THRASHING CURRENT PASSIVE ---    
             // 1. Tick down the Attacker's window to land a direct hit

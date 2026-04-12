@@ -108,7 +108,7 @@ window.equipmentDB = {
             tags: ["Development", "Test", "God", "Ring", "Not for Resale"], 
 			fallbackImage: "./images/beyblade_parts/AR/GodRing.png",  
             stats: { attack: 24, weight: 15, hp: 800, rpm: 3000, speed: 3, mobility: 5, endurance: 1, recoil: 2, recoilReduction: 1 },
-			passives: [], 
+			passives: ["Venom Sting"], 
 			attacks: [{ name: "Circle Slash", cd: 7 }, { name: "Charge Dash", cd: 8 }, { name: "Ridge Uppercut", cd: 8 }, { name: "Deluge Maw", cd: 8 }, { name: "Lateral Bound", cd: 5 }, { name: "Spin Burst", cd: 8 }],
 			
 			//The Array of Unlockable Designs
@@ -1188,9 +1188,11 @@ window.equipmentDB = {
             type: "subAttackRing", 
 			subRingType: "Free",
             tags: ["Wing", "Blade", "Free", "Cross Smash"], 
-			fallbackImage: "./images/beyblade_parts/SAR/WingBlade_Orange.png",  
-            stats: { weight: 3, hp: 20, attack: 6, recoil: 7, stamina: 1, endurance: 2, speed: 1, recoilReduction: 2 },
-			passives: [], 
+			fallbackImage: "./images/beyblade_parts/SAR/WingBlade_Orange.png",
+			statsRight: { attack: 5, hp: 10, defense: 2, recoil: 6, balance: 1, weight: 3, endurance: 1, stamina: 2, speed: 1, recoilReduction: 2 }, 
+			statsLeft: { attack: 2, hp: 5, defense: 3, recoil: 7, balance: 2, weight: 3, endurance: 2, stamina: 2, speed: 2, recoilReduction: 1 },			
+			radius: 17,
+			passives: ["Counterattack"], 
 			attacks: [{ name: "Cross Smash", cd: 6 }],
 			
 			//The Array of Unlockable Designs
@@ -1220,8 +1222,11 @@ window.equipmentDB = {
 			subRingType: "Free",
             tags: ["Venom", "Tail", "Free", "Cross Lance"], 
 			fallbackImage: "./images/beyblade_parts/SAR/VenomTail.png",  
-            stats: { weight: 4, attack: 6, recoil: 8, stamina: 2, balance: -1, endurance: -1, mobility: 1, speed: 1, recoilReduction: 1 },
-			passives: [], 
+			statsRight: { attack: 2, hp: 20, defense: 3, recoil: 3, balance: 1, weight: 4, endurance: 2, stamina: 1, speed: 1, recoilReduction: 2 }, 
+			statsLeft: { attack: 5, defense: 2, recoil: 9, balance: 1, weight: 4, endurance: 1, stamina: 1, speed: 2 },			
+			radius: 15,
+			passivesRight: ["Slip Face Edge"],
+			passivesLeft: ["Venom Sting"], 
 			attacks: [{ name: "Cross Lance", cd: 6 }],
 			
 			//The Array of Unlockable Designs
@@ -1242,9 +1247,12 @@ window.equipmentDB = {
             type: "subAttackRing", 
 			subRingType: "Free",
             tags: ["Submerge", "Attacker", "Free", "Cross Smash"], 
-			fallbackImage: "./images/beyblade_parts/SAR/SubmergeAttack.png",  
-            stats: { weight: 3, attack: 3, recoil: 1, stamina: 2, balance: 1, mobility: 1, defense: 2, speed: 1, recoilReduction: 2 },
-			passives: [], 
+			fallbackImage: "./images/beyblade_parts/SAR/SubmergeAttack.png", 
+			statsRight: { attack: 2, hp: 10, defense: 3, recoil: 3, balance: 2, weight: 3, endurance: 2, stamina: 2, speed: 2, recoilReduction: 2 }, 
+			statsLeft: { attack: 3, hp: 5, defense: 1, recoil: 5, balance: 2, weight: 3, endurance: 2, stamina: 1, speed: 2, recoilReduction: 1 },		
+			radius: 15,
+			passivesRight: ["Impact Point"], 
+			passivesLeft: ["Bite Point"],
 			attacks: [{ name: "Cross Smash", cd: 6 }],
 			
 			//The Array of Unlockable Designs
