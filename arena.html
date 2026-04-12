@@ -2306,6 +2306,9 @@ if (
             const currentHue = rpmRatio * 120;
             let currentColor = `hsl(${currentHue}, 100%, 50%)`;
             
+			const isSpinBleeding =
+			safeNum(bey.stats.spinBleedRpmDrainMod, 1.0) > 1.0 &&
+			bey.currentRpm > 0;
 			
 			if (isSpinBleeding) {
 				let pulse = (Math.sin(performance.now() * 0.02) + 1) / 2;
