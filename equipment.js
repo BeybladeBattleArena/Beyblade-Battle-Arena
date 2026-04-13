@@ -1454,7 +1454,7 @@ window.equipmentDB = {
             type: "Weight Disk", 
             tags: ["Eight", "Wide", "Compact", "Counterweight Balance"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightWide_CompactVersion.png",
-			stats: { weight: 29, hp: 55, rpm: 130, attack: 2, defense: 4, stamina: 3, endurance: 3, balance: 4, mobility: 3, speed: 2, recoilReduction: 3 }
+			stats: { weight: 29, hp: 55, rpm: 130, attack: 2, defense: 4, stamina: 3, endurance: 3, balance: 4, mobility: 3, speed: 2, recoilReduction: 3 },
 			radius: 13.5,
 			passives: ["Counterweight Balance"], 
 			attacks: [],
