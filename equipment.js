@@ -1308,7 +1308,7 @@ window.equipmentDB = {
             tags: ["Six", "Wide", "Outer Flywheel"], 
 			fallbackImage: "./images/beyblade_parts/WD/SixWide.png",
 			stats: { weight: 28, hp: 45, rpm: 155, attack: 2, stamina: 8, endurance: 1, mobility: 4, speed: 3, recoil: 3, recoilReduction: 1, lad: 0.05 },
-			radius: 14.5
+			radius: 14.5,
 			passives: ["Outer Flywheel"], 
 			attacks: [],
 			

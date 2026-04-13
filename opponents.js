@@ -37,7 +37,7 @@ window.opponentsDB = [
 		weightDisk: "wd_07",
 		spinGear: { id: "sg_01", styleId: "SG_basic_pink" },
 		bladeBase: "bb_10",
-        alwaysUnlocked: false,
+        alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" }, 
         stats: { 
             hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, endurance: 13, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
@@ -82,7 +82,7 @@ window.opponentsDB = [
 		weightDisk: "wd_03",
 		spinGear: { id: "sg_01", styleId: "SG_basic_purple" },
 		bladeBase: "bb_11",
-        alwaysUnlocked: false,
+        alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" },
         stats: { 
             hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, endurance: 11, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
