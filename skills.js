@@ -6,8 +6,8 @@ window.SkillsDB = {
         // --- EXISTING PASSIVES ---
         "Shell Armor": {
             name: "Shell Armor",
-            desc: "Increases base Defense by 3.",
-            apply: function(bey) { bey.stats.defense = (bey.stats.defense || 0) + 3; }
+            desc: "Increases base Defense by 6.",
+            apply: function(bey) { bey.stats.defense = (bey.stats.defense || 0) + 6; }
         },
 		"Recoil Rebounder": {
             name: "Recoil Rebounder",
@@ -173,9 +173,10 @@ window.SkillsDB = {
         },
         "Centrifugal Synergy": {
             name: "Centrifugal Synergy",
-            desc: "The centered spin force grants exceptional stability, increasing Endurance by 5.",
+            desc: "The centered spin force grants exceptional stability, increasing Endurance by 5 and Balance by 3.",
             apply: function(bey) {
                 bey.stats.endurance = (bey.stats.endurance || 0) + 5;
+				bey.stats.balance = (bey.stats.balance || 0) + 3;
             }
         },
         "Ball Bearing Stabilizer": {

@@ -1282,10 +1282,11 @@ window.equipmentDB = {
             id: "wd_01", // Generalized ID
             name: "Six Balance", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Six", "Balance"], 
-			fallbackImage: "./images/beyblade_parts/WD/SixBalance.png",  
-            stats: { weight: 30, hp: 50, rpm: 110, defense: 2, stamina: 3, endurance: 1, speed: 2, recoilReduction: 2 },
-			passives: [], 
+            tags: ["Six", "Balance", "Centerweight"], 
+			fallbackImage: "./images/beyblade_parts/WD/SixBalance.png",
+			stats: { weight: 30, hp: 55, rpm: 115, attack: 1, defense: 2, stamina: 3, endurance: 2, balance: 3, speed: 2, recoilReduction: 3 },
+            radius: 13,
+			passives: ["Centerweight"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1304,10 +1305,11 @@ window.equipmentDB = {
             id: "wd_02", // Generalized ID
             name: "Six Wide", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Six", "Wide"], 
+            tags: ["Six", "Wide", "Outer Flywheel"], 
 			fallbackImage: "./images/beyblade_parts/WD/SixWide.png",
-            stats: { weight: 28, hp: 40, rpm: 140, stamina: 7, endurance: 1, mobility: 8, recoil: 1, attack: 2 },
-			passives: [], 
+			stats: { weight: 28, hp: 45, rpm: 155, attack: 2, stamina: 8, endurance: 1, mobility: 4, speed: 3, recoil: 3, recoilReduction: 1, lad: 0.05 },
+			radius: 14.5
+			passives: ["Outer Flywheel"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1350,10 +1352,11 @@ window.equipmentDB = {
             id: "wd_03", // Generalized ID
             name: "Six Balance (Indentation Mold)", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Six", "Balance", "Indent"], 
+            tags: ["Six", "Balance", "Indent", "Settled Axis"], 
 			fallbackImage: "./images/beyblade_parts/WD/SixBalance_IndentMold.png",
-            stats: { weight: 28, hp: 50, rpm: 130, stamina: 5, endurance: 1, speed: 4, mobility: 1, recoilReduction: 2 },
-			passives: [], 
+			stats: { weight: 28, hp: 50, rpm: 130, attack: 1, defense: 1, stamina: 5, endurance: 2, balance: 4, speed: 4, recoilReduction: 2 },
+			radius: 13,
+			passives: ["Settled Axis"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1372,10 +1375,11 @@ window.equipmentDB = {
             id: "wd_04", // Generalized ID
             name: "Six Heavy", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Six", "Heavy"], 
+            tags: ["Six", "Heavy", "Counterweight Balance"], 
 			fallbackImage: "./images/beyblade_parts/WD/SixHeavy.png",
-            stats: { weight: 32, hp: 70, attack: 5, defense: 5, rpm: 110, stamina: -1, endurance: -1, speed: 2, recoilReduction: 1 },
-			passives: [], 
+			stats: { weight: 33, hp: 75, rpm: 110, attack: 3, defense: 5, stamina: 1, endurance: 4, speed: 2, recoilReduction: 5, balance: 2 },
+			radius: 12.5,
+			passives: ["Counterweight Balance"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1394,10 +1398,11 @@ window.equipmentDB = {
             id: "wd_05", // Generalized ID
             name: "Eight Wide (Hard Edge Mold)", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Wide", "Hard Edge"], 
+            tags: ["Eight", "Wide", "Hard Edge", "Mass Grinder"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightWide_HardEdgeMold.png",
-            stats: { weight: 31, hp: 65, attack: 5, rpm: 120, recoil: 4, endurance: -1, mobility: 2 },
-			passives: [], 
+			stats: { weight: 31, hp: 65, rpm: 125, attack: 5, defense: 1, stamina: 2, endurance: -1, mobility: 2, recoil: 4, recoilReduction: 1 },
+			radius: 15,
+			passives: ["Mass Grinder"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1416,10 +1421,11 @@ window.equipmentDB = {
             id: "wd_06", // Generalized ID
             name: "Eight Wide (Soft Edge Mold)", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Wide", "Soft Edge"], 
+            tags: ["Eight", "Wide", "Soft Edge", "Catch Deflector"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightWide_SoftEdgeMold.png",
-            stats: { weight: 30, hp: 60, defense: 2, endurance: 1, rpm: 130, recoil: 2, mobility: 2 },
-			passives: ["Wall Rebound Assist"], 
+            stats: { weight: 30, hp: 60, rpm: 135, attack: 2, defense: 3, stamina: 5, endurance: 1, mobility: 2, recoil: 3, recoilReduction: 2, lad: 0.08 },
+			radius: 15,
+			passives: ["Catch Deflector"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1446,10 +1452,11 @@ window.equipmentDB = {
             id: "wd_07", // Generalized ID
             name: "Eight Wide Compact", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Wide", "Compact"], 
+            tags: ["Eight", "Wide", "Compact", "Counterweight Balance"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightWide_CompactVersion.png",
-            stats: { weight: 29, hp: 50, attack: 2, defense: 2, rpm: 120, recoil: 2, speed: 2, mobility: 2 },
-			passives: [], 
+			stats: { weight: 29, hp: 55, rpm: 130, attack: 2, defense: 4, stamina: 3, endurance: 3, balance: 4, mobility: 3, speed: 2, recoilReduction: 3 }
+			radius: 13.5,
+			passives: ["Counterweight Balance"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1468,10 +1475,11 @@ window.equipmentDB = {
             id: "wd_08", // Generalized ID
             name: "Eight Balance", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Balance"], 
+            tags: ["Eight", "Balance", "Settled Axis"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightBalance.png",
-            stats: { weight: 32, hp: 55, rpm: 120, attack: 1, defense: 2, stamina: 4, mobility: 5, recoilReduction: 2 },
-			passives: [], 
+			stats: { weight: 32, hp: 60, rpm: 125, attack: 2, defense: 3, stamina: 4, endurance: 2, balance: 5, mobility: 5, speed: 2, recoilReduction: 2 },
+			radius: 13.5,
+			passives: ["Settled Axis"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1490,10 +1498,11 @@ window.equipmentDB = {
             id: "wd_09", // Generalized ID
             name: "Eight Balance (Indentation Mold)", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Balance", "Indent"], 
+            tags: ["Eight", "Balance", "Indent", "Impact Governor"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightBalance_IndentMold.png",
-            stats: { weight: 30, hp: 45, rpm: 140, endurance: 2, stamina: 3, mobility: 2, speed: 1, recoilReduction: 4 },
-			passives: [], 
+			stats: { weight: 30, hp: 50, rpm: 140, attack: 2, defense: 2, stamina: 5, endurance: 2, balance: 3, mobility: 2, speed: 1, recoilReduction: 4 },
+			radius: 13.5,
+			passives: ["Impact Governor"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1512,10 +1521,11 @@ window.equipmentDB = {
             id: "wd_10", // Generalized ID
             name: "Eight Balance Compact", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Balance", "Compact"], 
+            tags: ["Eight", "Balance", "Compact", "Counterweight Shift"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightBalance_CompactVersion.png",
-            stats: { weight: 28, hp: 40, rpm: 160, attack: 1, defense: -1, endurance: 2, stamina: 1, mobility: 3, speed: 3, recoilReduction: 2 },
-			passives: [], 
+			stats: { weight: 28, hp: 45, rpm: 170, attack: 1, defense: 2, stamina: 3, endurance: 2, balance: 3, mobility: 3, speed: 3, recoilReduction: 2, cdr: 2, lad: 0.05 },
+			radius: 13,
+			passives: ["Counterweight Shift"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1534,10 +1544,11 @@ window.equipmentDB = {
             id: "wd_11", // Generalized ID
             name: "Eight Heavy", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Eight", "Heavy"], 
+            tags: ["Eight", "Heavy", "Impact Governor"], 
 			fallbackImage: "./images/beyblade_parts/WD/EightHeavy.png",
-            stats: { weight: 34, hp: 70, rpm: 120, attack: 5, stamina: -1, mobility: -1, speed: 2, recoilReduction: 3 },
-			passives: [], 
+            stats: { weight: 35, hp: 85, rpm: 115, attack: 4, defense: 5, stamina: 1, endurance: 5, balance: 3, speed: 2, recoilReduction: 3 },
+			radius: 12.5,
+			passives: ["Impact Governor"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1564,10 +1575,11 @@ window.equipmentDB = {
             id: "wd_12", // Generalized ID
             name: "Medium Plate", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Plate", "Medium"], 
+            tags: ["Plate", "Medium", "Dead-Spin Bias"], 
 			fallbackImage: "./images/beyblade_parts/WD/MediumPlate.png",
-            stats: { weight: 32, hp: 60, rpm: 140, attack: 1, endurance: 1, stamina: 3, speed: 2, recoilReduction: 3 },
-			passives: [], 
+			stats: { weight: 32, hp: 60, rpm: 140, attack: 2, defense: 3, stamina: 5, endurance: 3, balance: 5, mobility: 1, speed: 3, recoilReduction: 3, lad: 0.02 },
+			radius: 12,
+			passives: ["Dead-Spin Bias"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1586,9 +1598,10 @@ window.equipmentDB = {
             id: "wd_13", // Generalized ID
             name: "Lemon", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Lemon", "Novelty"], 
+            tags: ["Lemon", "Novelty", "Sour Saucer"], 
 			fallbackImage: "./images/beyblade_parts/WD/LemonWeightDisk.png",
-            stats: { weight: 30, hp: 55, rpm: 150, attack: -1, endurance: 4, stamina: 1, recoilReduction: 5 },
+			stats: { weight: 30, hp: 60, rpm: 150, attack: 1, defense: 1, stamina: 2, endurance: 4, balance: 5, mobility: 3, speed: 2, recoilReduction: 5, cdr: 2 },
+			radius: 11,
 			passives: ["Sour Saucer"], 
 			attacks: [],
 			
@@ -1608,10 +1621,11 @@ window.equipmentDB = {
             id: "wd_14", // Generalized ID
             name: "Six Heavy Attack", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Six", "Heavy", "Attack"], 
+            tags: ["Six", "Heavy", "Attack", "Weighted Rage"], 
 			fallbackImage: "./images/beyblade_parts/WD/SixHeavyAttack.png",
-            stats: {  weight: 33, hp: 50, attack: 10, defense: 2, rpm: 110, endurance: -3, speed: 5, mobility: -1, recoil: 4, recoilReduction: -1  },
-			passives: ["Hyper Aggression"], 
+			stats: { weight: 34, hp: 55, rpm: 115, attack: 7, defense: 2, stamina: -1, endurance: -3, balance: -1, speed: 5, recoil: 5, recoilReduction: -1 },
+			radius: 14,
+			passives: ["Weighted Rage"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1630,10 +1644,11 @@ window.equipmentDB = {
             id: "wd_15", // Generalized ID
             name: "Twelve Shift", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Twelve", "Shift"], 
+            tags: ["Twelve", "Shift", "Counterweight Balance"], 
 			fallbackImage: "./images/beyblade_parts/WD/TwelveShift.png",
-            stats: {  weight: 31, attack: -1, defense: 1, rpm: 115, endurance: 3, stamina: 3, balance: 2, recoil: 1, recoilReduction: 4  },
-			passives: ["Counterattack"], 
+			stats: { weight: 31, hp: 70, rpm: 120, attack: 1, defense: 2, stamina: 5, endurance: 5, balance: 2, mobility: 2, speed: 1, recoilReduction: 3 },
+			radius: 13,
+			passives: ["Counterweight Balance"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1652,10 +1667,11 @@ window.equipmentDB = {
             id: "wd_16", // Generalized ID
             name: "Ten Balance", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Ten", "Balance"], 
+            tags: ["Ten", "Balance", "Edge Reserve"], 
 			fallbackImage: "./images/beyblade_parts/WD/TenBalance.png",
-            stats: {  weight: 33, hp: 40, rpm: 125, attack: 3, defense: 2, balance: 1, stamina: 2, endurance: 1, recoil: 2 },
-			passives: [], 
+			stats: { weight: 33, hp: 50, rpm: 130, attack: 3, defense: 2, stamina: 2, endurance: 2, balance: 1, speed: 2, recoilReduction: 3 },
+			radius: 13.5,
+			passives: ["Edge Reserve"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1674,10 +1690,11 @@ window.equipmentDB = {
             id: "wd_17", // Generalized ID
             name: "Ten Heavy", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Ten", "Heavy"], 
+            tags: ["Ten", "Heavy", "Weighted Follow-Through"], 
 			fallbackImage: "./images/beyblade_parts/WD/TenBalance.png",
-            stats: {  weight: 35, rpm: 145, attack: 2, defense: 3, stamina: 3, endurance: 3, speed: -1, mobility: -1 },
-			passives: [], 
+			stats: { weight: 36, hp: 80, rpm: 130, attack: 2, defense: 3, stamina: 3, endurance: 6, balance: 2, speed: -1, recoilReduction: 6 },
+			radius: 13.5,
+			passives: ["Weighted Follow-Through"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1696,10 +1713,11 @@ window.equipmentDB = {
             id: "wd_18", // Generalized ID
             name: "Spin Cutter", // Generalized Name
             type: "Weight Disk", 
-            tags: ["Spin", "Cutter", "Illegal", "Modification", "Mod"], 
+            tags: ["Spin", "Cutter", "Illegal", "Modification", "Mod", "Mass Grinder"], 
 			fallbackImage: "./images/beyblade_parts/WD/SpinCutter.png",
-            stats: {  weight: 49, hp: 20, rpm: 120, attack: 10, defense: 2, stamina: -3, endurance: 1, speed: -3, mobility: -2, recoil: 7 },
-			passives: [], 
+			stats: { weight: 49, hp: 35, rpm: 120, attack: 10, defense: 2, stamina: -2, endurance: 1, balance: -3, speed: -1, mobility: -1, recoil: 6, lad: -0.03 },
+			radius: 16,
+			passives: ["Mass Grinder"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1723,10 +1741,10 @@ window.equipmentDB = {
 			spinDirection: "Right",
 			contactTipType: "Integrated",
 			contactTipShape: "Integrated",
-            tags: ["Integrated", "Basic", "Spin", "Right"], 
+            tags: ["Integrated", "Basic", "Spin", "Right", "High Speed Recoil Reduction"], 
 			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Right_DragoonWhite_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
-			passives: [], 
+			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1908,10 +1926,10 @@ window.equipmentDB = {
 			spinDirection: "Left",
 			contactTipType: "Integrated",
 			contactTipShape: "Integrated",
-            tags: ["Integrated", "Basic", "Spin", "Left"], 
+            tags: ["Integrated", "Basic", "Spin", "Left", "High Speed Recoil Reduction"], 
 			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Left_MoonsongStampedeWhite_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
-			passives: [], 
+			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
 			
 			//The Array of Unlockable Designs
@@ -1967,7 +1985,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "Dual", "Axis", "Weighted", "Spin", "Right"], 
 			fallbackImage: "./images/beyblade_parts/SG/DualAxisSG_Right_Red_sideview.png",  
-            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 22, endurance: 15, balance: -2, mobility: -1, weight: 12 },
+            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 18, endurance: 13, balance: -1, mobility: -1, weight: 12 },
 			passives: ["Centrifugal Synergy"], 
 			attacks: [],
 			
