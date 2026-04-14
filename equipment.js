@@ -3,6 +3,16 @@ window.equipmentDB = {
     
 	
 	bitChips: [
+		{ id: "bitchip_standard_template", 
+		name: "Standard Bit Chip", 
+		type: "Bit Chip", 
+		tags: ["Standard", "Color", "Picker"],
+		template: true,		
+		image: "./images/beyblade_parts/BC/StandardBitChip_ColorableTemplate.png", 
+		topDownImage: "./images/beyblade_parts/BC/StandardBitChip_ColorableTemplate.png", 
+		stats: { spiritCharge: 8, cdr: 3, recoilReduction: 1, hp: 20, weight: 2,}, 
+		ultimate: { } 
+		},
           { id: "starter_bc", name: "Polta", type: "Bit Chip", tags: ["Smash Attack"], image: "./images/beyblade_parts/BC/StandardBitChip_IfritRed.png", topDownImage: "./images/beyblade_parts/BC/StandardBitChip_IfritRed.png", stats: { spiritCharge: 8, cdr: 3, recoilReduction: 1, hp: 30, defense: 5, endurance: 5, weight: 2 }, ultimate: { name: "Will 'O the Wisp", desc: "Generate a ghostly fireball as an arena hazard." } },
         { id: "bc_01", name: "Dragoon", type: "Bit Chip", stats: { spiritCharge: 12, cdr: 5, recoilReduction: 2, hp: 40, attack: 7, weight: 2 }, ultimate: { name: "Storm Tornado", desc: "Huge RPM damage" } },
         { id: "bc_02", name: "Dranzer", type: "Bit Chip", stats: { spiritCharge: 10, cdr: 3, recoilReduction: 2, hp: 50, endurance: 10, weight: 2 }, ultimate: { name: "Flame Saber", desc: "High HP damage" } },
