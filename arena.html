@@ -338,6 +338,76 @@
     import { db } from './firebase-config.js';
     import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// --- TEMPLATE BIT CHIP UTILITIES ---
+const BITCHIP_TEMPLATE_SOURCE_COLORS = { base: '#8095ba', midtone: '#6f82a2', outline: '#576885' };
+const _templateImageCache = new Map();
+
+function hexToRgb(hex) {
+    let clean = hex.replace('#', '');
+    if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+    return {
+        r: parseInt(clean.substring(0, 2), 16),
+        g: parseInt(clean.substring(2, 4), 16),
+        b: parseInt(clean.substring(4, 6), 16)
+    };
+}
+
+function colorDistance(r1, g1, b1, r2, g2, b2) {
+    return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+}
+
+function loadImageCached(src) {
+    if (_templateImageCache.has(src)) return _templateImageCache.get(src);
+    const promise = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous"; // Prevents canvas tainting
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+    _templateImageCache.set(src, promise);
+    return promise;
+}
+
+
+async function getRecoloredTemplateImage(part) {
+    const sourceSrc = part.topDownImage || part.image;
+    if (!sourceSrc) return null;
+
+    const img = await loadImageCached(sourceSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const src = { base: hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.base), mid: hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.midtone), out: hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.outline) };
+    const dst = { base: hexToRgb(part.bitchipBaseColor || '#ffffff'), mid: hexToRgb(part.bitchipMidtoneColor || '#888888'), out: hexToRgb(part.bitchipOutlineColor || '#000000') };
+
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] === 0) continue;
+        const r = data[i], g = data[i+1], b = data[i+2];
+
+        if (colorDistance(r, g, b, src.base.r, src.base.g, src.base.b) <= 10) {
+            data[i] = dst.base.r; data[i+1] = dst.base.g; data[i+2] = dst.base.b;
+        } else if (colorDistance(r, g, b, src.mid.r, src.mid.g, src.mid.b) <= 10) {
+            data[i] = dst.mid.r; data[i+1] = dst.mid.g; data[i+2] = dst.mid.b;
+        } else if (colorDistance(r, g, b, src.out.r, src.out.g, src.out.b) <= 10) {
+            data[i] = dst.out.r; data[i+1] = dst.out.g; data[i+2] = dst.out.b;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    const newImg = new Image();
+    newImg.src = canvas.toDataURL();
+    return newImg;
+}
+
+
     function safeNum(val, fallback) {
         let num = parseFloat(val);
         return !isNaN(num) ? num : fallback;
@@ -952,11 +1022,35 @@
         return partObj.topDownImage || partObj.fallbackImage || partObj.image || '';
     }
 
-    function resolvePartImageObj(partData, category) {
-        let url = resolveImageUrl(partData, category);
-        if (url) { let img = new Image(); img.src = url; return img; }
-        return null;
+function resolvePartImageObj(partData, category) {
+    let partObj = partData;
+    
+    // Standard lookup if partData is just an ID string
+    if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
+        partObj = window.equipmentDB[category].find(p => p.id === partData);
     }
+
+    if (!partObj) return null;
+
+    // --- NEW: Template Bit Chip Branch ---
+    if (category === 'bitChips' && partObj.template === true) {
+        let dynamicImg = new Image();
+        // Trigger the async recolor
+        getRecoloredTemplateImage(partObj).then(img => {
+            if (img) dynamicImg.src = img.src;
+        });
+        return dynamicImg; // Returns an empty image that fills in once recolor finishes
+    }
+
+    // Standard static image path
+    let url = resolveImageUrl(partData, category);
+    if (url) { 
+        let img = new Image(); 
+        img.src = url; 
+        return img; 
+    }
+    return null;
+}
 
     function setupLaunchMinigame() {
         if (!playerBuild.parts) return;
