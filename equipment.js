@@ -16,7 +16,7 @@ window.equipmentDB = {
 		ultimate: { name: "Storm Tornado", desc: "Huge RPM damage" } 
 		},
 		{ id: "bc_04", 
-		name: "Fenrir F", 
+		name: "Fenrir S", 
 		type: "Bit Chip", 
 		tags: [], 
 		image: "./images/beyblade_parts/BC/StandardBitChip_FenrirBlue.png", 
@@ -1863,7 +1863,7 @@ window.equipmentDB = {
                 },
 				{ 
                     styleId: "SG_basic_purple",
-                    styleName: "Right Spin Gear Purple (Fenrir F)", 
+                    styleName: "Right Spin Gear Purple (Fenrir S)", 
                     styleColorSample: "#6bbde0", 
                     styleRarity: 4,
                     image: "./images/beyblade_parts/SG/StandardSG_Right_FenrirFPurple_sideview.png", 
@@ -2511,7 +2511,7 @@ window.equipmentDB = {
 			contactTipShape: "Sharp",
             tags: ["Pulse", "Core", "Sharp", "Tip", "Plastic", "Cooldown Reduction", "CDR" ], 
 			fallbackImage: "./images/beyblade_parts/BB/PulseCore_Violet_sideview.png",  
-            stats: { rpm: 155, speed: 3, defense: -1, attack: -2, endurance: 3, grip: 4, balance: 10, stamina: 16, mobility: 2, cdr: 6, weight: 12, lad: 0.15 },
+            stats: { rpm: 155, speed: 4, defense: -1, attack: -2, endurance: 3, grip: 4, balance: 10, stamina: 16, mobility: 2, cdr: 6, weight: 12, lad: 0.15 },
 			passives: ["Static Survival", "Pace Control"], 
 			attacks: [],
 			
