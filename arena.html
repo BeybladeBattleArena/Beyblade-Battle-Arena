@@ -350,6 +350,14 @@ function hexToRgb(hex) {
         g: parseInt(clean.substring(2, 4), 16),
         b: parseInt(clean.substring(4, 6), 16)
     };
+	
+	function normalizeHex(hex) {
+    if (!hex) return '#ffffff';
+    let out = String(hex).trim().replace('#', '');
+    if (out.length === 3) out = out.split('').map(c => c + c).join('');
+    return `#${out.substring(0, 6).padEnd(6, '0')}`.toLowerCase();
+}
+	
 }
 
 function colorDistance(r1, g1, b1, r2, g2, b2) {
@@ -1023,32 +1031,74 @@ async function getRecoloredTemplateImage(part) {
     }
 
 function resolvePartImageObj(partData, category) {
-    let partObj = partData;
+    if (!partData) return null;
     
-    // Standard lookup if partData is just an ID string
-    if (typeof partData === 'string' && window.equipmentDB && window.equipmentDB[category]) {
-        partObj = window.equipmentDB[category].find(p => p.id === partData);
+    let partObj = null;
+    let isCustomTemplate = false;
+    let customColors = {};
+
+    // 1. Is it a complex object (from opponents.js or the Player's build)?
+    if (typeof partData === 'object' && partData.id) {
+        // Find the base part in the database
+        if (window.equipmentDB && window.equipmentDB[category]) {
+            partObj = window.equipmentDB[category].find(p => p.id === partData.id);
+        }
+        
+        // If it's a template, grab the colors from the opponents.js layout!
+        if (partObj && partObj.template === true) {
+            isCustomTemplate = true;
+            // Support both the player's keys AND your clean opponents.js keys
+            customColors = {
+                base: partData.bitchipBaseColor || partData.baseColor,
+                mid: partData.bitchipMidtoneColor || partData.midtoneColor,
+                out: partData.bitchipOutlineColor || partData.outlineColor
+            };
+        }
+    } 
+    // 2. Is it just a string ID? (Standard static parts)
+    else if (typeof partData === 'string') {
+        if (window.equipmentDB && window.equipmentDB[category]) {
+            partObj = window.equipmentDB[category].find(p => p.id === partData);
+        }
     }
 
     if (!partObj) return null;
 
-    // --- NEW: Template Bit Chip Branch ---
+    // 3. --- DYNAMIC TEMPLATE RENDERING BRANCH ---
     if (category === 'bitChips' && partObj.template === true) {
+        // Clone the part so we don't accidentally tint the global database template!
+        let renderPart = { ...partObj }; 
+        
+        // Apply the custom CPU colors to the clone
+        if (isCustomTemplate) {
+            if (customColors.base) renderPart.bitchipBaseColor = normalizeHex(customColors.base);
+            if (customColors.mid) renderPart.bitchipMidtoneColor = normalizeHex(customColors.mid);
+            if (customColors.out) renderPart.bitchipOutlineColor = normalizeHex(customColors.out);
+        } 
+        // Fallback for the Player's build (which already has the keys formatted)
+        else if (partData.bitchipBaseColor) {
+            renderPart.bitchipBaseColor = partData.bitchipBaseColor;
+            renderPart.bitchipMidtoneColor = partData.bitchipMidtoneColor;
+            renderPart.bitchipOutlineColor = partData.bitchipOutlineColor;
+        }
+
+        // Trigger the asynchronous recolor
         let dynamicImg = new Image();
-        // Trigger the async recolor
-        getRecoloredTemplateImage(partObj).then(img => {
+        getRecoloredTemplateImage(renderPart).then(img => {
             if (img) dynamicImg.src = img.src;
         });
-        return dynamicImg; // Returns an empty image that fills in once recolor finishes
+        return dynamicImg; 
     }
 
-    // Standard static image path
-    let url = resolveImageUrl(partData, category);
+    // 4. --- STANDARD STATIC IMAGE BRANCH ---
+    // If it's not a template chip, pass it back to your existing URL resolver
+    let url = resolveImageUrl(partData, category); 
     if (url) { 
         let img = new Image(); 
         img.src = url; 
         return img; 
     }
+    
     return null;
 }
 
