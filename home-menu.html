@@ -236,14 +236,134 @@
     // Load their saved preference, or default to 0
     let activeSaveIndex = window.PlayerData.featuredBuildIndex || 0;
 
-    // --- NEW: Safe Image Retrieval Helper ---
-    function getSafeImage(part, isTopDown = false) {
-        if (!part) return '';
-        let key = isTopDown ? 'topDownImage' : 'image';
-        if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
-        if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
-        return part.fallbackImage || part[key] || '';
+// --- TEMPLATE BIT CHIP RENDERING ENGINE ---
+const BITCHIP_TEMPLATE_SOURCE_COLORS = {
+    base: '#8095ba',
+    midtone: '#6f82a2',
+    outline: '#576885'
+};
+
+function normalizeHex(hex) {
+    if (!hex) return '#000000';
+    let out = String(hex).trim().replace('#', '');
+    if (out.length === 3) out = out.split('').map(c => c + c).join('');
+    return `#${out.substring(0, 6).padEnd(6, '0')}`.toLowerCase();
+}
+
+function hexToRgb(hex) {
+    const clean = normalizeHex(hex).replace('#', '');
+    return {
+        r: parseInt(clean.substring(0, 2), 16),
+        g: parseInt(clean.substring(2, 4), 16),
+        b: parseInt(clean.substring(4, 6), 16)
+    };
+}
+
+function colorDistance(r1, g1, b1, r2, g2, b2) {
+    return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+}
+
+const _templateImageCache = new Map();
+function loadImageCached(src) {
+    if (_templateImageCache.has(src)) return _templateImageCache.get(src);
+    const promise = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+    });
+    _templateImageCache.set(src, promise);
+    return promise;
+}
+
+async function buildRecoloredBitChipDataUrl(sourceSrc, palette) {
+    const img = await loadImageCached(sourceSrc);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    
+    canvas.width = img.width; 
+    canvas.height = img.height;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const srcBase = hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.base);
+    const srcMid = hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.midtone);
+    const srcOut = hexToRgb(BITCHIP_TEMPLATE_SOURCE_COLORS.outline);
+    
+    const dstBase = hexToRgb(palette.base);
+    const dstMid = hexToRgb(palette.midtone);
+    const dstOut = hexToRgb(palette.outline);
+
+    const tolerance = 10;
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        if (a === 0) continue;
+
+        if (colorDistance(r, g, b, srcBase.r, srcBase.g, srcBase.b) <= tolerance) {
+            data[i] = dstBase.r; data[i+1] = dstBase.g; data[i+2] = dstBase.b;
+        } else if (colorDistance(r, g, b, srcMid.r, srcMid.g, srcMid.b) <= tolerance) {
+            data[i] = dstMid.r; data[i+1] = dstMid.g; data[i+2] = dstMid.b;
+        } else if (colorDistance(r, g, b, srcOut.r, srcOut.g, srcOut.b) <= tolerance) {
+            data[i] = dstOut.r; data[i+1] = dstOut.g; data[i+2] = dstOut.b;
+        }
     }
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL('image/png');
+}
+
+function getRawImage(part, isTopDown = false) {
+    if (!part) return '';
+    let key = isTopDown ? 'topDownImage' : 'image';
+    if (part.activeStyle && part.activeStyle[key]) return part.activeStyle[key];
+    if (part.styles && part.styles.length > 0 && part.styles[0][key]) return part.styles[0][key];
+    return part.fallbackImage || part[key] || '';
+}
+
+// --- NEW: Safe Image Retrieval Helper (Now Template-Aware!) ---
+function getSafeImage(part, isTopDown = false) {
+    if (!part) return '';
+
+    // If this is a template chip with saved colors, hijack the render
+    if (part.template === true && (part.bitchipBaseColor || part.bitchipMidtoneColor || part.bitchipOutlineColor)) {
+        const cacheKey = isTopDown ? '_renderedBitChipTopDownImage' : '_renderedBitChipImage';
+        const busyKey = isTopDown ? '_renderingBitChipTopDownImage' : '_renderingBitChipImage';
+
+        // 1. If we already built the custom image, return it immediately
+        if (part[cacheKey]) return part[cacheKey]; 
+        
+        // 2. If we are currently building it, just return the raw image so the UI doesn't break
+        if (part[busyKey]) return getRawImage(part, isTopDown); 
+
+        const source = getRawImage(part, isTopDown);
+        if (!source) return '';
+
+        // 3. Start the build process
+        part[busyKey] = true;
+        buildRecoloredBitChipDataUrl(source, {
+            base: part.bitchipBaseColor || BITCHIP_TEMPLATE_SOURCE_COLORS.base,
+            midtone: part.bitchipMidtoneColor || BITCHIP_TEMPLATE_SOURCE_COLORS.midtone,
+            outline: part.bitchipOutlineColor || BITCHIP_TEMPLATE_SOURCE_COLORS.outline
+        }).then(dataUrl => {
+            part[cacheKey] = dataUrl;
+            part[busyKey] = false;
+            // Force the showcase to redraw itself now that the custom art is ready
+            if (window.renderShowcase) window.renderShowcase(); 
+        }).catch(err => {
+            console.error('Bit Chip recolor failed:', err);
+            part[busyKey] = false;
+        });
+
+        // 4. Return the standard image while the promise does its work
+        return source; 
+    }
+
+    // Standard part fallback
+    return getRawImage(part, isTopDown);
+}
 	
 	function getBuildSpinDirection(save) {
     if (!save) return 'right';
