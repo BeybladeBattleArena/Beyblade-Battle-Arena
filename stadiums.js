@@ -220,7 +220,7 @@ window.stadiumsDB = [
                 ringOutZones: [], 
                 visuals: {
                     // 1:1 perfectly square image!
-                    floorImgUrl: "./images/stadiums/official_blue/floor_skatepark.png", 
+                    floorImgUrl: "./images/stadiums/skatepark_stadium/floor_skatepark.png", 
                     
                     // The dynamic 3D rim colors
                     trimColor: "#b09e8d",
@@ -242,7 +242,7 @@ window.stadiumsDB = [
                 ], 
                 visuals: {
                     // 1:1 perfectly square image!
-                    floorImgUrl: "./images/stadiums/official_blue/floor_skatepark.png", 
+                    floorImgUrl: "./images/stadiums/skatepark_stadium/floor_skatepark.png", 
                     
                     // The dynamic 3D rim colors
                     trimColor: "#b09e8d",
