@@ -1857,7 +1857,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "Basic", "Spin", "Right", "High Speed Recoil Reduction"],
 			allowCustomPalette: true,			
-			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Right_DragoonWhite_sideview.png",  
+			fallbackImage: "./images/beyblade_parts/SG/StandardSpinGear_Right_ColorableTemplate_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
@@ -1865,6 +1865,14 @@ window.equipmentDB = {
 			//The Array of Unlockable Designs
             styles: [
                 { 
+                    styleId: "SG_right_customtemplate",
+                    styleName: "Standard Right Spin Gear", 
+                    styleColorSample: "#8095ba", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSpinGear_Right_ColorableTemplate_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSpinGear_Right_ColorableTemplate_topdown.png" 
+                },
+				{ 
                     styleId: "SG_basic_white",
                     styleName: "Right Spin Gear White (Spin Dragoon)", 
                     styleColorSample: "#efefeb", 
@@ -2043,7 +2051,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "Basic", "Spin", "Left", "High Speed Recoil Reduction"],
 			allowCustomPalette: true,			
-			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Left_MoonsongStampedeWhite_sideview.png",  
+			fallbackImage: "./images/beyblade_parts/SG/StandardSpinGear_Left_ColorableTemplate_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
@@ -2051,6 +2059,14 @@ window.equipmentDB = {
 			//The Array of Unlockable Designs
             styles: [
                 { 
+                    styleId: "SG_left_customtemplate",
+                    styleName: "Standard Left Spin Gear", 
+                    styleColorSample: "#8095ba", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/SG/StandardSpinGear_Left_ColorableTemplate_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/SG/StandardSpinGear_Left_ColorableTemplate_topdown.png" 
+                },
+				{ 
                     styleId: "SG_basic_white_moonsongstampede",
                     styleName: "Left Spin Gear White (Moonsong Stampede)", 
                     styleColorSample: "#fef8e6", 
