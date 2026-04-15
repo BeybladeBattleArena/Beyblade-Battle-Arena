@@ -216,7 +216,7 @@ window.stadiumsDB = [
                 name: "Lockdown Battle Zone",
                 size: "average",
                 desc: "A standard-sized stadium found at a skate park in the city. This one is seems to favor head-to-head clashes.",
-                physics: { friction: 0.95, radiusMod: 0.9 },
+                physics: { friction: 0.9825, radiusMod: 0.9 },
                 ringOutZones: [], 
                 visuals: {
                     // 1:1 perfectly square image!
