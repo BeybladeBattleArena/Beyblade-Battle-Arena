@@ -1167,10 +1167,114 @@ window.equipmentDB = {
             ]
 },
 { 
+            id: "ar_38", // Generalized ID
+            name: "Ruby Slasher", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Ruby", "Slasher", "Feral Friction", "Bite Point", "Spike Attack", "Circle Slash", "Side Swipe", "Sharp Shooter"], 
+			fallbackImage: "./images/beyblade_parts/AR/RubySlasher.png",  
+            statsRight: { attack: 23, hp: 25, defense: 6, recoil: 15, balance: 4, weight: 13, endurance: 3, stamina: 5, speed: 6, mobility: 5, recoilReduction: 3 }, 
+			statsLeft: { attack: 19, hp: 25, defense: 8, recoil: 11, balance: 3, weight: 13, endurance: 4, stamina: 5, speed: 6, mobility: 4, recoilReduction: 4 }, 
+			radius: 14,
+			passivesRight: ["Bite Point"], 
+			passivesLeft: ["Feral Friction"],
+			attacksRight: [{ name: "Spike Attack", cd: 5 }, { name: "Circle Slash", cd: 7 }],
+			attacksLeft: [{ name: "Side Swipe", cd: 6 }, { name: "Sharp Shooter", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "rubyslasher",
+                    styleName: "Ruby Slasher", 
+                    styleColorSample: "#c81013", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/RubySlasher.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RubySlasher.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_39", // Generalized ID
+            name: "Radiant Attacker", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Radiant", "Attacker", "Revengeance", "Chase Wing", "Charge Dash", "Lateral Bound", "Upper Attack"], 
+			fallbackImage: "./images/beyblade_parts/AR/RadiantAttacker.png",  
+            statsRight: { attack: 26, hp: 20, defense: 5, recoil: 17, balance: 6, weight: 14, endurance: 3, stamina: 6, speed: 4, mobility: 3, recoilReduction: 1 }, 
+			statsLeft: { attack: 20, hp: 25, defense: 9, recoil: 12, balance: 7, weight: 14, endurance: 5, stamina: 5, speed: 3, mobility: 3, recoilReduction: 3 }, 
+			radius: 13.5,
+			passivesRight: ["Revengeance"], 
+			passivesLeft: ["Chase Wing"],
+			attacksRight: [{ name: "Charge Dash", cd: 8 }, { name: "Lateral Bound", cd: 5 }],
+			attacksLeft: [{ name: "Charge Dash", cd: 8 }, { name: "Upper Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "radiantattacker",
+                    styleName: "Radiant Attacker", 
+                    styleColorSample: "#c3cbd3", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/RadiantAttacker.png", 
+                    topDownImage: "./images/beyblade_parts/AR/RadiantAttacker.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_40", // Generalized ID
+            name: "Polar Enforcer", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Polar", "Enforcer", "Smash", "Upper", "Barrage", "Attack", "Heavy Ram", "Impact Point", "Offensive Guard"], 
+			fallbackImage: "./images/beyblade_parts/AR/PolarEnforcer.png",  
+            statsRight: { attack: 19, hp: 35, defense: 10, recoil: 11, balance: 2, weight: 17, endurance: 4, stamina: 4, speed: 2, mobility: 4, recoilReduction: 4 }, 
+			statsLeft: { attack: 22, hp: 30, defense: 6, recoil: 14, balance: 3, weight: 17, endurance: 3, stamina: 4, speed: 3, mobility: 4, recoilReduction: 2 }, 
+			radius: 13.5,
+			passivesRight: ["Impact Point"], 
+			passivesLeft: ["Offensive Guard"],
+			attacksRight: [{ name: "Smash Attack", cd: 5 }, { name: "Heavy Ram", cd: 5 }],
+			attacksLeft: [{ name: "Upper Attack", cd: 6 }, { name: "Barrage Attack", cd: 6 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "polarenforcer",
+                    styleName: "Polar Enforcer", 
+                    styleColorSample: "#8095ba", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/AR/PolarEnforcer.png", 
+                    topDownImage: "./images/beyblade_parts/AR/PolarEnforcer.png" 
+                },
+            ]
+},
+{ 
+            id: "ar_41", // Generalized ID
+            name: "Frontier Dragon", // Generalized Name
+            type: "Attack Ring",			
+            tags: ["Frontier", "Dragon", "Ramping Edge", "Twin Contact Rhythm", "Upper Attack", "Smash Attack", "Charge Dash", "Extreme Speed"], 
+			fallbackImage: "./images/beyblade_parts/AR/FrontierDragon.png",  
+            statsRight: { attack: 17, hp: 25, defense: 5, recoil: 15, balance: 2, weight: 12, endurance: 4, stamina: 7, speed: 4, mobility: 3, recoilReduction: 2 }, 
+			statsLeft: { attack: 24, hp: 20, defense: 6, recoil: 18, balance: 3, weight: 12, endurance: 3, stamina: 6, speed: 4, mobility: 4 },			
+			radius: 14,
+			passivesRight: ["Ramping Edge"], 
+			passivesLeft: ["Twin Contact Rhythm"],
+			attacksRight: [{ name: "Upper Attack", cd: 6 }, { name: "Extreme Speed", cd: 7 }],
+			attacksLeft: [{ name: "Smash Attack", cd: 5 }, { name: "Charge Dash", cd: 8 }],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "frontierdragon",
+                    styleName: "Frontier Dragon", 
+                    styleColorSample: "#f5f4f7", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/AR/FrontierDragon.png", 
+                    topDownImage: "./images/beyblade_parts/AR/FrontierDragon.png" 
+                },
+            ]
+},
+{ 
             id: "prototype_bossbey", // Generalized ID
             name: "Prototype Boss Beyblade", // Generalized Name
             type: "Attack Ring",			
-            tags: ["Thundering", "Shriek", "Upper Attack"], 
+            tags: ["Upper Attack"], 
 			fallbackImage: "./images/boss_beyblades/prototypebossbey.png",  
             stats: { attack: 25, weight: 14, mobility: 3, balance: -1, speed: 6, defense: 1, endurance: 1, stamina: 2, recoil: 18, },
 			passives: [], 

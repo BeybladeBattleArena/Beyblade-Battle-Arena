@@ -349,16 +349,15 @@ function hexToRgb(hex) {
         r: parseInt(clean.substring(0, 2), 16),
         g: parseInt(clean.substring(2, 4), 16),
         b: parseInt(clean.substring(4, 6), 16)
-    };
-	
+    };	
+}
+
 	function normalizeHex(hex) {
     if (!hex) return '#ffffff';
     let out = String(hex).trim().replace('#', '');
     if (out.length === 3) out = out.split('').map(c => c + c).join('');
     return `#${out.substring(0, 6).padEnd(6, '0')}`.toLowerCase();
-}
-	
-}
+	}
 
 function colorDistance(r1, g1, b1, r2, g2, b2) {
     return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
