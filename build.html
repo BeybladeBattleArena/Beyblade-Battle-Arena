@@ -1384,8 +1384,9 @@ window.assignCustomPaletteDesign = function() {
 function refreshTemplateDesignerUi() {
     syncTemplateInputsFromState();
     drawTemplateSpectrum();
-    renderTemplateBitChipPreview();
+    renderCustomPalettePreview();
 }
+
 
 function pickTemplateSpectrumPoint(clientX, clientY) {
     const canvas = document.getElementById('bc-spectrum-canvas');
