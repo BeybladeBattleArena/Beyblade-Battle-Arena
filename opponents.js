@@ -494,7 +494,7 @@ window.opponentsDB = [
 		outlineColor: "920000",		
 		},
 		attackRing: "ar_38",
-		weightDisk: { id: "wd_02", styleId: "eight_heavy_black" },
+		weightDisk: { id: "wd_11", styleId: "eight_heavy_black" },
 		spinGear: { id: "sg_01", styleId: "SG_basic_red_polta" },
 		bladeBase: { id: "bb_15", styleId: "thornbase_ruby" },
         alwaysUnlocked: false,
