@@ -478,6 +478,56 @@ window.opponentsDB = [
             }
         }
     },
+	
+			{
+        id: "opp_rhea1",
+        name: "Rhea 1",
+        portrait: "Rhea.png",
+        dialogueBG: "beystadium_official.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Ruby Fox",
+		spinDirection: "Right",
+        bitBeast: "None",
+		bitChip: { id: "bitchip_standard_template",
+		baseColor: "c81013",
+		midtoneColor: "a70d10",
+		outlineColor: "920000",		
+		},
+		attackRing: "ar_38",
+		weightDisk: { id: "wd_02", styleId: "eight_heavy_black" },
+		spinGear: { id: "sg_01", styleId: "SG_basic_red_polta" },
+		bladeBase: { id: "bb_15", styleId: "thornbase_ruby" },
+        alwaysUnlocked: false,
+        arenaStyle: { stadiumType: "Skatepark Concrete", stadiumId: "skatepark_fourpockets" }, 
+        stats: { 
+            hp: 135, rpm: 1410, attack: 32, defense: 9, stamina: 23, endurance: 14, speed: 16, weight: 64, mobility: 25, grip: 29, balance: 5, recoil: 20, recoilReduction: 5, spiritCharge: 8, cdr: 3 },
+        passives: ["Hyper Aggression"],
+        attacks: [{ name: "Smash Attack", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Hey newbie! Nice to meet ya!",
+			"I'm Rhea, the top Blader in these parts. At this very moment, I'm on a 99 match win streak! Judging by that explosive fighting spirit, you wanna take me on!",
+			"Okay, you can be my 100th win! Now give it everything you've got!",
+        ],
+        winDialogue: [
+            "And that... makes 100 in a row.",
+            "Thanks for the match. You put up a really good fight. But don't beat yourself up. After all, I was just signed to go Pro!",
+        ],
+        loseDialogue: [
+            "No way! You obliterated my win streak!", // ADDED COMMA
+            "I can't say I'm not a little pissed off about losing after a huge streak like that, but I'm definitely more stoked from that AMAZING match!",
+			"When you're in the neighborhood, make sure you come battle me again, dude!",
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
+                engine.executeAttack("Smash Attack", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
 
 
 

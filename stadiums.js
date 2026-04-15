@@ -208,4 +208,48 @@ window.stadiumsDB = [
             }
         ]
     },
+	    {
+        stadiumType: "Skatepark Concrete",
+        styles: [
+            {
+                stadiumId: "skatepark_nopockets",
+                name: "Lockdown Battle Zone",
+                size: "average",
+                desc: "A standard-sized stadium found at a skate park in the city. This one is seems to favor head-to-head clashes.",
+                physics: { friction: 0.95, radiusMod: 0.9 },
+                ringOutZones: [], 
+                visuals: {
+                    // 1:1 perfectly square image!
+                    floorImgUrl: "./images/stadiums/official_blue/floor_skatepark.png", 
+                    
+                    // The dynamic 3D rim colors
+                    trimColor: "#b09e8d",
+                    wallColor: "#9f8f7e",  // The inner vertical drop
+                    ledgeColor: "#b9a694", // The flat top of the stadium rim
+                }
+            },
+			{
+                stadiumId: "skatepark_fourpockets",
+                name: "Tri-Pocket Battle Zone",
+                size: "average",
+                desc: "A standard-sized stadium found at a skate park in the city. With four gaps to fall out of, this stadium may prove a bit tricky to navigate.",
+                physics: { friction: 0.95, radiusMod: 0.9 },
+                ringOutZones: [
+                    { start: 5.30, end: 5.70 }, // Top Right
+                    { start: 0.59, end: 0.99 }, // Bottom Right
+                    { start: 2.16, end: 2.56 }, // Bottom Left
+                    { start: 3.73, end: 4.13 }  // Top Left
+                ], 
+                visuals: {
+                    // 1:1 perfectly square image!
+                    floorImgUrl: "./images/stadiums/official_blue/floor_skatepark.png", 
+                    
+                    // The dynamic 3D rim colors
+                    trimColor: "#b09e8d",
+                    wallColor: "#9f8f7e",  // The inner vertical drop
+                    ledgeColor: "#b9a694", // The flat top of the stadium rim
+                }
+            }
+        ]
+    },
 ];
