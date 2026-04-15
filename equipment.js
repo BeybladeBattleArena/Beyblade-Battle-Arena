@@ -1177,7 +1177,7 @@ window.equipmentDB = {
 			radius: 14,
 			passivesRight: ["Bite Point"], 
 			passivesLeft: ["Feral Friction"],
-			attacksRight: [{ name: "Spike Attack", cd: 5 }, { name: "Circle Slash", cd: 7 }],
+			attacksRight: [{ name: "Spike Attack", cd: 4 }, { name: "Circle Slash", cd: 7 }],
 			attacksLeft: [{ name: "Side Swipe", cd: 6 }, { name: "Sharp Shooter", cd: 6 }],
 			
 			//The Array of Unlockable Designs

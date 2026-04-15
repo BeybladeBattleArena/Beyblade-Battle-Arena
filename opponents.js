@@ -500,9 +500,9 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Skatepark Concrete", stadiumId: "skatepark_fourpockets" }, 
         stats: { 
-            hp: 135, rpm: 1410, attack: 32, defense: 9, stamina: 23, endurance: 14, speed: 16, weight: 64, mobility: 25, grip: 29, balance: 5, recoil: 20, recoilReduction: 5, spiritCharge: 8, cdr: 3 },
-        passives: ["Hyper Aggression"],
-        attacks: [{ name: "Smash Attack", cd: 5 }],
+            hp: 185, rpm: 1430, attack: 34, defense: 9, stamina: 23, endurance: 16, speed: 19, weight: 72, mobility: 14, grip: 18, balance: 20, recoil: 27, recoilReduction: 9, spiritCharge: 8, cdr: 3, lad: 0.4 },
+        passives: ["Bite Point", "Impact Governor", "High Speed Recoil Reduction", "Impact Point", "Relentless"],
+        attacks: [{ name: "Spike Attack", cd: 4 }, { name: "Circle Slash", cd: 7 }],
         ultimate: null, 
         dialogue: [
             "Hey newbie! Nice to meet ya!",
@@ -520,9 +520,9 @@ window.opponentsDB = [
         ],
         aiScript: function(cpu, player, engine) {
             let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
-            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
-            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
-                engine.executeAttack("Smash Attack", cpu, player);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Circle Slash"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 80) {
+                engine.executeAttack("Circle Slash", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
