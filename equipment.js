@@ -1855,7 +1855,8 @@ window.equipmentDB = {
 			spinDirection: "Right",
 			contactTipType: "Integrated",
 			contactTipShape: "Integrated",
-            tags: ["Integrated", "Basic", "Spin", "Right", "High Speed Recoil Reduction"], 
+            tags: ["Integrated", "Basic", "Spin", "Right", "High Speed Recoil Reduction"],
+			allowCustomPalette: true,			
 			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Right_DragoonWhite_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
@@ -2040,7 +2041,8 @@ window.equipmentDB = {
 			spinDirection: "Left",
 			contactTipType: "Integrated",
 			contactTipShape: "Integrated",
-            tags: ["Integrated", "Basic", "Spin", "Left", "High Speed Recoil Reduction"], 
+            tags: ["Integrated", "Basic", "Spin", "Left", "High Speed Recoil Reduction"],
+			allowCustomPalette: true,			
 			fallbackImage: "./images/beyblade_parts/SG/StandardSG_Left_MoonsongStampedeWhite_sideview.png",  
             stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
@@ -2284,6 +2286,14 @@ window.equipmentDB = {
                     styleRarity: 5,
                     image: "./images/beyblade_parts/BB/VolcanoFlatBase_Noxia_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/VolcanoFlatBase_Noxia_topdown.png" 
+                },
+				{ 
+                    styleId: "volcanoflatbase_frontierwhite",
+                    styleName: "Volcano Flat Base White (Frontier)", 
+                    styleColorSample: "#f5f4f7", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/BB/VolcanoFlatBase_FrontierWhite_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/VolcanoFlatBase_FrontierWhite_topdown.png" 
                 },
             ]
 },
@@ -2703,6 +2713,14 @@ window.equipmentDB = {
                     image: "./images/beyblade_parts/BB/ThornBase_Red_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/ThornBase_Red_topdown.png" 
                 },
+				{ 
+                    styleId: "thornbase_ruby",
+                    styleName: "Thorn Base Ruby Red", 
+                    styleColorSample: "#c81013", 
+                    styleRarity: 3,
+                    image: "./images/beyblade_parts/BB/ThornBase_RubyFox_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/ThornBase_RubyFox_topdown.png" 
+                },
             ]
 },
 { 
@@ -2871,6 +2889,38 @@ window.equipmentDB = {
                     styleRarity: 1,
                     image: "./images/beyblade_parts/BB/Basin_SharpBase_Magenta_sideview.png", 
                     topDownImage: "./images/beyblade_parts/BB/Basin_SharpBase_Magenta_topdown.png" 
+                },
+            ]
+},
+{ 
+            id: "bb_22", // Generalized ID
+            name: "Utility Semi-Flat Base", // Generalized Name
+            type: "Blade Base",
+			contactTipType: "Metal",
+			contactTipShape: "Semi-Flat",
+            tags: ["Utility", "Tip", "Metal", "Semi-Flat"], 
+			fallbackImage: "./images/beyblade_parts/BB/SemiFlat_DeltaOrange_sideview.png",  
+            stats: { rpm: 120, speed: 9, defense: 6, attack: 4, grip: 16, balance: 17, stamina: 7, mobility: 5, weight: 15, lad: 0.46 },
+			passives: ["Pace Control", "Ridge Rider"], 
+			attacks: [],
+			
+			//The Array of Unlockable Designs
+            styles: [
+                { 
+                    styleId: "utility_semiflat_white",
+                    styleName: "Utility Semi-Flat Base White (Qilin S)", 
+                    styleColorSample: "#c3cbd3", 
+                    styleRarity: 2,
+                    image: "./images/beyblade_parts/BB/Utility_SemiFlat_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/Utility_SemiFlat_topdown.png" 
+                },
+                { 
+                    styleId: "utility_semiflat_arcticblue",
+                    styleName: "Utility Semi-Flat Base Arctic Blue (Polar Enforcer)", 
+                    styleColorSample: "#8095ba", 
+                    styleRarity: 1,
+                    image: "./images/beyblade_parts/BB/Utility_SemiFlat_Arctic_sideview.png", 
+                    topDownImage: "./images/beyblade_parts/BB/Utility_SemiFlat_Arctic_topdown.png" 
                 },
             ]
 },
