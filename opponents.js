@@ -483,7 +483,7 @@ window.opponentsDB = [
         id: "opp_rhea1",
         name: "Rhea 1",
         portrait: "Rhea.png",
-        dialogueBG: "beystadium_official.png",
+        dialogueBG: "skatepark.png",
         aiType: "STANDARD_AGGRESSIVE",
         beyName: "Ruby Fox",
 		spinDirection: "Right",
