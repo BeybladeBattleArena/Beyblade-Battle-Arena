@@ -216,7 +216,7 @@ window.stadiumsDB = [
                 name: "Head to Head Concrete Arena",
                 size: "average",
                 desc: "A standard-sized stadium found at a skate park in the city. This one is seems to favor head-to-head clashes.",
-                physics: { friction: 0.9825, radiusMod: 0.72 },
+                physics: { friction: 0.9889, radiusMod: 0.72 },
                 ringOutZones: [], 
                 visuals: {
                     // 1:1 perfectly square image!
