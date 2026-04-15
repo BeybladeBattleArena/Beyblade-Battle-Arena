@@ -515,6 +515,34 @@ async function getRecoloredTemplateImage(part) {
         canvas.width = width; canvas.height = height;
         if (gameState === "SELECT_LAUNCH") drawArena(); 
     });
+	
+	
+	function getArenaMetrics() {
+    const cx = width / 2;
+    const cy = height / 2;
+
+    const radiusMod = window.activeStadium?.physics?.radiusMod ?? 0.9;
+    const maxRadius = Math.min(width, height) / 2 * radiusMod;
+
+    const basinPct = window.activeStadium?.physics?.basinRadius ?? 0.3;
+    const rampPct = window.activeStadium?.physics?.rampRadius ?? 0.65;
+
+    const stadiumScale = radiusMod / 0.9;
+
+    return {
+        cx,
+        cy,
+        radiusMod,
+        maxRadius,
+        basinRadius: maxRadius * basinPct,
+        rampRadius: maxRadius * rampPct,
+        stadiumScale
+    };
+}
+
+function scaleStadiumPx(px, stadiumScale) {
+    return px * stadiumScale;
+}
 
     let gameState = "SELECT_LAUNCH"; 
     let p1Score = 0; let cpuScore = 0; let currentRound = 1;
@@ -740,8 +768,7 @@ async function getRecoloredTemplateImage(part) {
 
         spawnBalloons: function(wave) {
             activeBalloons = [];
-            const cx = width / 2; const cy = height / 2;
-            const maxR = Math.min(width, height) / 2 * 0.9;
+            const { cx, cy, maxRadius: maxR } = getArenaMetrics();
             
             if (wave === 1) {
                 activeBalloons.push({ x: cx, y: cy, baseZ: 15 });
@@ -1185,9 +1212,16 @@ function resolvePartImageObj(partData, category) {
     setupLaunchMinigame();
 
     function drawArena() {
-        ctx.clearRect(0, 0, width, height);
-        const cx = width / 2; const cy = height / 2;
-        const maxRadius = Math.min(width, height) / 2 * (window.activeStadium.physics.radiusMod || 0.9); 
+    ctx.clearRect(0, 0, width, height);
+
+    const {
+        cx,
+        cy,
+        maxRadius,
+        basinRadius,
+        rampRadius,
+        stadiumScale
+    } = getArenaMetrics(); 
 
         // ==========================================
         // HELPER 1: Paints Solid Colors or Repeating Textures
@@ -1286,7 +1320,7 @@ function resolvePartImageObj(partData, category) {
             // Draw the rim line around the spinning basin
             ctx.beginPath(); ctx.arc(cx, cy, maxRadius * basinSize, 0, Math.PI * 2); 
             ctx.strokeStyle = window.activeStadium.visuals.lines || '#444';
-            ctx.lineWidth = 2; ctx.stroke();
+            ctx.lineWidth = scaleStadiumPx(2, stadiumScale); ctx.stroke();
         } else if (!window.stadiumImages.floor) {
             fillZone(maxRadius * basinSize, window.activeStadium.visuals.basin, window.stadiumImages.basin);
             ctx.stroke();
@@ -1295,7 +1329,7 @@ function resolvePartImageObj(partData, category) {
         // Draw faint translucent zone lines over the 1:1 art if requested
         if (window.stadiumImages.floor && window.activeStadium.visuals.lines) {
             ctx.beginPath(); ctx.arc(cx, cy, maxRadius * 0.65, 0, Math.PI * 2); 
-            ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = 2; ctx.stroke();
+            ctx.strokeStyle = window.activeStadium.visuals.lines; ctx.lineWidth = scaleStadiumPx(2, stadiumScale); ctx.stroke();
             
             if (!isSpinning) {
                 ctx.beginPath(); ctx.arc(cx, cy, maxRadius * basinSize, 0, Math.PI * 2); ctx.stroke();
@@ -1310,14 +1344,14 @@ function resolvePartImageObj(partData, category) {
         // --- NEW: THE FLOOR TRIM (Baseboard) ---
         // This draws a thin seal slightly inward (radiusOffset: -2) to perfectly bridge the floor and the wall!
         let trimColor = window.activeStadium.visuals.trimColor || wallColor;
-        drawWallSegments(trimColor, 6, -2);
+        drawWallSegments(trimColor, scaleStadiumPx(6, stadiumScale), scaleStadiumPx(-2, stadiumScale));
 
         // Draw the vertical Inner Wall
-        drawWallSegments(wallColor, 8, 2);
+        drawWallSegments(wallColor, scaleStadiumPx(8, stadiumScale), scaleStadiumPx(2, stadiumScale));
 
         // Draw the flat Outer Ledge
         let ledgeColor = window.activeStadium.visuals.ledgeColor || 'transparent';
-        drawWallSegments(ledgeColor, 20, 14);
+        drawWallSegments(ledgeColor, scaleStadiumPx(20, stadiumScale), scaleStadiumPx(14, stadiumScale));
 
         if (gameState === "SELECT_LAUNCH") {
             let launchPct = window.playerMaxLaunchPct || 0.425;
@@ -1400,9 +1434,8 @@ function resolvePartImageObj(partData, category) {
 
 
         if (gameState === "SELECT_LAUNCH") {
-            const cx = width / 2; const cy = height / 2;
-            const maxRadius = Math.min(width, height) / 2 * 0.9; 
-            let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
+            const { cx, cy, maxRadius } = getArenaMetrics();
+			let dist = Math.sqrt((safeX - cx)**2 + (safeY - cy)**2);
             
             if (dist > maxRadius * 0.85) {
                 instruction.innerText = "Aim closer to the inside of the stadium!";
@@ -1959,8 +1992,9 @@ if (
             roundConcluding = false;
             roundConcludeTimer = 0;
             
-            const pStats = calculateStats(playerBuild); const cStats = calculateStats(cpuData);
-            const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
+            const pStats = calculateStats(playerBuild);
+			const cStats = calculateStats(cpuData);
+			const { cx, cy, maxRadius, basinRadius, rampRadius } = getArenaMetrics();
 
             // --- THE FIX: IRONCLAD SAFE NUMBERS (That only apply if your stats are actually 0) ---
             let pMaxHp = safeNum(pStats.hp, 0); if (pMaxHp <= 0) pMaxHp = 1000;
@@ -2565,8 +2599,7 @@ if (
             }
         }
         
-        const cx = width / 2; const cy = height / 2; const maxRadius = Math.min(width, height) / 2 * 0.9;
-        const basinRadius = maxRadius * 0.3; const rampRadius = maxRadius * 0.65;
+        const { cx, cy, maxRadius, basinRadius, rampRadius } = getArenaMetrics();
 
         TutorialManager.update(dt, playerBey, cx, cy);
 		

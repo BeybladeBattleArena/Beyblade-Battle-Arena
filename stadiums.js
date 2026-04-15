@@ -213,10 +213,10 @@ window.stadiumsDB = [
         styles: [
             {
                 stadiumId: "skatepark_nopockets",
-                name: "Lockdown Battle Zone",
+                name: "Head to Head Concrete Arena",
                 size: "average",
                 desc: "A standard-sized stadium found at a skate park in the city. This one is seems to favor head-to-head clashes.",
-                physics: { friction: 0.9825, radiusMod: 0.9 },
+                physics: { friction: 0.9825, radiusMod: 0.72 },
                 ringOutZones: [], 
                 visuals: {
                     // 1:1 perfectly square image!
@@ -230,10 +230,10 @@ window.stadiumsDB = [
             },
 			{
                 stadiumId: "skatepark_fourpockets",
-                name: "Tri-Pocket Battle Zone",
+                name: "Quad-Pocket Concrete Arena",
                 size: "average",
                 desc: "A standard-sized stadium found at a skate park in the city. With four gaps to fall out of, this stadium may prove a bit tricky to navigate.",
-                physics: { friction: 0.95, radiusMod: 0.9 },
+                physics: { friction: 0.95, radiusMod: 0.72 },
                 ringOutZones: [
                     { start: 5.30, end: 5.70 }, // Top Right
                     { start: 0.59, end: 0.99 }, // Bottom Right
