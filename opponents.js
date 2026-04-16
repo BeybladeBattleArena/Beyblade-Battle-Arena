@@ -44,9 +44,9 @@ window.opponentsDB = [
         alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" }, 
         stats: { 
-            hp: 130, rpm: 1220, attack: 21, defense: 12, stamina: 16, endurance: 13, speed: 12, weight: 60, mobility: 10, grip: 24, balance: 11, recoil: 10, recoilReduction: 7, spiritCharge: 5, cdr: 1 },
-        passives: [],
-        attacks: [{ name: "Smash Attack", cd: 5 }],
+            hp: 195, rpm: 1440, attack: 22, defense: 22, stamina: 27, endurance: 23, speed: 5, weight: 67, mobility: 13, grip: 30, balance: 19, recoil: 8, recoilReduction: 16, spiritCharge: 8, cdr: 3, lad: 0.7 },
+        passives: ["Slip Face Edge", "Counterweight Balance", "High Speed Recoil Reduction", "Peak Performance", "Rebound Guard"],
+        attacks: [{ name: "Upper Attack", cd: 6 }, { name: "Concentrate Defense", cd: 7 }],
         ultimate: null, 
         dialogue: [
             "Oh! <player>!",
@@ -55,7 +55,7 @@ window.opponentsDB = [
         winDialogue: [
             "Wh-wha?! I won!?",
             "I mean, I won! Wooooh!",
-			"I'm stronger than I gave myself credit for. Don't take it to heart, okay <player>?"
+			"I'm stronger than I gave myself credit for. Don't take this loss to heart, okay <player>?"
         ],
         loseDialogue: [
             "Hee hee, just goes to show! Practice makes perfect!",
@@ -93,9 +93,9 @@ window.opponentsDB = [
         alwaysUnlocked: true,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" },
         stats: { 
-            hp: 140, rpm: 1250, attack: 21, defense: 15, stamina: 16, endurance: 11, speed: 13, weight: 64, mobility: 11, grip: 12, balance: 13, recoil: 8, recoilReduction: 6, spiritCharge: 5, cdr: 1 },
-        passives: [],
-        attacks: [{ name: "Sharp Shooter", cd: 6 }],
+            hp: 145, rpm: 1480, attack: 27, defense: 20, stamina: 34, endurance: 20, speed: 15, weight: 65, mobility: 7, grip: 5, balance: 18, recoil: 11, recoilReduction: 11, spiritCharge: 8, cdr: 3, lad: 0.1 },
+        passives: ["Recoil Rebounder", "Settled Axis", "High Speed Recoil Reduction", "Critical Counter", "Shell Armor"],
+        attacks: [{ name: "Sharp Shooter", cd: 6 }, { name: "Side Swipe", cd: 6 }],
         ultimate: null, 
         dialogue: [
             "No way I'm losin' to you this time, <player>!",

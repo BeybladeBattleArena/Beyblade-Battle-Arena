@@ -984,8 +984,8 @@ window.equipmentDB = {
 			radius: 16,
 			passivesRight: ["Recoil Rebounder"],
 			passivesLeft: ["Ramping Edge"], 
-			attacksRight: [{ name: "Upper Attack", cd: 5 }, { name: "Lateral Bound", cd: 5 }],
-			attacksLeft: [{ name: "Upper Attack", cd: 5 }, { name: "Side Swipe", cd: 6 }],
+			attacksRight: [{ name: "upper attack", cd: 6 }, { name: "Lateral Bound", cd: 5 }],
+			attacksLeft: [{ name: "upper attack", cd: 6 }, { name: "Side Swipe", cd: 6 }],
 			
 			//The Array of Unlockable Designs
             styles: [
@@ -1858,7 +1858,7 @@ window.equipmentDB = {
             tags: ["Integrated", "Basic", "Spin", "Right", "High Speed Recoil Reduction"],
 			allowCustomPalette: true,			
 			fallbackImage: "./images/beyblade_parts/SG/StandardSpinGear_Right_ColorableTemplate_sideview.png",  
-            stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
+            stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, speed: 1, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
 			
@@ -2052,7 +2052,7 @@ window.equipmentDB = {
             tags: ["Integrated", "Basic", "Spin", "Left", "High Speed Recoil Reduction"],
 			allowCustomPalette: true,			
 			fallbackImage: "./images/beyblade_parts/SG/StandardSpinGear_Left_ColorableTemplate_sideview.png",  
-            stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, weight: 8 },
+            stats: { rpm: 1200, hp: 55, recoilReduction: 2, stamina: 15, endurance: 10, balance: 5, speed: 1, weight: 8 },
 			passives: ["High Speed Recoil Reduction"], 
 			attacks: [],
 			
@@ -2117,7 +2117,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "Dual", "Axis", "Weighted", "Spin", "Right"], 
 			fallbackImage: "./images/beyblade_parts/SG/DualAxisSG_Right_Red_sideview.png",  
-            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 18, endurance: 13, balance: -1, mobility: -1, weight: 12 },
+            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 18, endurance: 13, balance: 1, mobility: -1, weight: 12 },
 			passives: ["Centrifugal Synergy"], 
 			attacks: [],
 			
@@ -2158,7 +2158,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "Dual", "Axis", "Weighted", "Spin", "Left"], 
 			fallbackImage: "./images/beyblade_parts/SG/DualAxisSG_Left_Black_sideview.png",  
-            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 22, endurance: 15, balance: -2, mobility: -1, weight: 12 },
+            stats: { rpm: 1300, hp: 60, recoilReduction: 3, stamina: 18, endurance: 13, balance: 1, mobility: -1, weight: 12 },
 			passives: ["Centrifugal Synergy"], 
 			attacks: [],
 			
@@ -2191,7 +2191,7 @@ window.equipmentDB = {
 			contactTipShape: "Integrated",
             tags: ["Integrated", "G", "Ball", "Ball Defense", "Weighted", "Right"], 
 			fallbackImage: "./images/beyblade_parts/SG/RightSG_G_Ball_sideview_fallback.png",  
-            stats: { rpm: 1200, hp: 50, recoilReduction: 3, stamina: 14, endurance: 14, balance: 1, grip: 1, speed: 1, weight: 11 },
+            stats: { rpm: 1220, hp: 60, recoilReduction: 3, defense: 1, stamina: 14, endurance: 13, speed: 1, weight: 12 },
 			passives: ["Ball Bearing Stabilizer"], 
 			attacks: [],
 			
