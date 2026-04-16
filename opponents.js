@@ -196,9 +196,9 @@ window.opponentsDB = [
         alwaysUnlocked: false,
         arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_threepockets" },
         stats: { 
-            hp: 116, rpm: 1270, attack: 25, defense: 12, stamina: 17, endurance: 14, speed: 12, weight: 61, mobility: 10, grip: 21, balance: 10, recoil: 15, recoilReduction: 5, spiritCharge: 5, cdr: 1 },
-        passives: [],
-        attacks: [{ name: "Smash Attack", cd: 5 }],
+            hp: 165, rpm: 1445, attack: 41, defense: 7, stamina: 23, endurance: 13, speed: 12, weight: 74, mobility: 12, grip: 15, balance: 15, recoil: 21, recoilReduction: 9, spiritCharge: 8, cdr: 3, lad: 0.25 },
+        passives: ["Smash Route", "Counterattack", "Weighted Rage", "Ball Bearing Stabilizer", "Hyper Aggression"],
+        attacks: [{ name: "Smash Attack", cd: 5 }, { name: "Cross Smash", cd: 6 }],
         ultimate: null, 
         dialogue: [
             "Hey! You think your Beyblade has what it takes to beat me?!",
