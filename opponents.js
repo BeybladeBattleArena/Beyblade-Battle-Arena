@@ -63,9 +63,9 @@ window.opponentsDB = [
         ],
         aiScript: function(cpu, player, engine) {
             let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
-            let ramSkill = cpu.activeAttacks.find(a => a.name === "Smash Attack"); // Changed to match his actual attack!
-            if (ramSkill && ramSkill.currentCd <= 0 && dist < 150) {
-                engine.executeAttack("Smash Attack", cpu, player);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Upper Attack"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 140) {
+                engine.executeAttack("Upper Attack", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
@@ -479,7 +479,7 @@ window.opponentsDB = [
         }
     },
 	
-			{
+	{
         id: "opp_rhea1",
         name: "Rhea 1",
         portrait: "Rhea.png",
@@ -523,6 +523,57 @@ window.opponentsDB = [
             let ramSkill = cpu.activeAttacks.find(a => a.name === "Circle Slash"); // Changed to match his actual attack!
             if (ramSkill && ramSkill.currentCd <= 0 && dist < 80) {
                 engine.executeAttack("Circle Slash", cpu, player);
+                let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
+                ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
+            }
+        }
+    },
+	
+	
+	{
+        id: "opp_lynette1",
+        name: "Lynette 1",
+        portrait: "Lynette.png",
+        dialogueBG: "beystadium_park.png",
+        aiType: "STANDARD_AGGRESSIVE",
+        beyName: "Qilin S",
+		spinDirection: "Right",
+        bitBeast: "None",
+		bitChip: { id: "bitchip_standard_template",
+		baseColor: "c3cbd3",
+		midtoneColor: "9da6b4",
+		outlineColor: "8f98a6",		
+		},
+		attackRing: "ar_39",
+		weightDisk: "wd_04",
+		spinGear: { id: "sg_01", styleId: "SG_right_customtemplate" },
+		bladeBase: "bb_22",
+        alwaysUnlocked: false,
+        arenaStyle: { stadiumType: "Park Stadium", stadiumId: "parkstadium_twopockets" }, 
+        stats: { 
+            hp: 170, rpm: 1430, attack: 33, defense: 16, stamina: 29, endurance: 17, speed: 16, weight: 72, mobility: 8, grip: 16, balance: 30, recoil: 17, recoilReduction: 9, spiritCharge: 8, cdr: 3, lad: 0.46 },
+        passives: ["Revengeance", "Counterweight Balance", "High Speed Recoil Reduction", "Pace Control", "Ridge Rider"],
+        attacks: [{ name: "Charge Dash", cd: 8 }, { name: "Lateral Bound", cd: 5 }],
+        ultimate: null, 
+        dialogue: [
+            "Huh? <player>? What are you doing here?",
+			"Oh, I was just practicing my launch technique. Hey, let me show you what I've learned!",
+        ],
+        winDialogue: [
+            "Yay! See how useful proper launch technique is?",
+            "Thank you for a fun battle, <player>! Actually, battling you is even better practice...",
+			"Can we battle again?",
+        ],
+        loseDialogue: [
+            "Qilin--! Oh, darn!", // ADDED COMMA
+            "Hmm... I guess that's your win, <player>. Hehe! Thanks for the practice match!",
+			"If you're not busy, let's have another battle! I feel like I could go all day!",
+        ],
+        aiScript: function(cpu, player, engine) {
+            let dist = Math.sqrt((cpu.x - player.x)**2 + (cpu.y - player.y)**2);
+            let ramSkill = cpu.activeAttacks.find(a => a.name === "Charge Dash"); // Changed to match his actual attack!
+            if (ramSkill && ramSkill.currentCd <= 0 && dist < 160) {
+                engine.executeAttack("Charge Dash", cpu, player);
                 let cdrMod = 1.0 - ((cpu.stats.cdr || 0) / 100);
                 ramSkill.currentCd = ramSkill.baseCd * cdrMod; 
             }
